@@ -1,6 +1,6 @@
 <script setup>
 import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
+import UserList from './components/UserList.vue'
 </script>
 
 <template>
@@ -8,12 +8,13 @@ import TheWelcome from './components/TheWelcome.vue'
     <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
 
     <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+      <HelloWorld msg="LE GOAT" />
     </div>
   </header>
 
   <main>
-    <TheWelcome />
+    <!-- Affichage du composant UserList pour tester la connexion avec l'API Symfony -->
+    <UserList />
   </main>
 </template>
 
