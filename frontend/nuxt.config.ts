@@ -21,5 +21,17 @@ export default defineNuxtConfig({
     public: {
       apiBase: process.env.API_BASE || 'http://localhost/api'
     }
+  },
+  // Configuration du proxy pour faciliter les requêtes API
+  vite: {
+    server: {
+      cors: true,
+      proxy: {
+        '/api': {
+          target: 'http://localhost',
+          changeOrigin: true
+        }
+      }
+    }
   }
 })
