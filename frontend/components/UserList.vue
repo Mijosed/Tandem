@@ -1,9 +1,12 @@
 <script setup>
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
+
 const users = ref([]);
 const loading = ref(true);
 const error = ref(null);
 
-// URL de l'API (assurez-vous que le port correspond à votre configuration)
+// URL directe pour l'API
 const apiUrl = 'http://localhost/api/users';
 
 // Fonction pour récupérer les utilisateurs
@@ -12,23 +15,21 @@ const fetchUsers = async () => {
   error.value = null;
   
   try {
-    const response = await fetch(apiUrl, {
+    const response = await axios.get(apiUrl, {
       headers: {
-        'Accept': 'application/json',
-      }
+        'Accept': 'application/ld+json',
+      },
     });
     
-    if (!response.ok) {
-      throw new Error(`Erreur HTTP: ${response.status}`);
+    // Récupérer les utilisateurs de la réponse
+    if (response.data && response.data.member) {
+      users.value = response.data.member;
+    } else {
+      users.value = [];
     }
     
-    const data = await response.json();
-    // API Platform retourne les données dans la propriété "hydra:member"
-    users.value = data['hydra:member'] || data;
-    console.log('Utilisateurs récupérés:', users.value);
   } catch (err) {
-    error.value = err.message || 'Erreur lors de la récupération des utilisateurs';
-    console.error('Erreur:', error.value);
+    error.value = 'Erreur lors de la récupération des utilisateurs';
   } finally {
     loading.value = false;
   }
@@ -143,4 +144,4 @@ button:hover {
   font-size: 0.8em;
   margin-left: 5px;
 }
-</style> 
+</style>
