@@ -69,7 +69,7 @@ services:
       ADMINER_DESIGN: dark
       ADMINER_DEFAULT_SERVER: database
 
-  # Frontend service (Vue.js)
+  # Frontend service (Nuxt.js)
   frontend:
     image: node:lts-alpine
     working_dir: /app
@@ -77,12 +77,13 @@ services:
       - ./frontend:/app
       - /app/node_modules # Prevent host node_modules from being mounted
     ports:
-      - "${FRONTEND_PORT:-5173}:5173"
+      - "${FRONTEND_PORT:-3000}:3000"
     command: sh -c "npm install && npm run dev"
     environment:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
+      - API_BASE=http://localhost/api
 
 volumes:
   caddy_data:
