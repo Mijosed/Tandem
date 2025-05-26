@@ -40,6 +40,7 @@ onMounted(fetchUsers);
 </script>
 
 <template>
+  
   <div class="user-list">
     <h2>Liste des Utilisateurs</h2>
     

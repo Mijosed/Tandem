@@ -1,18 +1,20 @@
 <template>
   <div>
-    <h1>Bienvenue sur Tandem</h1>
-    <UserList />
+    <HeroSection />
+    <FeaturesSection />
+    <PricingSection />
+    <FAQSection />
+    <JoinSection />
+    <FooterSection />
   </div>
 </template>
 
 <script setup>
-// Le composant UserList sera automatiquement importé par Nuxt.js
+  import HeroSection from '@/components/sections/HeroSection.vue';
+  import FeaturesSection from '~/components/sections/FeaturesSection.vue';
+  import PricingSection from '~/components/sections/PricingSection.vue';
+  import FAQSection from '~/components/sections/FAQSection.vue';
+  import FooterSection from '~/components/sections/FooterSection.vue';
+  import JoinSection from '~/components/sections/JoinSection.vue';
 </script>
 
-<style scoped>
-h1 {
-  text-align: center;
-  margin: 2rem 0;
-  color: #2c3e50;
-}
-</style> 
