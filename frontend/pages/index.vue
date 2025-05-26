@@ -1,10 +1,11 @@
 <template>
   <div>
+    <AppHeader />
     <HeroSection />
     <FeaturesSection />
     <PricingSection />
-    <FAQSection />
     <JoinSection />
+    <FAQSection />
     <FooterSection />
   </div>
 </template>
@@ -16,5 +17,6 @@
   import FAQSection from '~/components/sections/FAQSection.vue';
   import FooterSection from '~/components/sections/FooterSection.vue';
   import JoinSection from '~/components/sections/JoinSection.vue';
+  import AppHeader from '~/components/sections/AppHeader.vue';
 </script>
 

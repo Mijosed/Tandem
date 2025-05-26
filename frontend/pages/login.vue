@@ -1,82 +1,46 @@
+<template>
+  <AppHeader />
+  <div class="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+    <Card class="w-full max-w-md">
+      <CardHeader>
+        <CardTitle>Connexion</CardTitle>
+        <CardDescription>Connectez-vous à votre compte Tandem</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form class="space-y-4">
+          <div>
+            <Label for="email">Adresse email</Label>
+            <Input id="email" type="email" placeholder="exemple@mail.com" class="mt-1" />
+          </div>
+          <div>
+            <Label for="password">Mot de passe</Label>
+            <Input id="password" type="password" placeholder="••••••••" class="mt-1" />
+          </div>
+          <Button type="submit" class="w-full">Se connecter</Button>
+        </form>
+        <p class="text-center text-sm mt-4">Pas encore de compte ?
+          <NuxtLink to="/register" class="text-blue-600 hover:underline">S'inscrire</NuxtLink>
+        </p>
+        <p class="text-center text-sm mt-2">
+          Mot de passe oublié ?
+          <NuxtLink to="/forgot-password" class="text-blue-600 hover:underline">Réinitialiser</NuxtLink>
+        </p>
+      </CardContent>
+    </Card>
+  </div>
+</template>
+
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { Button } from '@/components/ui/button'
 import {
   Card,
-  CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  CardDescription,
+  CardContent
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-
-const email = ref('')
-const password = ref('')
-const errorMsg = ref('')
-const router = useRouter()
-
-const client = useSupabaseClient()
-
-const login = async () => {
-  const { data, error } = await client.auth.signInWithPassword({
-    email: email.value,
-    password: password.value
-  })
-
-  if (error) {
-    errorMsg.value = error.message
-  } else {
-    router.push('/offers')
-  }
-}
+import { NuxtLink } from '#components'
+import AppHeader from '@/components/sections/AppHeader.vue'
 </script>
-
-<template>
-  <Card class="mx-auto max-w-sm">
-    <CardHeader>
-      <CardTitle class="text-2xl">Connexion</CardTitle>
-      <CardDescription>
-        Entrez votre email ci-dessous pour vous connecter à votre compte
-      </CardDescription>
-    </CardHeader>
-    <CardContent>
-      <form @submit.prevent="login" class="grid gap-4">
-        <div class="grid gap-2">
-          <Label for="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="m@example.com"
-            v-model="email"
-            required
-          />
-        </div>
-        <div class="grid gap-2">
-          <div class="flex items-center">
-            <Label for="password">Mot de passe</Label>
-            <RouterLink
-              to="/forgotpassword"
-              class="ml-auto inline-block text-sm underline"
-            >
-              Mot de passe oublié ?
-            </RouterLink>
-          </div>
-          <Input
-            id="password"
-            type="password"
-            v-model="password"
-            required
-          />
-        </div>
-        <Button type="submit" class="w-full bg-[#457891]">Se connecter</Button>
-        <p v-if="errorMsg" class="text-sm text-red-500">{{ errorMsg }}</p>
-      </form>
-      <div class="mt-4 text-center text-sm">
-        Vous n'avez pas de compte ?
-        <RouterLink to="/register" class="underline">Inscrivez-vous</RouterLink>
-      </div>
-    </CardContent>
-  </Card>
-</template>
