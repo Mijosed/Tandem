@@ -15,12 +15,12 @@ export default defineNuxtConfig({
         },
       ],
     },
-    // pageTransition: { 
-    //   name: "page", 
+    // pageTransition: {
+    //   name: "page",
     //   mode: "out-in",
-      
-    // },
 
+    // },
+    layoutTransition: true,
   },
   css: ["/assets/css/main.css"],
   modules: ["@nuxtjs/tailwindcss", "shadcn-nuxt", "nuxt-aos"],
