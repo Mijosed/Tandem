@@ -1,78 +1,46 @@
+<template>
+  <AppHeader />
+  <div class="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+    <Card class="w-full max-w-md">
+      <CardHeader>
+        <CardTitle>Inscription</CardTitle>
+        <CardDescription>Créez un compte Tandem gratuitement</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form class="space-y-4">
+          <div>
+            <Label for="fullname">Nom complet</Label>
+            <Input id="fullname" type="text" placeholder="Jean Dupont" class="mt-1" />
+          </div>
+          <div>
+            <Label for="email">Adresse email</Label>
+            <Input id="email" type="email" placeholder="exemple@mail.com" class="mt-1" />
+          </div>
+          <div>
+            <Label for="password">Mot de passe</Label>
+            <Input id="password" type="password" placeholder="••••••••" class="mt-1" />
+          </div>
+          <Button type="submit" class="w-full">S'inscrire</Button>
+        </form>
+        <p class="text-center text-sm mt-4">Déjà inscrit ?
+          <NuxtLink to="/login" class="text-blue-600 hover:underline">Se connecter</NuxtLink>
+        </p>
+      </CardContent>
+    </Card>
+  </div>
+</template>
+
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { Button } from '@/components/ui/button'
 import {
   Card,
-  CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  CardDescription,
+  CardContent
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-
-const email = ref('')
-const password = ref('')
-const errorMsg = ref('')
-const successMsg = ref('')
-const router = useRouter()
-
-const client = useSupabaseClient()
-
-const signup = async () => {
-  const { data, error } = await client.auth.signUp({
-    email: email.value,
-    password: password.value
-  })
-
-  if (error) {
-    errorMsg.value = error.message
-    successMsg.value = ''
-  } else {
-    successMsg.value = 'Un e-mail de confirmation vous a été envoyé.'
-    errorMsg.value = ''
-  }
-}
+import { NuxtLink } from '#components'
+import AppHeader from '@/components/sections/AppHeader.vue'
 </script>
-
-<template>
-  <Card class="mx-auto max-w-sm">
-    <CardHeader>
-      <CardTitle class="text-2xl">Créer un compte</CardTitle>
-      <CardDescription>
-        Entrez votre email ci-dessous pour créer votre compte
-      </CardDescription>
-    </CardHeader>
-    <CardContent>
-      <form @submit.prevent="signup" class="grid gap-4">
-        <div class="grid gap-2">
-          <Label for="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="m@example.com"
-            v-model="email"
-            required
-          />
-        </div>
-        <div class="grid gap-2">
-          <Label for="password">Mot de passe</Label>
-          <Input
-            id="password"
-            type="password"
-            v-model="password"
-            required
-          />
-        </div>
-        <Button type="submit" class="w-full bg-[#457891]">S'inscrire</Button>
-        <p v-if="errorMsg" class="text-sm text-red-500">{{ errorMsg }}</p>
-        <p v-if="successMsg" class="text-sm text-green-600">{{ successMsg }}</p>
-      </form>
-      <div class="mt-4 text-center text-sm">
-        Vous avez déjà un compte ?
-        <RouterLink to="/login" class="underline">Connectez-vous</RouterLink>
-      </div>
-    </CardContent>
-  </Card>
-</template>
