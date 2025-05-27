@@ -1,19 +1,71 @@
 <template>
   <div class="space-y-4">
-    <div class="flex gap-2 mb-4">
-      <Input v-model="search" placeholder="Rechercher une candidature..." class="max-w-sm">
-        <template #prefix>
-          <Search class="h-4 w-4" />
-        </template>
-      </Input>
-      <Select v-model="statusFilter">
-        <option value="">Tous les statuts</option>
-        <option value="pending">En attente</option>
-        <option value="followed_up">Relancé</option>
-        <option value="interview">Entretien</option>
-        <option value="rejected">Refusé</option>
-        <option value="accepted">Accepté</option>
-      </Select>
+    <!-- Section des filtres -->
+    <div class="flex flex-col gap-4 rounded-lg border p-4 bg-muted/50">
+      <!-- Barre de recherche -->
+      <div class="flex-1">
+        <Input 
+          v-model="search" 
+          placeholder="Rechercher une candidature..." 
+          class="w-full"
+        >
+          <template #prefix>
+            <Search class="h-4 w-4 text-muted-foreground" />
+          </template>
+        </Input>
+      </div>
+
+      <!-- Filtres -->
+      <div class="flex justify-between items-center gap-6">
+        <!-- Statut -->
+        <div class="space-y-2 flex-1">
+          <Label class="text-sm text-muted-foreground font-medium">Statut</Label>
+          <div class="flex flex-wrap gap-4">
+            <div v-for="status in statuses" :key="status.value">
+              <div class="flex items-center space-x-2">
+                <Checkbox
+                  :id="status.value"
+                  :model-value="selectedStatuses.includes(status.value)"
+                  @update:model-value="toggleStatus(status.value)"
+                />
+                <Label :for="status.value" class="flex items-center gap-2 text-sm font-normal cursor-pointer">
+                  <Badge :variant="getStatusVariant(status.value)">{{ status.label }}</Badge>
+                </Label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tri -->
+        <div class="flex items-center gap-4 min-w-[200px]">
+          <Label class="text-sm text-muted-foreground font-medium">Trier par</Label>
+          <div class="flex gap-2">
+            <Select v-model="sortBy">
+              <SelectTrigger class="w-[140px]">
+                <SelectValue placeholder="Trier par..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="date">Date de candidature</SelectItem>
+                <SelectItem value="company">Entreprise</SelectItem>
+                <SelectItem value="position">Poste</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              variant="ghost"
+              size="icon"
+              class="h-10 w-10"
+              @click="sortOrder = sortOrder === 'asc' ? 'desc' : 'asc'"
+            >
+              <ArrowUpDown 
+                :class="[
+                  'h-4 w-4',
+                  sortOrder === 'desc' ? 'rotate-180' : ''
+                ]"
+              />
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="rounded-md border">
@@ -77,12 +129,14 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Search, MoreVertical, Pencil, Bell, CalendarDays, Trash } from 'lucide-vue-next'
+import { Search, MoreVertical, Pencil, Bell, CalendarDays, Trash, ArrowUpDown } from 'lucide-vue-next'
 import { formatDate } from '~/lib/utils'
 import { Input } from '~/components/ui/input'
-import { Select } from '~/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
+import { Label } from '~/components/ui/label'
+import { Checkbox } from '~/components/ui/checkbox'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -100,7 +154,17 @@ import {
 } from '~/components/ui/table'
 
 const search = ref('')
-const statusFilter = ref('')
+const selectedStatuses = ref<string[]>([])
+const sortBy = ref('date')
+const sortOrder = ref<'asc' | 'desc'>('desc')
+
+const statuses = [
+  { value: 'pending', label: 'En attente' },
+  { value: 'followed_up', label: 'Relancé' },
+  { value: 'interview', label: 'Entretien' },
+  { value: 'rejected', label: 'Refusé' },
+  { value: 'accepted', label: 'Accepté' }
+]
 
 const props = defineProps<{
   applications: {
@@ -119,16 +183,47 @@ const emit = defineEmits<{
   (e: 'refresh'): void
 }>()
 
+const toggleStatus = (status: string) => {
+  const index = selectedStatuses.value.indexOf(status)
+  if (index === -1) {
+    selectedStatuses.value.push(status)
+  } else {
+    selectedStatuses.value.splice(index, 1)
+  }
+}
+
 const filteredApplications = computed(() => {
-  return props.applications.filter(app => {
+  let filtered = props.applications.filter(app => {
     const matchesSearch = !search.value || 
       app.position.toLowerCase().includes(search.value.toLowerCase()) ||
       app.company.toLowerCase().includes(search.value.toLowerCase())
     
-    const matchesStatus = !statusFilter.value || app.status === statusFilter.value
+    const matchesStatus = selectedStatuses.value.length === 0 || 
+      selectedStatuses.value.includes(app.status)
     
     return matchesSearch && matchesStatus
   })
+
+  // Tri
+  filtered.sort((a, b) => {
+    let comparison = 0
+    
+    switch (sortBy.value) {
+      case 'date':
+        comparison = new Date(b.applicationDate).getTime() - new Date(a.applicationDate).getTime()
+        break
+      case 'company':
+        comparison = a.company.localeCompare(b.company)
+        break
+      case 'position':
+        comparison = a.position.localeCompare(b.position)
+        break
+    }
+
+    return sortOrder.value === 'asc' ? comparison : -comparison
+  })
+
+  return filtered
 })
 
 const getStatusLabel = (status: string) => {
