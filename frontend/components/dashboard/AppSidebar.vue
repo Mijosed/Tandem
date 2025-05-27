@@ -113,7 +113,7 @@ const userActions = ref([
   <Sidebar v-bind="props">
     <SidebarHeader>
       <div class="flex h-16 items-center px-4">
-        <img src="/assets/images/232064.png" alt="Tandem" class="h-8" />
+        <img src="/public/logo.png" alt="Tandem" class="h-16" />
       </div>
     </SidebarHeader>
     <SidebarContent>

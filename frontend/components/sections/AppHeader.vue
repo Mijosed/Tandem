@@ -1,7 +1,7 @@
 <template>
-    <header class="w-full px-6 py-4 flex justify-between items-center bg-white shadow-sm sticky top-0 z-50">
+    <header class="w-full px-6 py-4 flex justify-between items-center bg-white/90 shadow-sm sticky backdrop-blur-md top-0 z-50">
         <NuxtLink to="/" class="flex items-center gap-2">
-            <h1 class="text-xl font-bold">Tandem</h1>
+            <img src="/public/logo.png" alt="Tandem" class="h-14" />
         </NuxtLink>
       <div class="flex items-center gap-4">
         <template v-if="user">
