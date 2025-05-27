@@ -48,15 +48,20 @@
               class="col-span-3"
             />
           </div>
-          <div class="grid grid-cols-4 items-center gap-4">
-            <Label class="text-right" for="status">Statut</Label>
-            <Select id="status" v-model="form.status" class="col-span-3" required>
-              <option value="pending">En attente</option>
-              <option value="followed_up">Relancé</option>
-              <option value="interview">Entretien</option>
-              <option value="rejected">Refusé</option>
-              <option value="accepted">Accepté</option>
-            </Select>
+          <div class="grid grid-cols-4 items-start gap-4">
+            <Label class="text-right mt-2">Statut</Label>
+            <div class="col-span-3 space-y-3">
+              <RadioGroup v-model="form.status" class="flex flex-wrap gap-4">
+                <div v-for="status in statuses" :key="status.value">
+                  <div class="flex items-center space-x-2">
+                    <RadioGroupItem :value="status.value" :id="'status-' + status.value" />
+                    <Label :for="'status-' + status.value" class="flex items-center gap-2 text-sm font-normal cursor-pointer">
+                      <Badge :variant="getStatusVariant(status.value)">{{ status.label }}</Badge>
+                    </Label>
+                  </div>
+                </div>
+              </RadioGroup>
+            </div>
           </div>
           <div class="grid grid-cols-4 items-center gap-4">
             <Label class="text-right" for="notes">Notes</Label>
@@ -83,7 +88,8 @@ import { ref, watch } from 'vue'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
-import { Select } from '~/components/ui/select'
+import { Badge } from '~/components/ui/badge'
+import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
 import { Textarea } from '~/components/ui/textarea'
 import {
   Dialog,
@@ -112,6 +118,14 @@ const emit = defineEmits<{
   (e: 'save', application: typeof props.application): void
 }>()
 
+const statuses = [
+  { value: 'pending', label: 'En attente' },
+  { value: 'followed_up', label: 'Relancé' },
+  { value: 'interview', label: 'Entretien' },
+  { value: 'rejected', label: 'Refusé' },
+  { value: 'accepted', label: 'Accepté' }
+]
+
 const form = ref({
   position: '',
   company: '',
@@ -125,7 +139,14 @@ const isSubmitting = ref(false)
 
 watch(() => props.application, (newVal) => {
   if (newVal) {
-    form.value = { ...newVal }
+    form.value = {
+      position: newVal.position,
+      company: newVal.company,
+      applicationDate: newVal.applicationDate,
+      interviewDate: newVal.interviewDate || '',
+      status: newVal.status,
+      notes: newVal.notes || ''
+    }
   } else {
     form.value = {
       position: '',
@@ -137,6 +158,17 @@ watch(() => props.application, (newVal) => {
     }
   }
 }, { immediate: true })
+
+const getStatusVariant = (status: string) => {
+  const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+    pending: 'secondary',
+    followed_up: 'outline',
+    interview: 'default',
+    rejected: 'destructive',
+    accepted: 'default'
+  }
+  return variants[status] || 'default'
+}
 
 const handleSubmit = async () => {
   isSubmitting.value = true
