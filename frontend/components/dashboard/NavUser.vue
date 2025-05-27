@@ -27,6 +27,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
+import { NuxtLink } from '#components'
 
 const props = defineProps<{
   user: {
@@ -84,18 +85,24 @@ const { isMobile } = useSidebar()
           
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <DropdownMenuItem>
-              <BadgeCheck />
-              Mon compte
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <CreditCard />
-              Abonnement
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Bell />
-              Notifications
-            </DropdownMenuItem>
+            <NuxtLink to="/dashboard/profile">
+              <DropdownMenuItem>
+                <BadgeCheck class="mr-2 h-4 w-4" />
+                Mon compte
+              </DropdownMenuItem>
+            </NuxtLink>
+            <NuxtLink to="/dashboard/subscription">
+              <DropdownMenuItem>
+                <CreditCard class="mr-2 h-4 w-4" />
+                Abonnement
+              </DropdownMenuItem>
+            </NuxtLink>
+            <NuxtLink to="/dashboard/notifications">
+              <DropdownMenuItem>
+                <Bell class="mr-2 h-4 w-4" />
+                Notifications
+              </DropdownMenuItem>
+            </NuxtLink>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuItem>
