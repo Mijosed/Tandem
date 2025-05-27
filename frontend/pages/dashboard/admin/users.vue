@@ -1,0 +1,77 @@
+<template>
+  <div>
+    <header class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+      <div class="flex items-center gap-2 px-4">
+        <SidebarTrigger class="-ml-1" />
+        <h1 class="text-2xl font-bold">Gestion des utilisateurs</h1>
+      </div>
+    </header>
+
+    <div class="container py-6 px-4">
+      <div class="flex justify-between items-center mb-8">
+        <p class="text-muted-foreground">Gérez les utilisateurs de la plateforme</p>
+      </div>
+
+      <UsersList :users="users" @refresh="loadUsers" />
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { SidebarTrigger } from '~/components/ui/sidebar'
+import UsersList from '~/components/admin/UsersList.vue'
+
+definePageMeta({
+  layout: 'dashboard'
+})
+
+interface User {
+  id: number
+  firstName: string
+  lastName: string
+  email: string
+  role: string
+  isActive: boolean
+  createdAt: string
+}
+
+const users = ref<User[]>([])
+
+const loadUsers = async () => {
+  // TODO: Remplacer par l'appel API réel
+  users.value = [
+    {
+      id: 1,
+      firstName: 'Jean',
+      lastName: 'Dupont',
+      email: 'jean.dupont@example.com',
+      role: 'ROLE_ADMIN',
+      isActive: true,
+      createdAt: '2025-05-20'
+    },
+    {
+      id: 2,
+      firstName: 'Marie',
+      lastName: 'Martin',
+      email: 'marie.martin@example.com',
+      role: 'ROLE_USER',
+      isActive: true,
+      createdAt: '2025-05-15'
+    },
+    {
+      id: 3,
+      firstName: 'Pierre',
+      lastName: 'Bernard',
+      email: 'pierre.bernard@example.com',
+      role: 'ROLE_PREMIUM',
+      isActive: false,
+      createdAt: '2025-05-10'
+    }
+  ]
+}
+
+onMounted(() => {
+  loadUsers()
+})
+</script>
