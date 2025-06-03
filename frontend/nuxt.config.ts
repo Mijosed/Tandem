@@ -15,29 +15,22 @@ export default defineNuxtConfig({
         },
       ],
     },
-    // pageTransition: {
-    //   name: "page",
-    //   mode: "out-in",
-
-    // },
     layoutTransition: true,
   },
   css: ["/assets/css/main.css"],
-  modules: ["@nuxtjs/tailwindcss", "shadcn-nuxt", "nuxt-aos"],
+  modules: [
+    "@nuxtjs/tailwindcss",
+    "shadcn-nuxt",
+    "nuxt-aos",
+    "@pinia/nuxt",
+  ],
   shadcn: {
-    /**
-     * Prefix for all the imported component
-     */
     prefix: "",
-    /**
-     * Directory that the component lives in.
-     * @default "./components/ui"
-     */
     componentDir: "./components/ui",
   },
   runtimeConfig: {
     public: {
-      apiBase: process.env.API_BASE || "http://localhost/api",
+      apiBaseUrl: process.env.API_BASE_URL || "http://localhost/api",
     },
   },
   // Configuration du proxy pour faciliter les requêtes API
@@ -47,38 +40,50 @@ export default defineNuxtConfig({
       cors: true,
       proxy: {
         "/api": {
-          target: "http://localhost",
+          target: "http://backend:8000",
           changeOrigin: true,
         },
       },
+      watch: {
+        usePolling: true
+      },
+      hmr: {
+        protocol: 'ws',
+        host: '0.0.0.0',
+        port: 24678,
+      }
     },
+    optimizeDeps: {
+      include: [
+        'class-variance-authority',
+        'clsx',
+        'tailwind-merge',
+        'lucide-vue-next'
+      ]
+    }
   },
-
+  nitro: {
+    preset: 'node'
+  },
   aos: {
-    // Global settings:
-    disable: false, // accepts following values: 'phone', 'tablet', 'mobile', boolean, expression or function
-    startEvent: "DOMContentLoaded", // name of the event dispatched on the document, that AOS should initialize on
-    initClassName: "aos-init", // class applied after initialization
-    animatedClassName: "aos-animate", // class applied on animation
-    useClassNames: false, // if true, will add content of `data-aos` as classes on scroll
-    disableMutationObserver: false, // disables automatic mutations' detections (advanced)
-    debounceDelay: 50, // the delay on debounce used while resizing window (advanced)
-    throttleDelay: 99, // the delay on throttle used while scrolling the page (advanced)
-
-    // Settings that can be overridden on per-element basis, by `data-aos-*` attributes:
-    offset: 120, // offset (in px) from the original trigger point
-    delay: 0, // values from 0 to 3000, with step 50ms
-    duration: 400, // values from 0 to 3000, with step 50ms
-    easing: "ease", // default easing for AOS animations
-    once: false, // whether animation should happen only once - while scrolling down
-    mirror: false, // whether elements should animate out while scrolling past them
-    anchorPlacement: "top-bottom", // defines which position of the element regarding to window should trigger the animation
+    disable: false,
+    startEvent: "DOMContentLoaded",
+    initClassName: "aos-init",
+    animatedClassName: "aos-animate",
+    useClassNames: false,
+    disableMutationObserver: false,
+    debounceDelay: 50,
+    throttleDelay: 99,
+    offset: 120,
+    delay: 0,
+    duration: 400,
+    easing: "ease",
+    once: false,
+    mirror: false,
+    anchorPlacement: "top-bottom",
   },
   devServer: {
     host: '0.0.0.0',
     port: 3000
-  },
-  nitro: {
-    preset: 'node'
   }
 });

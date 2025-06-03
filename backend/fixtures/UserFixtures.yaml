@@ -1,5 +1,0 @@
-App\Entity\User:
-  user_test:
-    email: 'test@user.fr'
-    roles: ['ROLE_USER']
-    password: <hashedPassword('test1234')>

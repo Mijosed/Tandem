@@ -7,16 +7,35 @@
         <CardDescription>Connectez-vous à votre compte Tandem</CardDescription>
       </CardHeader>
       <CardContent>
-        <form class="space-y-4">
+        <form @submit.prevent="handleSubmit" class="space-y-4">
           <div>
             <Label for="email">Adresse email</Label>
-            <Input id="email" type="email" placeholder="exemple@mail.com" class="mt-1" />
+            <Input 
+              id="email" 
+              type="email" 
+              placeholder="exemple@mail.com" 
+              class="mt-1"
+              v-model="formData.email"
+              required
+            />
           </div>
           <div>
             <Label for="password">Mot de passe</Label>
-            <Input id="password" type="password" placeholder="••••••••" class="mt-1" />
+            <Input 
+              id="password" 
+              type="password" 
+              placeholder="••••••••" 
+              class="mt-1"
+              v-model="formData.password"
+              required
+            />
           </div>
-          <Button type="submit" class="w-full">Se connecter</Button>
+          <div v-if="error" class="text-red-500 text-sm">
+            {{ error }}
+          </div>
+          <Button type="submit" class="w-full" :disabled="loading">
+            {{ loading ? 'Connexion en cours...' : 'Se connecter' }}
+          </Button>
         </form>
         <p class="text-center text-sm mt-4">Pas encore de compte ?
           <NuxtLink to="/register" class="text-blue-600 hover:underline">S'inscrire</NuxtLink>
@@ -43,4 +62,30 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { NuxtLink } from '#components'
 import AppHeader from '@/components/sections/AppHeader.vue'
+import { ref } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import { navigateTo } from '#app'
+
+const authStore = useAuthStore()
+
+const formData = ref({
+  email: '',
+  password: ''
+})
+
+const error = ref('')
+const loading = ref(false)
+
+const handleSubmit = async () => {
+  try {
+    loading.value = true
+    error.value = ''
+    await authStore.login(formData.value)
+    await navigateTo('/')
+  } catch (err: any) {
+    error.value = err.message || 'Une erreur est survenue lors de la connexion'
+  } finally {
+    loading.value = false
+  }
+}
 </script>
