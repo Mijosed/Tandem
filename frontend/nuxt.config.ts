@@ -4,10 +4,10 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: [
     "@nuxt/image",
-    "shadcn-nuxt",
     "@nuxt/icon",
     "@pinia/nuxt",
-    "@nuxtjs/tailwindcss"
+    "@nuxtjs/tailwindcss",
+    "shadcn-nuxt"
   ],
   css: ["~/assets/css/main.css"],
   build: {
@@ -20,7 +20,7 @@ export default defineNuxtConfig({
       stripe: {
         publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
       }
-    },
+        },
   },
   shadcn: {
     prefix: "",
