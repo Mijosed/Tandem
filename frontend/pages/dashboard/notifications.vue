@@ -4,88 +4,71 @@
       <div class="flex items-center gap-2 px-4">
         <SidebarTrigger class="-ml-1" />
         <h1 class="text-2xl font-bold">Notifications</h1>
+        <Badge v-if="unreadCount > 0" variant="destructive" class="ml-2">
+          {{ unreadCount }} non lu{{ unreadCount > 1 ? 's' : '' }}
+        </Badge>
+        <Badge v-if="isConnected" variant="secondary" class="ml-2">
+          <div class="flex items-center gap-1">
+            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+            Connecté
+          </div>
+        </Badge>
       </div>
     </header>
 
     <div class="container py-6 px-4">
       <div class="flex justify-between items-center mb-6">
         <p class="text-muted-foreground">Gérez vos notifications</p>
-        <Button variant="outline" @click="markAllAsRead" :disabled="!hasUnreadNotifications">
-          <CheckCheck class="mr-2 h-4 w-4" />
-          Tout marquer comme lu
-        </Button>
+        <div class="flex gap-2">
+          <Button variant="outline" @click="createTestNotification" :disabled="!isConnected">
+            <Bell class="mr-2 h-4 w-4" />
+            Test notification
+          </Button>
+          <Button variant="outline" @click="markAllAsRead" :disabled="!hasUnreadNotifications">
+            <CheckCheck class="mr-2 h-4 w-4" />
+            Tout marquer comme lu
+          </Button>
+        </div>
       </div>
 
-      <NotificationsList :notifications="notifications" @update="handleUpdate" />
+      <NotificationsList 
+        :notifications="notifications" 
+        @mark-as-read="markAsRead"
+        @create="createNotification" 
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { CheckCheck } from 'lucide-vue-next'
+import { computed } from 'vue'
+import { CheckCheck, Bell } from 'lucide-vue-next'
 import { Button } from '~/components/ui/button'
+import { Badge } from '~/components/ui/badge'
 import NotificationsList from '~/components/notifications/NotificationsList.vue'
 import { SidebarTrigger } from '~/components/ui/sidebar'
+import { useMercure } from '~/composables/useMercure'
 
 definePageMeta({
   layout: 'dashboard'
 })
 
-interface Notification {
-  id: number
+const {
+  notifications,
+  unreadCount,
+  isConnected,
+  markAsRead,
+  markAllAsRead,
+  createTestNotification
+} = useMercure()
+
+const hasUnreadNotifications = computed(() => unreadCount.value > 0)
+
+const createNotification = async (data: {
   title: string
   message: string
   type: 'reminder' | 'interview' | 'info'
-  date: string
-  read: boolean
+}) => {
+  await createTestNotification(data)
 }
-
-const notifications = ref<Notification[]>([
-  {
-    id: 1,
-    title: "Rappel de relance",
-    message: "N'oubliez pas de relancer Tech Corp concernant votre candidature",
-    type: "reminder",
-    date: "2025-05-28",
-    read: false
-  },
-  {
-    id: 2,
-    title: "Entretien à venir",
-    message: "Entretien technique prévu demain avec Web Agency",
-    type: "interview",
-    date: "2025-05-28",
-    read: false
-  },
-  {
-    id: 3,
-    title: "Candidature vue",
-    message: "Votre candidature chez Digital Solutions a été consultée",
-    type: "info",
-    date: "2025-05-26",
-    read: true
-  }
-])
-
-const hasUnreadNotifications = computed(() => 
-  notifications.value.some(notification => !notification.read)
-)
-
-const markAllAsRead = () => {
-  notifications.value = notifications.value.map(notification => ({
-    ...notification,
-    read: true
-  }))
-}
-
-const handleUpdate = (updatedNotification: Notification) => {
-  notifications.value = notifications.value.map(notification =>
-    notification.id === updatedNotification.id ? updatedNotification : notification
-  )
-}
-
-onMounted(() => {
-  // TODO: Charger les notifications depuis l'API
-})
 </script>

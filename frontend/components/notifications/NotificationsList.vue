@@ -131,7 +131,7 @@
                   {{ notification.message }}
                 </p>
                 <p class="text-xs text-muted-foreground">
-                  {{ formatDate(notification.date) }}
+                  {{ formatDate(notification.createdAt) }}
                 </p>
               </div>
             </div>
@@ -173,11 +173,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~
 import NotificationForm from './NotificationForm.vue'
 
 interface Notification {
-  id: string
+  id: number
   type: 'reminder' | 'interview' | 'info'
   title: string
   message: string
-  date: Date
+  createdAt: string
   read: boolean
 }
 
@@ -186,8 +186,8 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  'mark-as-read': [id: string]
-  'create': [notification: Omit<Notification, 'id' | 'date' | 'read'>]
+  'mark-as-read': [id: number]
+  'create': [notification: Omit<Notification, 'id' | 'createdAt' | 'read'>]
 }>()
 
 // État des filtres
@@ -224,11 +224,11 @@ const setReadStatus = (status: string) => {
   selectedStatus.value = status
 }
 
-const markAsRead = (id: string) => {
+const markAsRead = (id: number) => {
   emit('mark-as-read', id)
 }
 
-const createNotification = (data: Omit<Notification, 'id' | 'date' | 'read'>) => {
+const createNotification = (data: Omit<Notification, 'id' | 'createdAt' | 'read'>) => {
   emit('create', data)
 }
 
@@ -245,7 +245,7 @@ const getNotificationIcon = (type: Notification['type']) => {
   }
 }
 
-const formatDate = (date: Date) => {
+const formatDate = (date: string) => {
   return new Intl.DateTimeFormat('fr-FR', {
     dateStyle: 'long',
     timeStyle: 'short'
@@ -285,7 +285,7 @@ const filteredNotifications = computed(() => {
     
     switch (sortBy.value) {
       case 'date':
-        comparison = new Date(b.date).getTime() - new Date(a.date).getTime()
+        comparison = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         break
       case 'type':
         comparison = a.type.localeCompare(b.type)

@@ -28,6 +28,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { NuxtLink } from '#components'
+import { useMercure } from '~/composables/useMercure'
 
 const props = defineProps<{
   user: {
@@ -38,6 +39,7 @@ const props = defineProps<{
 }>()
 
 const { isMobile } = useSidebar()
+const { unreadCount } = useMercure()
 </script>
 
 <template>
@@ -98,9 +100,12 @@ const { isMobile } = useSidebar()
               </DropdownMenuItem>
             </NuxtLink>
             <NuxtLink to="/dashboard/notifications">
-              <DropdownMenuItem>
+              <DropdownMenuItem @click="navigateTo('/dashboard/notifications')">
                 <Bell class="mr-2 h-4 w-4" />
                 Notifications
+                <Badge v-if="unreadCount > 0" variant="destructive" class="ml-auto">
+                  {{ unreadCount }}
+                </Badge>
               </DropdownMenuItem>
             </NuxtLink>
           </DropdownMenuGroup>

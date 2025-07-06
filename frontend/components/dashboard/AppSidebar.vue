@@ -24,6 +24,8 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar'
 
+import { useMercure } from '~/composables/useMercure'
+
 const props = withDefaults(defineProps<SidebarProps>(), {
   collapsible: 'icon',
 })
@@ -35,6 +37,8 @@ const user = ref({
   email: 'john.doe@mail.com',
   avatar: '/avatars/shadcn.jpg',
 })
+
+const { unreadCount } = useMercure()
 
 const navigationGroups = ref([
   {
@@ -63,6 +67,7 @@ const navigationGroups = ref([
         url: '/dashboard/notifications',
         icon: Bell,
         isActive: computed(() => route.path === '/dashboard/notifications'),
+        badge: computed(() => unreadCount.value > 0 ? unreadCount.value.toString() : undefined),
       },
     ],
   },

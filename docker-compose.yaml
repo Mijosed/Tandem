@@ -48,14 +48,30 @@ services:
       - ./backend:/var/www/backend
     environment:
       - DATABASE_URL=postgresql://symfony:symfony@db:5432/symfony
+      - MERCURE_URL=http://mercure:3000/.well-known/mercure
+      - MERCURE_PUBLIC_URL=http://localhost:3000/.well-known/mercure
     command: sh -c "composer install && symfony server:start --port=8000 --allow-http --no-tls --listen-ip=0.0.0.0"
     ports:
       - "8000:8000"
     depends_on:
       - db
+      - mercure
     networks:
       - app-network
 
+  mercure:
+    image: dunglas/mercure
+    container_name: mercure
+    command: >
+      sh -c "
+        echo 'MERCURE_PUBLISHER_JWT_KEY=!ChangeThisMercureHubJWTSecretKey!' > /opt/caddy/Caddyfile.env &&
+        echo 'MERCURE_SUBSCRIBER_JWT_KEY=!ChangeThisMercureHubJWTSecretKey!' >> /opt/caddy/Caddyfile.env &&
+        /opt/caddy/caddy run --config /opt/caddy/Caddyfile
+      "
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
 
   db:
     image: postgres:16
