@@ -1,11 +1,11 @@
 <template>
   <div>
-    <header class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-      <div class="flex items-center gap-2 px-4">
-        <SidebarTrigger class="-ml-1" />
-        <h1 class="text-2xl font-bold">Abonnement</h1>
-      </div>
-    </header>
+          <header class="flex h-16 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear">
+        <div class="flex items-center gap-2 px-4">
+          <SidebarTrigger v-if="isMobile" class="-ml-1" />
+          <h1 class="text-2xl font-bold">Abonnement</h1>
+        </div>
+      </header>
 
     <div class="container py-6 px-4">
       <!-- État de l'abonnement -->
@@ -189,6 +189,7 @@ import { ref } from 'vue'
 import { formatDate } from '~/lib/utils'
 import { Crown, BadgeCheck, Check, Download, Loader2 } from 'lucide-vue-next'
 import { SidebarTrigger } from '~/components/ui/sidebar'
+import { useMediaQuery } from '@vueuse/core'
 import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
 import {
@@ -219,6 +220,9 @@ import {
 definePageMeta({
   layout: 'dashboard'
 })
+
+// Détection mobile pour afficher conditionnellement le SidebarTrigger
+const isMobile = useMediaQuery('(max-width: 768px)')
 
 // Mock data
 const subscription = ref({

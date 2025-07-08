@@ -1,11 +1,11 @@
 <template>
   <div>
-    <header class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-      <div class="flex items-center gap-2 px-4">
-        <SidebarTrigger class="-ml-1" />
-        <h1 class="text-2xl font-bold">Mes candidatures</h1>
-      </div>
-    </header>
+          <header class="flex h-16 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear">
+        <div class="flex items-center gap-2 px-4">
+          <SidebarTrigger v-if="isMobile" class="-ml-1" />
+          <h1 class="text-2xl font-bold">Mes candidatures</h1>
+        </div>
+      </header>
 
     <div class="container py-6 px-4">
       <div class="flex justify-between items-center mb-8">
@@ -33,10 +33,14 @@ import { Button } from '~/components/ui/button'
 import ApplicationsList from '~/components/applications/ApplicationsList.vue'
 import ApplicationDialog from '~/components/applications/ApplicationDialog.vue'
 import { SidebarTrigger } from '~/components/ui/sidebar'
+import { useMediaQuery } from '@vueuse/core'
 
 definePageMeta({
   layout: 'dashboard'
 })
+
+// Détection mobile pour afficher conditionnellement le SidebarTrigger
+const isMobile = useMediaQuery('(max-width: 768px)')
 
 interface Application {
   id?: number
