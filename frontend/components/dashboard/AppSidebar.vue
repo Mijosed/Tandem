@@ -2,6 +2,8 @@
 import type { SidebarProps } from '@/components/ui/sidebar'
 import { ref, computed } from 'vue'
 import { useRoute } from '#app'
+import { useMediaQuery } from '@vueuse/core'
+
 
 import {
   LayoutDashboard,
@@ -24,8 +26,12 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar'
 
+// Détection responsive pour adapter le comportement de la sidebar
+const isMobile = useMediaQuery('(max-width: 768px)')
+const collapsibleMode = computed(() => isMobile.value ? 'offcanvas' : 'none')
+
 const props = withDefaults(defineProps<SidebarProps>(), {
-  collapsible: 'icon',
+  collapsible: 'offcanvas',
 })
 
 const route = useRoute()
@@ -33,7 +39,7 @@ const route = useRoute()
 const user = ref({
   name: 'John Doe',
   email: 'john.doe@mail.com',
-  avatar: '/avatars/shadcn.jpg',
+  avatar: '/logo.png',
 })
 
 const navigationGroups = ref([
@@ -110,10 +116,10 @@ const userActions = ref([
 </script>
 
 <template>
-  <Sidebar v-bind="props">
+  <Sidebar v-bind="{ ...props, collapsible: collapsibleMode }">
     <SidebarHeader>
       <div class="flex h-16 items-center px-4">
-        <img src="/public/logo.png" alt="Tandem" class="h-16" />
+        <img src="/logo.png" alt="Tandem" class="h-16" />
       </div>
     </SidebarHeader>
     <SidebarContent>

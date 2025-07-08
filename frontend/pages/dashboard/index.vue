@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { SidebarTrigger } from '~/components/ui/sidebar'
 import { ref, onMounted } from 'vue'
+import { useMediaQuery } from '@vueuse/core'
 import { 
   BriefcaseIcon, 
   CalendarDaysIcon, 
@@ -36,7 +37,17 @@ const quotes = [
   "Chaque expert était d'abord un débutant.",
   "L'éducation est l'arme la plus puissante pour changer le monde."
 ]
-const todaysQuote = ref(quotes[Math.floor(Math.random() * quotes.length)])
+
+// Utiliser une citation basée sur la date pour éviter l'erreur d'hydratation
+const todaysQuote = ref('')
+onMounted(() => {
+  // Générer un index basé sur le jour de l'année pour avoir une citation constante par jour
+  const now = new Date()
+  const start = new Date(now.getFullYear(), 0, 0)
+  const diff = now.getTime() - start.getTime()
+  const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24))
+  todaysQuote.value = quotes[dayOfYear % quotes.length]
+})
 
 // Statistiques
 const stats = ref({
@@ -57,13 +68,16 @@ const today = new Date().toLocaleDateString('fr-FR', {
   day: 'numeric'
 })
 
+// Détection mobile pour afficher conditionnellement le SidebarTrigger
+const isMobile = useMediaQuery('(max-width: 768px)')
+
 </script>
 
 <template>
   <div>
     <header class="flex h-16 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear">
       <div class="flex items-center gap-2 px-4">
-        <SidebarTrigger class="-ml-1" />
+        <SidebarTrigger v-if="isMobile" class="-ml-1" />
         <h1 class="text-2xl font-bold">Tableau de bord</h1>
       </div>
     </header>

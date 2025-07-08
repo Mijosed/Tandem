@@ -1,3 +1,9 @@
+<script setup>
+definePageMeta({
+  layout: 'dashboard'
+})
+</script>
+
 <script>
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
@@ -5,6 +11,7 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import { SidebarTrigger } from '~/components/ui/sidebar'
 import { Button } from '~/components/ui/button'
+import { useMediaQuery } from '@vueuse/core'
 import { Plus } from 'lucide-vue-next'
 import {
   Dialog,
@@ -17,11 +24,12 @@ import {
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 
-definePageMeta({
-  layout: 'dashboard'
-})
-
 export default {
+  setup() {
+    // Détection mobile pour afficher conditionnellement le SidebarTrigger
+    const isMobile = useMediaQuery('(max-width: 768px)')
+    return { isMobile }
+  },
   components: {
     FullCalendar,
     SidebarTrigger,
@@ -115,10 +123,10 @@ export default {
 
 <template>
   <div>
-    <header class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+    <header class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear">
       <div class="flex items-center gap-2 px-4">
-        <SidebarTrigger class="-ml-1" />
-        <h1 class="text-2xl font-bold">Planning</h1>
+                 <SidebarTrigger v-if="isMobile" class="-ml-1" />
+          <h1 class="text-2xl font-bold">Planning</h1>
       </div>
     </header>
 
