@@ -1,18 +1,61 @@
-Pour exécuter une commande toujours mettre avant :
-docker compose exec [service](backend, frontend..) + commande
+# Tandem - Plateforme de Mise en Relation
 
-Exemples : 
+## 🚀 Installation rapide
 
+### Prérequis
+- Docker & Docker Compose
+- Node.js (pour le développement frontend)
+
+### 1. Cloner le projet
+```bash
+git clone [votre-repo]
+cd Tandem
+```
+
+### 2. Installation des dépendances frontend
+```bash
+cd frontend
+npm install
+cd ..
+```
+
+### 3. Lancer l'application
+```bash
+docker-compose up --build
+```
+
+## 📚 URLs de développement
+
+- **Frontend** : http://localhost:3000
+- **API Platform** : http://localhost:8000/api/docs.html  
+- **Adminer** : http://localhost:8080
+
+## 🗄️ Base de données
+
+Connexion à la base données via Adminer :
+- **Système** : PostgreSQL
+- **Serveur** : database 
+- **User** : app
+- **Password** : !ChangeMe!
+
+## ⚙️ Commandes utiles
+
+Pour exécuter une commande dans un container :
+```bash
+docker compose exec [service] [commande]
+```
+
+Exemples :
+```bash
+# Charger les fixtures
 docker compose exec backend bin/console hautelook:fixtures:load 
-docker compose exec frontend npm install framer 
 
+# Installer un package frontend
+docker compose exec frontend npm install [package]
+```
 
-Frontend : http://localhost:3000
-Adminer : http://localhost:8080
-API Platform : http://localhost/api/docs.html
+## 🛠️ Développement
 
-Connexion à la base données : 
-Systeme : PostgreSql
-Serveur : database 
-User : app
-Password :!ChangeMe!
+Si vous avez des erreurs de modules manquants :
+1. Vérifiez que `npm install` a été fait dans `/frontend`
+2. Relancez `docker-compose up --build`
