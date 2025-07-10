@@ -7,7 +7,9 @@ export default defineNuxtConfig({
     "@nuxt/icon",
     "@pinia/nuxt",
     "@nuxtjs/tailwindcss",
-    "shadcn-nuxt"
+    "shadcn-nuxt",
+    "@nuxt/content",
+    
   ],
   css: ["~/assets/css/main.css"],
   build: {
