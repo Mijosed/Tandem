@@ -68,7 +68,7 @@
             <div class="hidden sm:flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-sm border">
               <span class="w-2 h-2 bg-green-500 rounded-full"></span>
               <span class="text-sm font-medium text-gray-700">
-                {{ posts?.length || 0 }} articles disponibles
+                {{ filteredPosts.length }} articles trouvés
               </span>
             </div>
           </div>
@@ -78,6 +78,7 @@
             <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl blur opacity-20 group-hover:opacity-30 transition-opacity"></div>
             <div class="relative bg-white rounded-xl shadow-lg border border-gray-200">
               <input 
+                v-model="searchQuery"
                 type="text" 
                 placeholder="Rechercher un article..." 
                 class="pl-12 pr-6 py-3 bg-transparent border-none outline-none w-80 placeholder-gray-500"
@@ -89,10 +90,60 @@
           </div>
         </div>
 
+        <!-- Filtres par catégorie -->
+        <div class="mb-8">
+          <div class="flex flex-wrap gap-3">
+            <button 
+              @click="selectedCategory = null"
+              :class="[
+                'px-6 py-3 rounded-full font-medium transition-all duration-300 border-2',
+                selectedCategory === null 
+                  ? 'bg-blue-600 text-white border-blue-600 shadow-lg' 
+                  : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:text-blue-600'
+              ]"
+            >
+              Tous les articles
+            </button>
+            <button 
+              @click="selectedCategory = 'alternance'"
+              :class="[
+                'px-6 py-3 rounded-full font-medium transition-all duration-300 border-2',
+                selectedCategory === 'alternance' 
+                  ? 'bg-blue-600 text-white border-blue-600 shadow-lg' 
+                  : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:text-blue-600'
+              ]"
+            >
+              Alternance
+            </button>
+            <button 
+              @click="selectedCategory = 'conseil'"
+              :class="[
+                'px-6 py-3 rounded-full font-medium transition-all duration-300 border-2',
+                selectedCategory === 'conseil' 
+                  ? 'bg-blue-600 text-white border-blue-600 shadow-lg' 
+                  : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:text-blue-600'
+              ]"
+            >
+              Conseil
+            </button>
+            <button 
+              @click="selectedCategory = 'entreprise'"
+              :class="[
+                'px-6 py-3 rounded-full font-medium transition-all duration-300 border-2',
+                selectedCategory === 'entreprise' 
+                  ? 'bg-blue-600 text-white border-blue-600 shadow-lg' 
+                  : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:text-blue-600'
+              ]"
+            >
+              Entreprise
+            </button>
+          </div>
+        </div>
+
         <!-- Grille d'articles -->
-        <div v-if="posts && posts.length > 0" class="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+        <div v-if="paginatedPosts.length > 0" class="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
           <article 
-            v-for="(post, index) in posts" 
+            v-for="(post, index) in paginatedPosts" 
             :key="post.id" 
             class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden transform hover:-translate-y-2"
             :style="{ animationDelay: `${index * 100}ms` }"
@@ -117,20 +168,13 @@
               <!-- Badge de catégorie -->
               <div class="absolute top-4 left-4">
                 <span class="bg-white/95 backdrop-blur-sm text-gray-800 px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg">
-                  {{ post.tags?.[0] || 'Article' }}
+                  {{ post.category || 'Article' }}
                 </span>
               </div>
-              
-              
             </div>
 
             <!-- Contenu de l'article -->
             <div class="p-8">
-              <!-- Métadonnées -->
-              <div class="flex items-center gap-4 text-sm text-gray-500 mb-4">
-                
-              </div>
-
               <!-- Titre -->
               <h3 class="text-xl font-bold text-gray-900 mb-4 line-clamp-2 group-hover:text-blue-600 transition-colors leading-tight">
                 <NuxtLink :to="`/blog/${post.path}`">
@@ -142,8 +186,6 @@
               <p class="text-gray-600 mb-6 line-clamp-3 leading-relaxed">
                 {{ post.description }}
               </p>
-
-             
 
               <!-- Bouton Lire plus -->
               <NuxtLink 
@@ -168,16 +210,78 @@
               </svg>
             </div>
             <h3 class="text-2xl font-bold text-gray-900 mb-3">Aucun article trouvé</h3>
-            <p class="text-gray-600 mb-8">Nous travaillons sur de nouveaux contenus passionnants. Revenez bientôt !</p>
+            <p class="text-gray-600 mb-8">
+              {{ searchQuery || selectedCategory 
+                ? 'Aucun article ne correspond à vos critères de recherche.' 
+                : 'Nous travaillons sur de nouveaux contenus passionnants. Revenez bientôt !' 
+              }}
+            </p>
             <div class="flex justify-center gap-4">
-              <button class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
-                Actualiser
+              <button 
+                @click="clearFilters"
+                class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                Effacer les filtres
               </button>
               <button class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium">
                 Nous contacter
               </button>
             </div>
           </div>
+        </div>
+
+        <!-- Pagination -->
+        <div v-if="totalPages > 1" class="mt-12 flex justify-center">
+          <nav class="flex items-center gap-2">
+            <!-- Bouton précédent -->
+            <button 
+              @click="currentPage--"
+              :disabled="currentPage === 1"
+              :class="[
+                'px-4 py-2 rounded-lg font-medium transition-all duration-300',
+                currentPage === 1
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-white text-gray-700 hover:bg-blue-50 hover:text-blue-600 border border-gray-200'
+              ]"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+              </svg>
+            </button>
+
+            <!-- Pages -->
+            <template v-for="page in visiblePages" :key="page">
+              <button 
+                v-if="typeof page === 'number'"
+                @click="currentPage = page"
+                :class="[
+                  'px-4 py-2 rounded-lg font-medium transition-all duration-300',
+                  currentPage === page
+                    ? 'bg-blue-600 text-white shadow-lg'
+                    : 'bg-white text-gray-700 hover:bg-blue-50 hover:text-blue-600 border border-gray-200'
+                ]"
+              >
+                {{ page }}
+              </button>
+              <span v-else class="px-2 py-2 text-gray-400">...</span>
+            </template>
+
+            <!-- Bouton suivant -->
+            <button 
+              @click="currentPage++"
+              :disabled="currentPage === totalPages"
+              :class="[
+                'px-4 py-2 rounded-lg font-medium transition-all duration-300',
+                currentPage === totalPages
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-white text-gray-700 hover:bg-blue-50 hover:text-blue-600 border border-gray-200'
+              ]"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </button>
+          </nav>
         </div>
 
         <!-- Newsletter -->
@@ -222,6 +326,95 @@
 
 <script setup lang="ts">
 const { data: posts } = await useAsyncData('blog', () => queryCollection('blog').all())
+
+// État réactif
+const searchQuery = ref('')
+const selectedCategory = ref<string | null>(null)
+const currentPage = ref(1)
+const itemsPerPage = 9
+
+// Filtrage des articles
+const filteredPosts = computed(() => {
+  let filtered = posts.value || []
+  
+  // Filtre par catégorie
+  if (selectedCategory.value) {
+    filtered = filtered.filter(post => post.category === selectedCategory.value)
+  }
+  
+  // Filtre par recherche
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    filtered = filtered.filter(post => 
+      post.title.toLowerCase().includes(query) ||
+      post.description.toLowerCase().includes(query)
+    )
+  }
+  
+  return filtered
+})
+
+// Pagination
+const totalPages = computed(() => Math.ceil(filteredPosts.value.length / itemsPerPage))
+
+const paginatedPosts = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  const end = start + itemsPerPage
+  return filteredPosts.value.slice(start, end)
+})
+
+// Pages visibles pour la pagination
+const visiblePages = computed(() => {
+  const pages = []
+  const total = totalPages.value
+  const current = currentPage.value
+  
+  if (total <= 7) {
+    // Si moins de 7 pages, afficher toutes
+    for (let i = 1; i <= total; i++) {
+      pages.push(i)
+    }
+  } else {
+    // Toujours afficher la première page
+    pages.push(1)
+    
+    if (current > 4) {
+      pages.push('...')
+    }
+    
+    // Pages autour de la page courante
+    const start = Math.max(2, current - 1)
+    const end = Math.min(total - 1, current + 1)
+    
+    for (let i = start; i <= end; i++) {
+      pages.push(i)
+    }
+    
+    if (current < total - 3) {
+      pages.push('...')
+    }
+    
+    // Toujours afficher la dernière page
+    if (total > 1) {
+      pages.push(total)
+    }
+  }
+  
+  return pages
+})
+
+// Fonction pour effacer les filtres
+const clearFilters = () => {
+  searchQuery.value = ''
+  selectedCategory.value = null
+  currentPage.value = 1
+}
+
+// Réinitialiser la page quand les filtres changent
+watch([searchQuery, selectedCategory], () => {
+  currentPage.value = 1
+})
+
 import FooterSection from '~/components/sections/FooterSection.vue';
 import AppHeader from '~/components/sections/AppHeader.vue';
 </script>
