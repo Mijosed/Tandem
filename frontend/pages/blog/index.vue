@@ -128,22 +128,7 @@
             <div class="p-8">
               <!-- Métadonnées -->
               <div class="flex items-center gap-4 text-sm text-gray-500 mb-4">
-                <div class="flex items-center gap-2">
-                  <div class="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                    <span class="text-white text-xs font-bold">{{ post.author?.charAt(0) || 'A' }}</span>
-                  </div>
-                  <span class="font-medium">{{ post.author }}</span>
-                </div>
-                <div class="flex items-center gap-1">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                  </svg>
-                  <span>{{ new Date(post.date).toLocaleDateString('fr-FR', { 
-                    year: 'numeric', 
-                    month: 'short', 
-                    day: 'numeric' 
-                  }) }}</span>
-                </div>
+                
               </div>
 
               <!-- Titre -->
@@ -158,19 +143,7 @@
                 {{ post.description }}
               </p>
 
-              <!-- Tags -->
-              <div class="flex flex-wrap gap-2 mb-6">
-                <span 
-                  v-for="tag in post.tags?.slice(0, 2)" 
-                  :key="tag"
-                  class="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full text-xs font-medium hover:bg-blue-100 hover:text-blue-700 transition-colors"
-                >
-                  #{{ tag }}
-                </span>
-                <span v-if="post.tags && post.tags.length > 2" class="text-gray-400 text-xs flex items-center">
-                  +{{ post.tags.length - 2 }}
-                </span>
-              </div>
+             
 
               <!-- Bouton Lire plus -->
               <NuxtLink 
@@ -253,32 +226,4 @@ import FooterSection from '~/components/sections/FooterSection.vue';
 import AppHeader from '~/components/sections/AppHeader.vue';
 </script>
 
-<style scoped>
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
 
-.line-clamp-3 {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* Animation d'entrée pour les cartes */
-article {
-  animation: fadeInUp 0.6s ease-out forwards;
-  opacity: 0;
-  transform: translateY(30px);
-}
-
-@keyframes fadeInUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-</style>

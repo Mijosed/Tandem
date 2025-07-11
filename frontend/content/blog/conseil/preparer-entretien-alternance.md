@@ -5,7 +5,8 @@ date: 2025-01-25
 author: "Équipe Tandem"
 tags: ["alternance", "entretien", "conseils", "preparation"]
 cover: "/images/blog/interview-preparation.jpg"
-path: "preparer-entretien-alternance"
+path: "conseil/preparer-entretien-alternance"
+category: "conseil"
 ---
 
 # Comment préparer un entretien d'alternance : Guide complet
