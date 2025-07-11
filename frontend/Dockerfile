@@ -1,10 +1,14 @@
-# Dockerfile pour Nuxt.js
-FROM node:20-alpine
+FROM node:22-slim
 
 # Définir le répertoire de travail
 WORKDIR /app
 
-# Copier package.json et package-lock.json (si disponible)
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY package*.json ./
 
 # Installer les dépendances
