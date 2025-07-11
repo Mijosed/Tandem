@@ -1,11 +1,9 @@
 ---
 title: "Les meilleurs outils pour organiser vos candidatures d'alternance"
 description: "Découvrez nos recommandations d'outils et méthodes pour organiser efficacement votre recherche d'alternance et ne rien manquer."
-date: 2025-02-10
-author: "Équipe Tandem"
-tags: ["alternance", "organisation", "outils", "productivite", "candidatures"]
 cover: "/images/blog/organization-tools.jpg"
-path: "outils-organisation-candidatures"
+path: "alternance/outils-organisation-candidatures"
+category: "alternance"
 ---
 
 # Les meilleurs outils pour organiser vos candidatures d'alternance

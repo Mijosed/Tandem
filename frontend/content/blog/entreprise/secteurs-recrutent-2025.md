@@ -5,7 +5,8 @@ date: 2025-01-30
 author: "Équipe Tandem"
 tags: ["alternance", "emploi", "secteurs", "2025", "tendances"]
 cover: "/images/blog/recruiting-sectors.jpg"
-path: "secteurs-recrutent-2025"
+path: "entreprise/secteurs-recrutent-2025"
+category: "entreprise"
 ---
 
 # Les secteurs qui recrutent en alternance en 2025
