@@ -70,7 +70,7 @@ services:
       - tandem-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.symfony.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.symfony.rule=PathPrefix(`/api`) || PathPrefix(`/bundles`)"
       - "traefik.http.services.symfony.loadbalancer.server.port=80"
       - "traefik.http.routers.symfony.entrypoints=web"
 
@@ -92,7 +92,7 @@ services:
       - tandem-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.nuxt.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.nuxt.rule=PathPrefix(`/`) && !PathPrefix(`/api`, `/bundles`)"
       - "traefik.http.services.nuxt.loadbalancer.server.port=3000"
       - "traefik.http.routers.nuxt.entrypoints=web"
 
