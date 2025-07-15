@@ -8,6 +8,7 @@ export default defineNuxtConfig({
     "@pinia/nuxt",
     "@nuxtjs/tailwindcss",
     "shadcn-nuxt",
+    "@nuxt/content",
   ],
   css: ["~/assets/css/main.css"],
   build: {
