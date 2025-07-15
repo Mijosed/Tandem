@@ -9,26 +9,29 @@ export default defineNuxtConfig({
     "@nuxtjs/tailwindcss",
     "shadcn-nuxt",
     "@nuxt/content",
-    
   ],
   css: ["~/assets/css/main.css"],
   build: {
     transpile: ["cookie"],
   },
+  devServer: {
+    host: "0.0.0.0",
+    port: 3000,
+  },
   runtimeConfig: {
     public: {
       // 🔽 Ajout pour que Nuxt parle au backend Symfony
-      apiBase: process.env.API_BASE || "http://backend:8000/api",
+      apiBase: process.env.API_BASE || "http://localhost:8888/api",
       stripe: {
         publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
-      }
-        },
+      },
+    },
   },
   shadcn: {
     prefix: "",
     componentDir: "./components/ui",
   },
   typescript: {
-    strict: true
-  }
-})
+    strict: true,
+  },
+});
