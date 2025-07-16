@@ -19,6 +19,7 @@
     "@nuxt/icon": "^1.15.0",
     "@nuxt/image": "^1.9.0",
     "@nuxtjs/tailwindcss": "^6.12.1",
+    "@openmost/nuxt-matomo": "^2.0.2",
     "@pinia/nuxt": "^0.11.1",
     "@stripe/stripe-js": "^7.3.0",
     "@tanstack/vue-table": "^8.21.3",
