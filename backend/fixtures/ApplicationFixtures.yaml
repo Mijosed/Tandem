@@ -1,0 +1,27 @@
+App\Entity\Application:
+  application_1:
+    user: '@user_test'
+    job: '@job_dev'
+    appliedAt: <dateTimeBetween('-1 week', 'now')>
+    status: 'pending'
+    coverLetter: 'Candidature envoyée avec CV et lettre de motivation'
+    resumePath: '/uploads/resumes/user_test_resume.pdf'
+    updatedAt: <dateTimeBetween('-1 day', 'now')>
+
+  application_2:
+    user: '@user_test'
+    job: '@job_designer'
+    appliedAt: <dateTimeBetween('-2 weeks', 'now')>
+    status: 'interview'
+    coverLetter: 'Entretien prévu la semaine prochaine'
+    resumePath: '/uploads/resumes/user_test_resume.pdf'
+    updatedAt: <dateTimeBetween('-1 day', 'now')>
+
+  application_3:
+    user: '@user_recruiter'
+    job: '@job_manager'
+    appliedAt: <dateTimeBetween('-1 month', 'now')>
+    status: 'rejected'
+    coverLetter: 'Réponse négative reçue'
+    resumePath: '/uploads/resumes/user_recruiter_resume.pdf'
+    updatedAt: <dateTimeBetween('-1 week', 'now')>

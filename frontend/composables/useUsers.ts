@@ -1,53 +1,57 @@
 export const useUsers = () => {
-  const config = useRuntimeConfig();
-  
-  // Interface pour typer un utilisateur (mise à jour selon votre API)
+  const { get, post, put, patch, delete: del } = useApi()
+
+  // Types pour les utilisateurs
   interface User {
-    "@id"?: string;
-    "@type"?: string;
-    id: number;
-    email: string;
-    roles?: string[];
-    name?: string;
-    createdAt?: string;
+    '@id': string
+    '@type': string
+    '@context': string
+    id: number
+    email: string
+    roles: string[]
+    // Ajoutez d'autres propriétés selon votre entité User
   }
 
-  // Fonction pour récupérer tous les utilisateurs
-  const getAllUsers = async (): Promise<User[]> => {
-    try {
-      // Utiliser le proxy configuré dans nuxt.config.ts au lieu de l'URL complète
-      const response = await $fetch('/api/users', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        server: true, // ✅ Exécuter côté serveur pour SSR (plus rapide)
-        key: 'users-list' // ✅ Cache la requête
-      });
-      
-      console.log('Réponse API complète:', response); // 🔍 Debug
-      
-      // Gérer le format de réponse d'API Platform Symfony
-      if (response && response.member && Array.isArray(response.member)) {
-        console.log('Utilisateurs trouvés:', response.member.length); // 🔍 Debug
-        return response.member;
-      } else if (Array.isArray(response)) {
-        return response;
-      } else if (response && response.data && Array.isArray(response.data)) {
-        return response.data;
-      } else if (response && response.users && Array.isArray(response.users)) {
-        return response.users;
-      } else {
-        console.warn('Format de réponse inattendu:', response);
-        return [];
-      }
-    } catch (error) {
-      console.error('Erreur lors de la récupération des utilisateurs:', error);
-      throw error;
-    }
-  };
+  interface UserCollection {
+    '@context': string
+    '@id': string
+    '@type': string
+    'hydra:member': User[]
+    'hydra:totalItems': number
+    'hydra:view'?: any
+    'hydra:search'?: any
+  }
+
+  // Récupérer tous les utilisateurs
+  const getUsers = async (): Promise<UserCollection> => {
+    return await get<UserCollection>('/users')
+  }
+
+  // Récupérer un utilisateur par ID
+  const getUser = async (id: number): Promise<User> => {
+    return await get<User>(`/users/${id}`)
+  }
+
+  // Créer un nouvel utilisateur
+  const createUser = async (userData: Partial<User>): Promise<User> => {
+    return await post<User>('/users', userData)
+  }
+
+  // Mettre à jour un utilisateur
+  const updateUser = async (id: number, userData: Partial<User>): Promise<User> => {
+    return await put<User>(`/users/${id}`, userData)
+  }
+
+  // Supprimer un utilisateur
+  const deleteUser = async (id: number): Promise<void> => {
+    return await del<void>(`/users/${id}`)
+  }
 
   return {
-    getAllUsers,
-  };
-}; 
+    getUsers,
+    getUser,
+    createUser,
+    updateUser,
+    deleteUser,
+  }
+} 
