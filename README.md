@@ -59,3 +59,9 @@ docker compose exec frontend npm install [package]
 Si vous avez des erreurs de modules manquants :
 1. Vérifiez que `npm install` a été fait dans `/frontend`
 2. Relancez `docker-compose up --build`
+
+
+## 🗃️ Initialisation de la base de données
+docker exec php php bin/console doctrine:database:create --if-not-exists
+docker exec php php bin/console doctrine:migrations:migrate --no-interaction
+docker exec php php bin/console hautelook:fixtures:load --no-interaction
