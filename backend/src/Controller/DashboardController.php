@@ -3,10 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Entity\Application;
+use App\Entity\Candidature;
 use App\Entity\Notification;
 use App\Entity\ScheduleEvent;
-use App\Repository\ApplicationRepository;
+use App\Repository\CandidatureRepository;
 use App\Repository\NotificationRepository;
 use App\Repository\ScheduleEventRepository;
 use App\Repository\UserRepository;
@@ -21,7 +21,7 @@ class DashboardController extends AbstractController
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private ApplicationRepository $applicationRepository,
+        private CandidatureRepository $candidatureRepository,
         private NotificationRepository $notificationRepository,
         private ScheduleEventRepository $scheduleEventRepository,
         private UserRepository $userRepository
@@ -36,10 +36,10 @@ class DashboardController extends AbstractController
         }
 
         // Statistiques des candidatures
-        $applicationStats = $this->applicationRepository->getApplicationsStats($userId);
+        $candidatureStats = $this->candidatureRepository->getCandidaturesStats($userId);
         
         // Prochains entretiens
-        $upcomingInterviews = $this->applicationRepository->findUpcomingInterviews($userId);
+        $upcomingInterviews = $this->candidatureRepository->findUpcomingInterviews($userId);
         
         // Notifications non lues
         $unreadNotifications = $this->notificationRepository->countUnread($userId);
@@ -52,17 +52,17 @@ class DashboardController extends AbstractController
 
         // Calcul du taux de réponse (simulation)
         $responseRate = 0;
-        if ($applicationStats['total'] > 0) {
-            $responses = $applicationStats['interview'] + $applicationStats['accepted'] + $applicationStats['rejected'];
-            $responseRate = round(($responses / $applicationStats['total']) * 100, 1);
+        if ($candidatureStats['total'] > 0) {
+            $responses = $candidatureStats['interview'] + $candidatureStats['accepted'] + $candidatureStats['rejected'];
+            $responseRate = round(($responses / $candidatureStats['total']) * 100, 1);
         }
 
         return $this->json([
-            'applications' => $applicationStats['total'],
+            'Candidatures' => $candidatureStats['total'],
             'upcomingInterviews' => count($upcomingInterviews),
             'messages' => $unreadNotifications,
             'responseRate' => $responseRate,
-            'pendingResponses' => $applicationStats['pending'] + $applicationStats['followed_up'],
+            'pendingResponses' => $candidatureStats['pending'] + $candidatureStats['followed_up'],
             'todayEvents' => count($todayEvents),
             'upcomingEvents' => array_map(function($event) {
                 return [
@@ -72,14 +72,14 @@ class DashboardController extends AbstractController
                     'type' => $event->getType()
                 ];
             }, $upcomingEvents),
-            'applicationsByStatus' => $applicationStats,
-            'recentInterviews' => array_map(function($application) {
+            'CandidaturesByStatus' => $candidatureStats,
+            'recentInterviews' => array_map(function($Candidature) {
                 return [
-                    'id' => $application->getId(),
-                    'position' => $application->getPosition(),
-                    'company' => $application->getCompany(),
-                    'interviewDate' => $application->getInterviewDate()?->format('Y-m-d H:i:s'),
-                    'status' => $application->getStatus()
+                    'id' => $Candidature->getId(),
+                    'position' => $Candidature->getPosition(),
+                    'company' => $Candidature->getCompany(),
+                    'interviewDate' => $Candidature->getInterviewDate()?->format('Y-m-d H:i:s'),
+                    'status' => $Candidature->getStatus()
                 ];
             }, array_slice($upcomingInterviews, 0, 3))
         ]);
@@ -94,26 +94,26 @@ class DashboardController extends AbstractController
         }
 
         // Récupérer les activités récentes
-        $recentApplications = $this->applicationRepository->findByUser($userId);
+        $recentCandidatures = $this->candidatureRepository->findByUser($userId);
         $recentNotifications = $this->notificationRepository->findByUser($userId, false);
         $recentEvents = $this->scheduleEventRepository->findByUser($userId);
 
         // Limiter aux 10 plus récents
-        $recentApplications = array_slice($recentApplications, 0, 5);
+        $recentCandidatures = array_slice($recentCandidatures, 0, 5);
         $recentNotifications = array_slice($recentNotifications, 0, 5);
         $recentEvents = array_slice($recentEvents, 0, 5);
 
         return $this->json([
-            'applications' => array_map(function($app) {
+            'Candidatures' => array_map(function($app) {
                 return [
                     'id' => $app->getId(),
                     'position' => $app->getPosition(),
                     'company' => $app->getCompany(),
                     'status' => $app->getStatus(),
-                    'applicationDate' => $app->getApplicationDate()->format('Y-m-d'),
+                    'CandidatureDate' => $app->getCandidatureDate()->format('Y-m-d'),
                     'updatedAt' => $app->getUpdatedAt()->format('Y-m-d H:i:s')
                 ];
-            }, $recentApplications),
+            }, $recentCandidatures),
             'notifications' => array_map(function($notif) {
                 return [
                     'id' => $notif->getId(),
@@ -148,8 +148,8 @@ class DashboardController extends AbstractController
         $action = $data['action'] ?? null;
 
         switch ($action) {
-            case 'quick_application':
-                return $this->createQuickApplication($user, $data);
+            case 'quick_Candidature':
+                return $this->createQuickCandidature($user, $data);
             case 'quick_reminder':
                 return $this->createQuickReminder($user, $data);
             case 'mark_notifications_read':
@@ -159,30 +159,30 @@ class DashboardController extends AbstractController
         }
     }
 
-    private function createQuickApplication(User $user, array $data): JsonResponse
+    private function createQuickCandidature(User $user, array $data): JsonResponse
     {
         if (!isset($data['position'], $data['company'])) {
             return $this->json(['error' => 'Position et entreprise requises'], 400);
         }
 
-        $application = new Application();
-        $application->setUser($user);
-        $application->setPosition($data['position']);
-        $application->setCompany($data['company']);
-        $application->setApplicationDate(new \DateTime());
-        $application->setStatus('pending');
+        $Candidature = new Candidature();
+        $Candidature->setUser($user);
+        $Candidature->setPosition($data['position']);
+        $Candidature->setCompany($data['company']);
+        $Candidature->setCandidatureDate(new \DateTime());
+        $Candidature->setStatus('pending');
 
-        $this->entityManager->persist($application);
+        $this->entityManager->persist($Candidature);
         $this->entityManager->flush();
 
         return $this->json([
             'message' => 'Candidature créée avec succès',
-            'application' => [
-                'id' => $application->getId(),
-                'position' => $application->getPosition(),
-                'company' => $application->getCompany(),
-                'status' => $application->getStatus(),
-                'applicationDate' => $application->getApplicationDate()->format('Y-m-d')
+            'Candidature' => [
+                'id' => $Candidature->getId(),
+                'position' => $Candidature->getPosition(),
+                'company' => $Candidature->getCompany(),
+                'status' => $Candidature->getStatus(),
+                'CandidatureDate' => $Candidature->getCandidatureDate()->format('Y-m-d')
             ]
         ]);
     }

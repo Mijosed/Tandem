@@ -54,9 +54,9 @@ const navigationGroups = ref([
       },
       {
         title: 'Candidatures',
-        url: '/dashboard/applications',
+        url: '/dashboard/candidatures',
         icon: Briefcase,
-        isActive: computed(() => route.path === '/dashboard/applications'),
+        isActive: computed(() => route.path === '/dashboard/candidatures'),
       },
       {
         title: 'Emploi du temps',

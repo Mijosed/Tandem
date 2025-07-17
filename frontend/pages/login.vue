@@ -127,8 +127,11 @@ const handleSubmit = async () => {
 
     success.value = 'Connexion réussie ! Redirection...'
     
-    // Ici vous pouvez stocker les informations de l'utilisateur (token, données utilisateur)
-    // Par exemple dans un store Pinia ou localStorage
+    // Sauvegarder les données utilisateur dans le localStorage
+    if (result.user) {
+      localStorage.setItem('user', JSON.stringify(result.user))
+      localStorage.setItem('isLoggedIn', 'true')
+    }
     
     // Réinitialiser le formulaire
     form.value = {

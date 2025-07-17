@@ -78,8 +78,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['user:read', 'user:write'])]
     private bool $isActive = true;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Application::class, orphanRemoval: true)]
-    private Collection $applications;
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Candidature::class, orphanRemoval: true)]
+    private Collection $candidatures;
 
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Notification::class, orphanRemoval: true)]
     private Collection $notifications;
@@ -103,7 +103,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function __construct()
     {
-        $this->applications = new ArrayCollection();
+        $this->candidatures = new ArrayCollection();
         $this->notifications = new ArrayCollection();
         $this->scheduleEvents = new ArrayCollection();
         $this->payments = new ArrayCollection();
@@ -220,29 +220,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * @return Collection<int, Application>
+     * @return Collection<int, Candidature>
      */
-    public function getApplications(): Collection
+    public function getCandidatures(): Collection
     {
-        return $this->applications;
+        return $this->candidatures;
     }
 
-    public function addApplication(Application $application): static
+    public function addCandidature(Candidature $Candidature): static
     {
-        if (!$this->applications->contains($application)) {
-            $this->applications->add($application);
-            $application->setUser($this);
+        if (!$this->candidatures->contains($Candidature)) {
+            $this->candidatures->add($Candidature);
+            $Candidature->setUser($this);
         }
 
         return $this;
     }
 
-    public function removeApplication(Application $application): static
+    public function removeCandidature(Candidature $Candidature): static
     {
-        if ($this->applications->removeElement($application)) {
+        if ($this->candidatures->removeElement($Candidature)) {
             // set the owning side to null (unless already changed)
-            if ($application->getUser() === $this) {
-                $application->setUser(null);
+            if ($Candidature->getUser() === $this) {
+                $Candidature->setUser(null);
             }
         }
 

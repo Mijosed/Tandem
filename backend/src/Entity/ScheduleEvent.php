@@ -82,10 +82,10 @@ class ScheduleEvent
     #[Groups(['schedule:read'])]
     private ?User $user = null;
 
-    #[ORM\ManyToOne(targetEntity: Application::class)]
+    #[ORM\ManyToOne(targetEntity: Candidature::class)]
     #[ORM\JoinColumn(nullable: true)]
     #[Groups(['schedule:read', 'schedule:write'])]
-    private ?Application $application = null;
+    private ?Candidature $Candidature = null;
 
     #[ORM\Column(type: 'datetime')]
     #[Groups(['schedule:read'])]
@@ -205,14 +205,14 @@ class ScheduleEvent
         return $this;
     }
 
-    public function getApplication(): ?Application
+    public function getCandidature(): ?Candidature
     {
-        return $this->application;
+        return $this->Candidature;
     }
 
-    public function setApplication(?Application $application): static
+    public function setCandidature(?Candidature $Candidature): static
     {
-        $this->application = $application;
+        $this->Candidature = $Candidature;
         return $this;
     }
 
