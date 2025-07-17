@@ -1,0 +1,27 @@
+App\Entity\Notification:
+  notification_1:
+    user: '@user_test'
+    title: "Nouvelle candidature"
+    message: "Votre candidature a ete envoyee avec succes."
+    type: "info"
+    is_read: false
+    created_at: <dateTimeBetween('-1 day', 'now')>
+    updated_at: <dateTimeBetween('-1 day', 'now')>
+
+  notification_2:
+    user: '@user_test'
+    title: "Entretien programme"
+    message: "Votre entretien est prevu demain a 14h."
+    type: "reminder"
+    is_read: false
+    created_at: <dateTimeBetween('-1 hour', 'now')>
+    updated_at: <dateTimeBetween('-1 hour', 'now')>
+
+  notification_3:
+    user: '@user_admin'
+    title: "Nouveau utilisateur"
+    message: "Un nouvel utilisateur s'est inscrit."
+    type: "info"
+    is_read: true
+    created_at: <dateTimeBetween('-2 days', 'now')>
+    updated_at: <dateTimeBetween('-1 day', 'now')>

@@ -1,5 +1,30 @@
 App\Entity\User:
+  user_admin:
+    email: 'admin@tandem.com'
+    firstName: 'Admin'
+    lastName: 'Tandem'
+    roles: ['ROLE_ADMIN']
+    password: <hashedPassword('password123')>
+    isActive: true
+    createdAt: <dateTimeBetween('-1 week', 'now')>
+    updatedAt: <dateTimeBetween('-1 day', 'now')>
+
   user_test:
     email: 'test@user.fr'
+    firstName: 'Test'
+    lastName: 'User'
     roles: ['ROLE_USER']
     password: <hashedPassword('test1234')>
+    isActive: true
+    createdAt: <dateTimeBetween('-1 week', 'now')>
+    updatedAt: <dateTimeBetween('-1 day', 'now')>
+
+  user_recruiter:
+    email: 'recruiter@tandem.com'
+    firstName: 'Recruiter'
+    lastName: 'Company'
+    roles: ['ROLE_RECRUITER']
+    password: <hashedPassword('password123')>
+    isActive: true
+    createdAt: <dateTimeBetween('-1 week', 'now')>
+    updatedAt: <dateTimeBetween('-1 day', 'now')>

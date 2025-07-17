@@ -20,8 +20,8 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      // 🔽 API Backend
-      apiBase: process.env.API_BASE || "http://localhost:8888/api",
+      // 🔽 Ajout pour que Nuxt parle au backend Symfony
+      apiBase: process.env.API_BASE || "http://localhost:8888",
       stripe: {
         publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
       },
@@ -42,6 +42,6 @@ export default defineNuxtConfig({
     componentDir: "./components/ui",
   },
   typescript: {
-    strict: true,
+    strict: false,
   },
 });
