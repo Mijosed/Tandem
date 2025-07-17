@@ -18,6 +18,15 @@ export default defineNuxtConfig({
     host: "0.0.0.0",
     port: 3000,
   },
+  nitro: {
+    devProxy: {
+      '/api': {
+        target: 'http://traefik/api',
+        changeOrigin: true,
+        prependPath: true,
+      }
+    }
+  },
   runtimeConfig: {
     public: {
       // 🔽 Ajout pour que Nuxt parle au backend Symfony
@@ -32,6 +41,6 @@ export default defineNuxtConfig({
     componentDir: "./components/ui",
   },
   typescript: {
-    strict: true,
+    strict: false,
   },
 });

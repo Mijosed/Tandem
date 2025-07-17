@@ -1,0 +1,39 @@
+App\Entity\Job:
+  job_dev:
+    title: 'Développeur Full Stack'
+    company: 'TechCorp'
+    location: 'Paris'
+    type: 'CDI'
+    salaryMin: 45000
+    salaryMax: 55000
+    description: 'Nous recherchons un développeur full stack expérimenté pour rejoindre notre équipe dynamique.'
+    indeedJobKey: 'job1_tech_corp'
+    isPremium: false
+    createdAt: <dateTimeBetween('-1 month', 'now')>
+    updatedAt: <dateTimeBetween('-1 week', 'now')>
+
+  job_designer:
+    title: 'UI/UX Designer'
+    company: 'DesignStudio'
+    location: 'Lyon'
+    type: 'CDI'
+    salaryMin: 35000
+    salaryMax: 45000
+    description: 'Poste de designer UI/UX pour créer des interfaces utilisateur modernes et intuitives.'
+    indeedJobKey: 'job2_design_studio'
+    isPremium: true
+    createdAt: <dateTimeBetween('-2 weeks', 'now')>
+    updatedAt: <dateTimeBetween('-1 day', 'now')>
+
+  job_manager:
+    title: 'Chef de Projet'
+    company: 'ManageCorp'
+    location: 'Toulouse'
+    type: 'CDI'
+    salaryMin: 50000
+    salaryMax: 60000
+    description: 'Nous cherchons un chef de projet expérimenté pour piloter nos projets digitaux.'
+    indeedJobKey: 'job3_manage_corp'
+    isPremium: false
+    createdAt: <dateTimeBetween('-1 week', 'now')>
+    updatedAt: <dateTimeBetween('-1 day', 'now')>
