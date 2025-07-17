@@ -178,4 +178,9 @@ class Subscription
         $this->updatedAt = $updatedAt;
         return $this;
     }
+
+    public function isPremium(): bool
+    {
+        return $this->plan === 'premium' && $this->status === 'active';
+    }
 }
