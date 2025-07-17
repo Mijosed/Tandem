@@ -18,19 +18,10 @@ export default defineNuxtConfig({
     host: "0.0.0.0",
     port: 3000,
   },
-  nitro: {
-    devProxy: {
-      '/api': {
-        target: 'http://traefik/api',
-        changeOrigin: true,
-        prependPath: true,
-      }
-    }
-  },
   runtimeConfig: {
     public: {
       // 🔽 Ajout pour que Nuxt parle au backend Symfony
-      apiBase: process.env.API_BASE || "http://localhost:8888/api",
+      apiBase: process.env.API_BASE || "http://localhost:8888",
       stripe: {
         publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
       },

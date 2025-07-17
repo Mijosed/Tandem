@@ -89,7 +89,8 @@ class AuthController extends AbstractController
     #[Route('/login', name: 'login', methods: ['POST'])]
     public function login(Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
+        $rawContent = $request->getContent();
+        $data = json_decode($rawContent, true);
 
         if (!$data || !isset($data['email'], $data['password'])) {
             return $this->json(['error' => 'Email et mot de passe requis'], 400);
@@ -108,7 +109,12 @@ class AuthController extends AbstractController
             return $this->json(['error' => 'Compte désactivé'], 401);
         }
 
-        $subscription = $this->subscriptionRepository->findByUser($user->getId());
+        try {
+            $subscription = $this->subscriptionRepository->findByUser($user->getId());
+        } catch (\Exception $e) {
+            // En cas d'erreur avec la subscription, on continue sans
+            $subscription = null;
+        }
 
         // Ici vous pouvez générer un JWT token
         // Pour l'exemple, on retourne juste les informations de l'utilisateur
@@ -124,8 +130,12 @@ class AuthController extends AbstractController
                 'subscription' => $subscription ? [
                     'plan' => $subscription->getPlan(),
                     'status' => $subscription->getStatus(),
-                    'isPremium' => $subscription->isPremium()
-                ] : null
+                    'isPremium' => $subscription->getPlan() === 'premium'
+                ] : [
+                    'plan' => 'free',
+                    'status' => 'active',
+                    'isPremium' => false
+                ]
             ]
         ]);
     }
