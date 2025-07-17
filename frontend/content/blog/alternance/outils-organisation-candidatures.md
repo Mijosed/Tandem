@@ -216,4 +216,4 @@ Avec ces outils et cette méthode, vous transformez votre recherche d'alternance
 3. **Automatisez** : Rappels et notifications
 4. **Mesurez** : Suivez vos progrès
 
-*Besoin d'aide pour organiser vos candidatures ? [Découvrez Tandem](/dashboard/applications) et ses outils intégrés !* 
+*Besoin d'aide pour organiser vos candidatures ? [Découvrez Tandem](/dashboard/candidatures) et ses outils intégrés !* 

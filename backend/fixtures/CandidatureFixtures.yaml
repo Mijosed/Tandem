@@ -1,4 +1,4 @@
-App\Entity\Application:
+App\Entity\Candidature:
   application_1:
     user: '@user_test'
     titrePoste: 'Développeur Full Stack'
