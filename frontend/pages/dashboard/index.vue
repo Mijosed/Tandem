@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { SidebarTrigger } from '~/components/ui/sidebar'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useMediaQuery } from '@vueuse/core'
 import { 
   BriefcaseIcon, 
@@ -10,7 +10,8 @@ import {
   ClockIcon,
   CheckCircleIcon,
   XCircleIcon,
-  MessageSquareIcon
+  MessageSquareIcon,
+  LoaderIcon
 } from 'lucide-vue-next'
 import {
   Card,
@@ -24,11 +25,19 @@ definePageMeta({
   layout: 'dashboard'
 })
 
-// Données utilisateur (à connecter avec l'état de l'application)
-const user = ref({
-  name: 'John Doe',
-  role: 'Étudiant en alternance'
-})
+// Utiliser le composable Dashboard
+const { 
+  loading, 
+  error, 
+  user, 
+  stats, 
+  recentApplications, 
+  recentNotifications,
+  fetchDashboardData 
+} = useDashboard()
+
+// Utiliser le composable Schedule pour les statistiques de planning
+const { eventStats, fetchEventStats } = useSchedule()
 
 // Citations motivantes
 const quotes = [
@@ -40,24 +49,28 @@ const quotes = [
 
 // Utiliser une citation basée sur la date pour éviter l'erreur d'hydratation
 const todaysQuote = ref('')
-onMounted(() => {
+
+// Nom d'affichage de l'utilisateur
+const displayName = computed(() => {
+  if (user.value) {
+    return user.value.fullName || `${user.value.firstName} ${user.value.lastName}` || user.value.email
+  }
+  return 'Utilisateur'
+})
+
+onMounted(async () => {
   // Générer un index basé sur le jour de l'année pour avoir une citation constante par jour
   const now = new Date()
   const start = new Date(now.getFullYear(), 0, 0)
   const diff = now.getTime() - start.getTime()
   const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24))
   todaysQuote.value = quotes[dayOfYear % quotes.length]
-})
-
-// Statistiques
-const stats = ref({
-  applications: 12,
-  upcomingInterviews: 3,
-  pendingResponses: 5,
-  responseRate: 75,
-  activeApplications: 8,
-  rejectedApplications: 4,
-  messages: 7
+  
+  // Charger les données du dashboard et du planning
+  await Promise.all([
+    fetchDashboardData(),
+    fetchEventStats()
+  ])
 })
 
 // Format de la date en français
@@ -86,19 +99,36 @@ const isMobile = useMediaQuery('(max-width: 768px)')
       <!-- Section d'accueil -->
       <Card class="bg-gradient-to-br from-purple-50 to-blue-50">
         <CardContent class="pt-6">
-          <h2 class="text-3xl font-bold">
-            Bonjour, {{ user.name }} 👋
-          </h2>
-          <p class="text-muted-foreground mt-1">{{ today }}</p>
-          <p class="mt-4 text-lg italic text-muted-foreground">
-            "{{ todaysQuote }}"
-          </p>
+          <!-- Affichage du loader pendant le chargement -->
+          <div v-if="loading" class="flex items-center space-x-2">
+            <LoaderIcon class="h-5 w-5 animate-spin" />
+            <span>Chargement des données...</span>
+          </div>
+          
+          <!-- Affichage des erreurs -->
+          <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
+            <p class="text-red-800">{{ error }}</p>
+          </div>
+          
+          <!-- Contenu normal -->
+          <div v-else>
+            <h2 class="text-3xl font-bold">
+              Bonjour, {{ displayName }} 👋
+            </h2>
+            <p class="text-muted-foreground mt-1">{{ today }}</p>
+            <p v-if="user?.subscription?.isPremium" class="text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-1 rounded-full inline-block mt-2">
+              Premium
+            </p>
+            <p class="mt-4 text-lg italic text-muted-foreground">
+              "{{ todaysQuote }}"
+            </p>
+          </div>
         </CardContent>
       </Card>
 
       <!-- Statistiques principales -->
       <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <NuxtLink to="/dashboard/applications" class="block">
+        <NuxtLink to="/dashboard/candidatures" class="block">
           <Card class="cursor-pointer transition-shadow hover:shadow-md">
             <CardHeader class="flex flex-row items-center justify-between pb-2">
               <CardTitle class="text-sm font-medium text-muted-foreground">
@@ -119,14 +149,14 @@ const isMobile = useMediaQuery('(max-width: 768px)')
           <Card class="cursor-pointer transition-shadow hover:shadow-md">
             <CardHeader class="flex flex-row items-center justify-between pb-2">
               <CardTitle class="text-sm font-medium text-muted-foreground">
-                Entretiens à venir
+                Événements planning
               </CardTitle>
               <CalendarDaysIcon class="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div class="text-2xl font-bold">{{ stats.upcomingInterviews }}</div>
+              <div class="text-2xl font-bold">{{ eventStats.total }}</div>
               <p class="text-xs text-emerald-500">
-                Prochain dans 2 jours
+                {{ eventStats.upcoming }} à venir
               </p>
             </CardContent>
           </Card>
@@ -149,7 +179,7 @@ const isMobile = useMediaQuery('(max-width: 768px)')
           </Card>
         </NuxtLink>
 
-        <NuxtLink to="/dashboard/applications" class="block">
+        <NuxtLink to="/dashboard/candidatures" class="block">
           <Card class="cursor-pointer transition-shadow hover:shadow-md">
             <CardHeader class="flex flex-row items-center justify-between pb-2">
               <CardTitle class="text-sm font-medium text-muted-foreground">
@@ -170,7 +200,7 @@ const isMobile = useMediaQuery('(max-width: 768px)')
       <!-- Section détaillée -->
       <div class="grid gap-4 md:grid-cols-2">
         <!-- État des candidatures -->
-        <NuxtLink to="/dashboard/applications" class="block">
+        <NuxtLink to="/dashboard/candidatures" class="block">
           <Card class="cursor-pointer transition-shadow hover:shadow-md h-full">
             <CardHeader>
               <CardTitle>État des candidatures</CardTitle>
@@ -208,29 +238,81 @@ const isMobile = useMediaQuery('(max-width: 768px)')
         <NuxtLink to="/dashboard/schedule" class="block">
           <Card class="cursor-pointer transition-shadow hover:shadow-md h-full">
             <CardHeader>
-              <CardTitle>Prochains événements</CardTitle>
-              <CardDescription>Vos rendez-vous à venir</CardDescription>
+              <CardTitle>Événements d'aujourd'hui</CardTitle>
+              <CardDescription>Votre planning du jour</CardDescription>
             </CardHeader>
             <CardContent>
-              <div class="space-y-4">
-                <div class="flex items-start space-x-4">
-                  <div class="min-w-[56px] text-center">
-                    <div class="text-xl font-bold">29</div>
-                    <div class="text-xs text-muted-foreground">Mai</div>
-                  </div>
-                  <div>
-                    <p class="text-sm font-medium">Entretien technique</p>
-                    <p class="text-xs text-muted-foreground">Innovative Tech Solutions - 14h30</p>
+              <div v-if="loading" class="flex items-center justify-center py-4">
+                <LoaderIcon class="h-5 w-5 animate-spin" />
+              </div>
+              <div v-else-if="eventStats.today === 0" class="text-center py-4 text-muted-foreground">
+                Aucun événement aujourd'hui
+              </div>
+              <div v-else class="space-y-4">
+                <div class="flex items-center">
+                  <CalendarDaysIcon class="h-4 w-4 text-blue-500 mr-2" />
+                  <div class="flex-1">
+                    <div class="text-sm font-medium">{{ eventStats.today }} événement(s) aujourd'hui</div>
+                    <div class="text-xs text-muted-foreground">
+                      {{ eventStats.byType.interview || 0 }} entretien(s), 
+                      {{ eventStats.byType.meeting || 0 }} réunion(s)
+                    </div>
                   </div>
                 </div>
-                <div class="flex items-start space-x-4">
-                  <div class="min-w-[56px] text-center">
-                    <div class="text-xl font-bold">02</div>
-                    <div class="text-xs text-muted-foreground">Juin</div>
+                <div class="flex items-center">
+                  <ClockIcon class="h-4 w-4 text-amber-500 mr-2" />
+                  <div class="flex-1">
+                    <div class="text-sm font-medium">À venir</div>
+                    <div class="text-xs text-muted-foreground">{{ eventStats.upcoming }} événement(s) prochains</div>
                   </div>
-                  <div>
-                    <p class="text-sm font-medium">Second entretien RH</p>
-                    <p class="text-xs text-muted-foreground">DataCorp Solutions - 10h00</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </NuxtLink>
+      </div>
+
+      <!-- Section candidatures récentes -->
+      <div class="grid gap-4">
+        <NuxtLink to="/dashboard/candidatures" class="block">
+          <Card class="cursor-pointer transition-shadow hover:shadow-md">
+            <CardHeader>
+              <CardTitle>Candidatures récentes</CardTitle>
+              <CardDescription>Vos dernières démarches</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div v-if="loading" class="flex items-center justify-center py-4">
+                <LoaderIcon class="h-5 w-5 animate-spin" />
+              </div>
+              <div v-else-if="recentApplications.length === 0" class="text-center py-4 text-muted-foreground">
+                Aucune candidature récente
+              </div>
+              <div v-else class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div 
+                  v-for="application in recentApplications.slice(0, 6)" 
+                  :key="application.id"
+                  class="flex items-start space-x-4 p-3 border rounded-lg hover:bg-gray-50"
+                >
+                  <div class="min-w-[56px] text-center">
+                    <div class="text-xl font-bold">{{ new Date(application.createdAt).getDate() }}</div>
+                    <div class="text-xs text-muted-foreground">
+                      {{ new Date(application.createdAt).toLocaleDateString('fr-FR', { month: 'short' }) }}
+                    </div>
+                  </div>
+                  <div class="flex-1">
+                    <p class="text-sm font-medium">{{ application.position || 'Position non spécifiée' }}</p>
+                    <p class="text-xs text-muted-foreground">
+                      {{ application.company || 'Entreprise' }} - 
+                      <span :class="{
+                        'text-amber-500': application.status === 'pending',
+                        'text-emerald-500': application.status === 'active',
+                        'text-red-500': application.status === 'rejected'
+                      }">
+                        {{ application.status === 'pending' ? 'En attente' : 
+                           application.status === 'active' ? 'Active' : 
+                           application.status === 'rejected' ? 'Refusée' : application.status }}
+                      </span>
+                    </p>
                   </div>
                 </div>
               </div>

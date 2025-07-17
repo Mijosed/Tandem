@@ -152,6 +152,7 @@ import {
   TableHeader,
   TableRow,
 } from '~/components/ui/table'
+import type { Application, ApplicationStatus } from '~/types/application'
 
 const search = ref('')
 const selectedStatuses = ref<string[]>([])
@@ -167,19 +168,14 @@ const statuses = [
 ]
 
 const props = defineProps<{
-  applications: {
-    id: number
-    position: string
-    company: string
-    applicationDate: string
-    interviewDate?: string
-    status: string
-    notes?: string
-  }[]
+  applications: Application[]
+  loading?: boolean
 }>()
 
 const emit = defineEmits<{
-  (e: 'edit', application: typeof props.applications[0]): void
+  (e: 'edit', application: Application): void
+  (e: 'delete', application: Application): void
+  (e: 'update-status', application: Application, status: ApplicationStatus): void
   (e: 'refresh'): void
 }>()
 
@@ -248,15 +244,11 @@ const getStatusVariant = (status: string) => {
   return variants[status] || 'default'
 }
 
-const updateStatus = async (application: typeof props.applications[0], newStatus: string) => {
-  // TODO: Appel API pour mettre à jour le statut
-  emit('refresh')
+const updateStatus = (application: Application, newStatus: ApplicationStatus) => {
+  emit('update-status', application, newStatus)
 }
 
-const deleteApplication = async (application: typeof props.applications[0]) => {
-  if (confirm('Êtes-vous sûr de vouloir supprimer cette candidature ?')) {
-    // TODO: Appel API pour supprimer
-    emit('refresh')
-  }
+const deleteApplication = (application: Application) => {
+  emit('delete', application)
 }
 </script>
