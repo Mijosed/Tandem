@@ -2,88 +2,94 @@
 
 namespace App\Entity;
 
-use App\Repository\ApplicationRepository;
-use App\Entity\Job;
+use App\Repository\CandidatureRepository;
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
+use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Delete;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
-#[ORM\Entity(repositoryClass: ApplicationRepository::class)]
+#[ORM\Entity(repositoryClass: CandidatureRepository::class)]
+#[ORM\Table(name: 'candidature')]
 #[ApiResource(
     uriTemplate: '/candidatures',
     operations: [
         new Get(
             uriTemplate: '/candidatures/{id}',
-            normalizationContext: ['groups' => ['application:read']]
+            normalizationContext: ['groups' => ['candidature:read']]
         ),
         new GetCollection(
             uriTemplate: '/candidatures',
-            normalizationContext: ['groups' => ['application:read']]
+            normalizationContext: ['groups' => ['candidature:read']]
         ),
         new Post(
             uriTemplate: '/candidatures',
-            normalizationContext: ['groups' => ['application:read']],
-            denormalizationContext: ['groups' => ['application:write']]
+            normalizationContext: ['groups' => ['candidature:read']],
+            denormalizationContext: ['groups' => ['candidature:write']]
         ),
         new Put(
             uriTemplate: '/candidatures/{id}',
-            normalizationContext: ['groups' => ['application:read']],
-            denormalizationContext: ['groups' => ['application:write']]
+            normalizationContext: ['groups' => ['candidature:read']],
+            denormalizationContext: ['groups' => ['candidature:write']]
+        ),
+        new Patch(
+            uriTemplate: '/candidatures/{id}',
+            normalizationContext: ['groups' => ['candidature:read']],
+            denormalizationContext: ['groups' => ['candidature:write']]
         ),
         new Delete(
             uriTemplate: '/candidatures/{id}'
         )
     ]
 )]
-class Application
+class Candidature
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['application:read'])]
+    #[Groups(['candidature:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255, name: 'titre_poste')]
-    #[Groups(['application:read', 'application:write'])]
+    #[Groups(['candidature:read', 'candidature:write'])]
     #[Assert\NotBlank]
     private ?string $titrePoste = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['application:read', 'application:write'])]
+    #[Groups(['candidature:read', 'candidature:write'])]
     #[Assert\NotBlank]
     private ?string $entreprise = null;
 
     #[ORM\Column(length: 50)]
-    #[Groups(['application:read', 'application:write'])]
+    #[Groups(['candidature:read', 'candidature:write'])]
     #[Assert\Choice(choices: ['a_faire', 'en_attente', 'relance', 'entretien', 'accepte', 'refuse'])]
     private ?string $statut = 'a_faire';
 
     #[ORM\Column(type: 'date', name: 'date_depot')]
-    #[Groups(['application:read', 'application:write'])]
+    #[Groups(['candidature:read', 'candidature:write'])]
     #[Assert\NotNull]
     private ?\DateTimeInterface $dateDepot = null;
 
     #[ORM\Column(type: 'date', nullable: true, name: 'date_entretien')]
-    #[Groups(['application:read', 'application:write'])]
+    #[Groups(['candidature:read', 'candidature:write'])]
     private ?\DateTimeInterface $dateEntretien = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    #[Groups(['application:read', 'application:write'])]
+    #[Groups(['candidature:read', 'candidature:write'])]
     private ?string $notes = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'applications')]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'candidatures')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['application:read', 'application:write'])]
+    #[Groups(['candidature:read', 'candidature:write'])]
     private ?User $user = null;
 
     #[ORM\Column(type: 'datetime', name: 'date_creation')]
-    #[Groups(['application:read'])]
+    #[Groups(['candidature:read'])]
     private ?\DateTimeInterface $dateCreation = null;
 
     public function __construct()

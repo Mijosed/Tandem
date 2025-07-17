@@ -99,34 +99,35 @@ import {
   DialogHeader,
   DialogTitle,
 } from '~/components/ui/dialog'
+import type { Application, ApplicationStatus } from '~/types/application'
 
 const props = defineProps<{
   open: boolean
-  application: {
-    id?: number
-    position: string
-    company: string
-    applicationDate: string
-    interviewDate?: string
-    status: string
-    notes?: string
-  } | null
+  application: Application | null
+  loading?: boolean
 }>()
 
 const emit = defineEmits<{
   (e: 'update:open', value: boolean): void
-  (e: 'save', application: typeof props.application): void
+  (e: 'save', application: Application): void
 }>()
 
 const statuses = [
-  { value: 'pending', label: 'En attente' },
-  { value: 'followed_up', label: 'Relancé' },
-  { value: 'interview', label: 'Entretien' },
-  { value: 'rejected', label: 'Refusé' },
-  { value: 'accepted', label: 'Accepté' }
+  { value: 'pending' as ApplicationStatus, label: 'En attente' },
+  { value: 'followed_up' as ApplicationStatus, label: 'Relancé' },
+  { value: 'interview' as ApplicationStatus, label: 'Entretien' },
+  { value: 'rejected' as ApplicationStatus, label: 'Refusé' },
+  { value: 'accepted' as ApplicationStatus, label: 'Accepté' }
 ]
 
-const form = ref({
+const form = ref<{
+  position: string
+  company: string
+  applicationDate: string
+  interviewDate: string
+  status: ApplicationStatus
+  notes: string
+}>({
   position: '',
   company: '',
   applicationDate: '',

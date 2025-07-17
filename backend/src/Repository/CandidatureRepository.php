@@ -2,48 +2,48 @@
 
 namespace App\Repository;
 
-use App\Entity\Application;
+use App\Entity\Candidature;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Application>
+ * @extends ServiceEntityRepository<Candidature>
  */
-class ApplicationRepository extends ServiceEntityRepository
+class CandidatureRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Application::class);
+        parent::__construct($registry, Candidature::class);
     }
 
     /**
-     * @return Application[] Returns an array of Application objects
+     * @return Candidature[] Returns an array of Candidature objects
      */
     public function findByUser(int $userId): array
     {
         return $this->createQueryBuilder('a')
             ->andWhere('a.user = :userId')
             ->setParameter('userId', $userId)
-            ->orderBy('a.applicationDate', 'DESC')
+            ->orderBy('a.CandidatureDate', 'DESC')
             ->getQuery()
             ->getResult();
     }
 
     /**
-     * @return Application[] Returns an array of Application objects
+     * @return Candidature[] Returns an array of Candidature objects
      */
     public function findByStatus(string $status): array
     {
         return $this->createQueryBuilder('a')
             ->andWhere('a.status = :status')
             ->setParameter('status', $status)
-            ->orderBy('a.applicationDate', 'DESC')
+            ->orderBy('a.CandidatureDate', 'DESC')
             ->getQuery()
             ->getResult();
     }
 
     /**
-     * @return Application[] Returns applications with upcoming interviews
+     * @return Candidature[] Returns Candidatures with upcoming interviews
      */
     public function findUpcomingInterviews(int $userId): array
     {
@@ -58,7 +58,7 @@ class ApplicationRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function getApplicationsStats(int $userId): array
+    public function getCandidaturesStats(int $userId): array
     {
         $qb = $this->createQueryBuilder('a');
         
@@ -87,7 +87,7 @@ class ApplicationRepository extends ServiceEntityRepository
         return $stats;
     }
 
-    public function save(Application $entity, bool $flush = false): void
+    public function save(Candidature $entity, bool $flush = false): void
     {
         $this->getEntityManager()->persist($entity);
 
@@ -96,7 +96,7 @@ class ApplicationRepository extends ServiceEntityRepository
         }
     }
 
-    public function remove(Application $entity, bool $flush = false): void
+    public function remove(Candidature $entity, bool $flush = false): void
     {
         $this->getEntityManager()->remove($entity);
 
