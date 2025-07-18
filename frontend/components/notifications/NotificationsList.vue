@@ -1,8 +1,6 @@
 <template>
   <div class="space-y-4">
-    <!-- Section des filtres -->
     <div class="flex flex-col gap-4 rounded-lg border p-4 bg-muted/50">
-      <!-- Barre de recherche avec bouton d'ajout -->
       <div class="flex items-center gap-4">
         <div class="flex-1">
           <Input 
@@ -15,12 +13,10 @@
             </template>
           </Input>
         </div>
-        <NotificationForm @create="createNotification" />
+
       </div>
       
-      <!-- Filtres -->
       <div class="grid grid-cols-3 gap-6">
-        <!-- Types de notifications -->
         <div class="space-y-3">
           <Label class="text-sm text-muted-foreground font-medium">Type de notification</Label>
           <div class="space-y-2">
@@ -35,7 +31,9 @@
                   <component :is="type.icon" class="h-4 w-4" :class=" [
                     type.value === 'reminder' ? 'text-blue-500' : '',
                     type.value === 'interview' ? 'text-green-500' : '',
-                    type.value === 'info' ? 'text-yellow-500' : ''
+                    type.value === 'info' ? 'text-yellow-500' : '',
+                    type.value === 'warning' ? 'text-orange-500' : '',
+                    type.value === 'success' ? 'text-green-600' : ''
                   ]" />
                   <Label :for="type.value" class="text-sm font-normal cursor-pointer">
                     {{ type.label }}
@@ -46,7 +44,6 @@
           </div>
         </div>
 
-        <!-- Statut de lecture -->
         <div class="space-y-3">
           <Label class="text-sm text-muted-foreground font-medium">Statut</Label>
           <RadioGroup :model-value="selectedStatus" @update:model-value="setReadStatus" class="space-y-2">
@@ -61,7 +58,6 @@
           </RadioGroup>
         </div>
 
-        <!-- Options de tri -->
         <div class="space-y-3">
           <Label class="text-sm text-muted-foreground font-medium">Trier par</Label>
           <div class="flex gap-2">
@@ -93,7 +89,6 @@
       </div>
     </div>
 
-    <!-- Liste des notifications -->
     <div class="rounded-md border">
       <div class="space-y-1 p-2">
         <TransitionGroup
@@ -109,7 +104,7 @@
             :key="notification.id"
             class="flex items-center justify-between space-x-4 rounded-lg border p-4 hover:bg-muted/50"
             :class=" [
-              !notification.read ? 'bg-muted/30' : '',
+              !notification.isRead ? 'bg-muted/30' : '',
               'transition-colors duration-200'
             ]"
           >
@@ -120,7 +115,9 @@
                 :class=" [
                   notification.type === 'reminder' ? 'text-blue-500' : '',
                   notification.type === 'interview' ? 'text-green-500' : '',
-                  notification.type === 'info' ? 'text-yellow-500' : ''
+                  notification.type === 'info' ? 'text-yellow-500' : '',
+                  notification.type === 'warning' ? 'text-orange-500' : '',
+                  notification.type === 'success' ? 'text-green-600' : ''
                 ]"
               />
               <div class="space-y-1">
@@ -131,15 +128,15 @@
                   {{ notification.message }}
                 </p>
                 <p class="text-xs text-muted-foreground">
-                  {{ formatDate(notification.date) }}
+                  {{ formatDate(notification.createdAt) }}
                 </p>
               </div>
             </div>
             <Button
-              v-if="!notification.read"
+              v-if="!notification.isRead"
               variant="ghost"
               size="sm"
-              @click="markAsRead(notification.id)"
+              @click="markAsRead(notification)"
             >
               <Check class="mr-2 h-4 w-4" />
               Marquer comme lu
@@ -166,42 +163,32 @@ import {
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Button } from '~/components/ui/button'
-import { Separator } from '~/components/ui/separator'
+
 import { Checkbox } from '~/components/ui/checkbox'
 import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
-import NotificationForm from './NotificationForm.vue'
-
-interface Notification {
-  id: string
-  type: 'reminder' | 'interview' | 'info'
-  title: string
-  message: string
-  date: Date
-  read: boolean
-}
+import type { Notification } from '~/types/notification'
 
 const props = defineProps<{
   notifications: Notification[]
 }>()
 
 const emit = defineEmits<{
-  'mark-as-read': [id: string]
-  'create': [notification: Omit<Notification, 'id' | 'date' | 'read'>]
+  'update': [notification: Notification]
 }>()
 
-// État des filtres
 const search = ref('')
 const selectedTypes = ref<string[]>([])
 const selectedStatus = ref('')
 const sortBy = ref('date')
 const sortOrder = ref<'asc' | 'desc'>('desc')
 
-// Options des filtres
 const notificationTypes = [
   { value: 'reminder', label: 'Rappels', icon: Bell },
   { value: 'interview', label: 'Entretiens', icon: Calendar },
-  { value: 'info', label: 'Informations', icon: Info }
+  { value: 'info', label: 'Informations', icon: Info },
+  { value: 'warning', label: 'Avertissements', icon: Bell },
+  { value: 'success', label: 'Succès', icon: CheckCircle2 }
 ]
 
 const readStatuses = [
@@ -210,7 +197,6 @@ const readStatuses = [
   { value: 'read', label: 'Lus', icon: CheckCircle2 }
 ]
 
-// Méthodes
 const toggleType = (type: string) => {
   const index = selectedTypes.value.indexOf(type)
   if (index === -1) {
@@ -224,12 +210,8 @@ const setReadStatus = (status: string) => {
   selectedStatus.value = status
 }
 
-const markAsRead = (id: string) => {
-  emit('mark-as-read', id)
-}
-
-const createNotification = (data: Omit<Notification, 'id' | 'date' | 'read'>) => {
-  emit('create', data)
+const markAsRead = (notification: Notification) => {
+  emit('update', notification)
 }
 
 const getNotificationIcon = (type: Notification['type']) => {
@@ -240,23 +222,25 @@ const getNotificationIcon = (type: Notification['type']) => {
       return Calendar
     case 'info':
       return Info
+    case 'warning':
+      return Bell
+    case 'success':
+      return CheckCircle2
     default:
       return Bell
   }
 }
 
-const formatDate = (date: Date) => {
+const formatDate = (dateString: string) => {
   return new Intl.DateTimeFormat('fr-FR', {
     dateStyle: 'long',
     timeStyle: 'short'
-  }).format(new Date(date))
+  }).format(new Date(dateString))
 }
 
-// Computed
 const filteredNotifications = computed(() => {
   let filtered = props.notifications
 
-  // Filtre par recherche
   if (search.value) {
     const searchLower = search.value.toLowerCase()
     filtered = filtered.filter(notification =>
@@ -265,33 +249,29 @@ const filteredNotifications = computed(() => {
     )
   }
 
-  // Filtre par type
   if (selectedTypes.value.length > 0) {
     filtered = filtered.filter(notification =>
       selectedTypes.value.includes(notification.type)
     )
   }
 
-  // Filtre par statut de lecture
   if (selectedStatus.value) {
     filtered = filtered.filter(notification =>
-      selectedStatus.value === 'read' ? notification.read : !notification.read
+      selectedStatus.value === 'read' ? notification.isRead : !notification.isRead
     )
   }
 
-  // Tri
   filtered.sort((a, b) => {
     let comparison = 0
     
     switch (sortBy.value) {
       case 'date':
-        comparison = new Date(b.date).getTime() - new Date(a.date).getTime()
+        comparison = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         break
       case 'type':
         comparison = a.type.localeCompare(b.type)
         break
       case 'priority':
-        // Ordre de priorité : interview > reminder > info
         const priority = { interview: 0, reminder: 1, info: 2 }
         comparison = priority[a.type] - priority[b.type]
         break

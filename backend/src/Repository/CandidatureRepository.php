@@ -24,7 +24,7 @@ class CandidatureRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('a')
             ->andWhere('a.user = :userId')
             ->setParameter('userId', $userId)
-            ->orderBy('a.CandidatureDate', 'DESC')
+            ->orderBy('a.dateDepot', 'DESC')
             ->getQuery()
             ->getResult();
     }
@@ -35,9 +35,9 @@ class CandidatureRepository extends ServiceEntityRepository
     public function findByStatus(string $status): array
     {
         return $this->createQueryBuilder('a')
-            ->andWhere('a.status = :status')
+            ->andWhere('a.statut = :status')
             ->setParameter('status', $status)
-            ->orderBy('a.CandidatureDate', 'DESC')
+            ->orderBy('a.dateDepot', 'DESC')
             ->getQuery()
             ->getResult();
     }
@@ -49,24 +49,24 @@ class CandidatureRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('a')
             ->andWhere('a.user = :userId')
-            ->andWhere('a.interviewDate IS NOT NULL')
-            ->andWhere('a.interviewDate > :now')
+            ->andWhere('a.dateEntretien IS NOT NULL')
+            ->andWhere('a.dateEntretien > :now')
             ->setParameter('userId', $userId)
             ->setParameter('now', new \DateTime())
-            ->orderBy('a.interviewDate', 'ASC')
+            ->orderBy('a.dateEntretien', 'ASC')
             ->getQuery()
             ->getResult();
     }
 
-    public function getCandidaturesStats(int $userId): array
+    public function getApplicationsStats(int $userId): array
     {
         $qb = $this->createQueryBuilder('a');
         
         $result = $qb
-            ->select('a.status, COUNT(a.id) as count')
+            ->select('a.statut, COUNT(a.id) as count')
             ->andWhere('a.user = :userId')
             ->setParameter('userId', $userId)
-            ->groupBy('a.status')
+            ->groupBy('a.statut')
             ->getQuery()
             ->getResult();
 
@@ -80,7 +80,7 @@ class CandidatureRepository extends ServiceEntityRepository
         ];
 
         foreach ($result as $row) {
-            $stats[$row['status']] = (int) $row['count'];
+            $stats[$row['statut']] = (int) $row['count'];
             $stats['total'] += (int) $row['count'];
         }
 

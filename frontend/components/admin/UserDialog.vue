@@ -1,67 +1,92 @@
 <template>
-  <Dialog v-model:open="props.open">
-    <DialogContent>
+  <Dialog :open="open" @update:open="$emit('update:open', $event)">
+    <DialogContent class="sm:max-w-md">
       <DialogHeader>
-        <DialogTitle>{{ props.user ? 'Modifier' : 'Ajouter' }} un utilisateur</DialogTitle>
+        <DialogTitle>
+          {{ isEdit ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur' }}
+        </DialogTitle>
         <DialogDescription>
-          {{ props.user ? 'Modifiez les informations de l\'utilisateur ci-dessous.' : 'Ajoutez un nouvel utilisateur en remplissant le formulaire ci-dessous.' }}
+          {{ isEdit ? 'Modifiez les informations de l\'utilisateur' : 'Créez un nouvel utilisateur pour la plateforme' }}
         </DialogDescription>
       </DialogHeader>
-      <form @submit.prevent="saveUser" class="space-y-4">
-        <div class="grid gap-4">
-          <div class="grid grid-cols-2 gap-4">
-            <div class="grid gap-2">
-              <Label for="firstName">Prénom</Label>
-              <Input id="firstName" v-model="form.firstName" required />
-            </div>
-            <div class="grid gap-2">
-              <Label for="lastName">Nom</Label>
-              <Input id="lastName" v-model="form.lastName" required />
-            </div>
+
+      <form @submit.prevent="handleSubmit" class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-2">
+            <Label for="firstName">Prénom</Label>
+            <Input
+              id="firstName"
+              v-model="formData.firstName"
+              placeholder="John"
+              required
+            />
           </div>
-          <div class="grid gap-2">
-            <Label for="email">Email</Label>
-            <Input id="email" type="email" v-model="form.email" required />
+          <div class="space-y-2">
+            <Label for="lastName">Nom</Label>
+            <Input
+              id="lastName"
+              v-model="formData.lastName"
+              placeholder="Doe"
+              required
+            />
           </div>
-          <div class="grid gap-2">
-            <Label for="role">Rôle</Label>
-            <Select id="role" v-model="form.role" required>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionnez un rôle" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ROLE_USER">
-                  <div class="flex items-center gap-2">
-                    Utilisateur
-                  </div>
-                </SelectItem>
-                <SelectItem value="ROLE_PREMIUM">
-                  <div class="flex items-center gap-2">
-                    Premium
-                  </div>
-                </SelectItem>
-                <SelectItem value="ROLE_ADMIN">
-                  <div class="flex items-center gap-2">
-                    Admin
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div class="grid gap-2">
-            <Label for="status">Statut</Label>
-            <div class="flex items-center space-x-2">
-              <Switch id="status" v-model="form.isActive" />
-              <Label for="status">{{ form.isActive ? 'Actif' : 'Inactif' }}</Label>
+        </div>
+
+        <div class="space-y-2">
+          <Label for="email">Email</Label>
+          <Input
+            id="email"
+            v-model="formData.email"
+            type="email"
+            placeholder="john.doe@example.com"
+            required
+          />
+        </div>
+
+        <div v-if="!isEdit" class="space-y-2">
+          <Label for="password">Mot de passe</Label>
+          <Input
+            id="password"
+            v-model="formData.password"
+            type="password"
+            placeholder="••••••••"
+            required
+          />
+        </div>
+
+        <div class="space-y-2">
+          <Label>Rôles</Label>
+          <div class="space-y-2">
+            <div v-for="role in availableRoles" :key="role.value" class="flex items-center space-x-2">
+              <Checkbox
+                :id="role.value"
+                :model-value="formData.roles.includes(role.value)"
+                @update:model-value="toggleRole(role.value)"
+              />
+              <Label :for="role.value" class="text-sm font-normal cursor-pointer">
+                {{ role.label }}
+              </Label>
             </div>
           </div>
         </div>
+
+        <div class="flex items-center space-x-2">
+          <Checkbox
+            id="isActive"
+            v-model="formData.isActive"
+          />
+          <Label for="isActive" class="text-sm font-normal cursor-pointer">
+            Compte actif
+          </Label>
+        </div>
+
         <DialogFooter>
           <Button type="button" variant="outline" @click="$emit('update:open', false)">
             Annuler
           </Button>
-          <Button type="submit">
-            {{ props.user ? 'Enregistrer' : 'Ajouter' }}
+          <Button type="submit" :disabled="loading">
+            <LoaderCircle v-if="loading" class="mr-2 h-4 w-4 animate-spin" />
+            {{ isEdit ? 'Sauvegarder' : 'Créer' }}
           </Button>
         </DialogFooter>
       </form>
@@ -70,11 +95,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
+import { ref, computed, watch } from 'vue'
+import { LoaderCircle } from 'lucide-vue-next'
+import type { User, UserFormData } from '~/composables/useUsers'
 import {
   Dialog,
   DialogContent,
@@ -82,57 +105,85 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+} from '~/components/ui/dialog'
+import { Input } from '~/components/ui/input'
+import { Label } from '~/components/ui/label'
+import { Button } from '~/components/ui/button'
+import { Checkbox } from '~/components/ui/checkbox'
 
-interface User {
-  id?: number
-  firstName: string
-  lastName: string
-  email: string
-  role: string
-  isActive: boolean
+interface Props {
+  open: boolean
+  user?: User | null
 }
 
-const props = defineProps<{
-  open: boolean
-  user: User | null
-}>()
-
-const emit = defineEmits<{
+interface Emits {
   (e: 'update:open', value: boolean): void
-  (e: 'save', userData: Partial<User>): void
-}>()
+  (e: 'save', userData: UserFormData): void
+}
 
-const form = ref<Partial<User>>({
+const props = defineProps<Props>()
+const emit = defineEmits<Emits>()
+
+const loading = ref(false)
+
+const availableRoles = [
+  { value: 'ROLE_USER', label: 'Utilisateur' },
+  { value: 'ROLE_PREMIUM', label: 'Premium' },
+  { value: 'ROLE_ADMIN', label: 'Administrateur' }
+]
+
+const isEdit = computed(() => !!props.user)
+
+const formData = ref<UserFormData>({
   firstName: '',
   lastName: '',
   email: '',
-  role: 'ROLE_USER',
+  roles: ['ROLE_USER'],
   isActive: true,
+  password: '',
 })
 
 watch(() => props.user, (newUser) => {
   if (newUser) {
-    form.value = { ...newUser }
+    formData.value = {
+      firstName: newUser.firstName,
+      lastName: newUser.lastName,
+      email: newUser.email,
+      roles: [...newUser.roles],
+      isActive: newUser.isActive,
+    }
   } else {
-    form.value = {
+    formData.value = {
       firstName: '',
       lastName: '',
       email: '',
-      role: 'ROLE_USER',
+      roles: ['ROLE_USER'],
       isActive: true,
+      password: '',
     }
   }
 }, { immediate: true })
 
-const saveUser = () => {
-  emit('save', form.value)
+const toggleRole = (role: string) => {
+  const index = formData.value.roles.indexOf(role)
+  if (index === -1) {
+    formData.value.roles.push(role)
+  } else {
+    if (formData.value.roles.length > 1) {
+      formData.value.roles.splice(index, 1)
+    }
+  }
+}
+
+const handleSubmit = async () => {
+  loading.value = true
+  
+  try {
+    emit('save', { ...formData.value })
+  } catch (error) {
+    console.error('Erreur lors de la sauvegarde:', error)
+  } finally {
+    loading.value = false
+  }
 }
 </script>

@@ -12,7 +12,9 @@
             <p>Suivi des candidatures, emploi du temps, alertes de base.</p>
           </CardContent>
           <CardFooter>
-            <Button variant="outline" class="mt-4">Commencer</Button>
+            <NuxtLink to="/register">
+              <Button variant="outline" class="mt-4">Commencer</Button>
+            </NuxtLink>
           </CardFooter>
         </Card>
         <Card data-aos="flip-up">
@@ -25,7 +27,9 @@
             <p>Offres exclusives via Indeed et rappels intelligents.</p>
           </CardContent>
           <CardFooter>
-            <Button class="mt-4">S’abonner</Button>
+            <NuxtLink to="/register">
+              <Button class="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700">S’abonner</Button>
+            </NuxtLink>
           </CardFooter>
         </Card>
       </div>

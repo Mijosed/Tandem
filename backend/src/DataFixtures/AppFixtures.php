@@ -3,7 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\User;
-use App\Entity\Application;
+use App\Entity\Candidature;
 use App\Entity\Job;
 use App\Entity\Notification;
 use App\Entity\ScheduleEvent;
@@ -187,30 +187,29 @@ class AppFixtures extends Fixture
     {
         $statuses = ['pending', 'followed_up', 'interview', 'rejected', 'accepted'];
         
-        // Créer des candidatures pour les utilisateurs non-admin
         for ($i = 1; $i < count($users); $i++) {
             $user = $users[$i];
             $numApplications = rand(2, 5);
             
             for ($j = 0; $j < $numApplications; $j++) {
-                $application = new Application();
-                $application->setUser($user);
-                $application->setPosition('Développeur ' . ['Frontend', 'Backend', 'Full Stack', 'Mobile'][rand(0, 3)]);
-                $application->setCompany('Entreprise ' . chr(65 + rand(0, 25)));
-                $application->setApplicationDate(new \DateTime('-' . rand(1, 60) . ' days'));
-                $application->setStatus($statuses[rand(0, 4)]);
+                $candidature = new Candidature();
+                $candidature->setUser($user);
+                $candidature->setTitrePoste('Développeur ' . ['Frontend', 'Backend', 'Full Stack', 'Mobile'][rand(0, 3)]);
+                $candidature->setEntreprise('Entreprise ' . chr(65 + rand(0, 25)));
+                $candidature->setDateDepot(new \DateTime('-' . rand(1, 60) . ' days'));
+                $candidature->setStatut($statuses[rand(0, 4)]);
                 
-                // Ajouter une date d'entretien pour les candidatures en interview
-                if ($application->getStatus() === 'interview') {
+                if ($candidature->getStatut() === 'interview') {
                     $interviewDate = new \DateTime('+' . rand(1, 14) . ' days');
-                    $application->setInterviewDate($interviewDate);
+                    $candidature->setDateEntretien($interviewDate);
                 }
                 
                 if (rand(0, 1)) {
-                    $application->setNotes('Notes sur cette candidature - ' . $application->getCompany());
+                    $candidature->setNotes('Notes sur cette candidature - ' . $candidature->getEntreprise());
                 }
                 
-                $manager->persist($application);
+                $candidature->setDateCreation(new \DateTime());
+                $manager->persist($candidature);
             }
         }
     }

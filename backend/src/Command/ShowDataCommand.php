@@ -4,7 +4,7 @@ namespace App\Command;
 
 use App\Entity\User;
 use App\Entity\Job;
-use App\Entity\Application;
+use App\Entity\Candidature;  
 use App\Entity\Notification;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -32,12 +32,12 @@ class ShowDataCommand extends Command
     {
         $userRepository = $this->entityManager->getRepository(User::class);
         $jobRepository = $this->entityManager->getRepository(Job::class);
-        $applicationRepository = $this->entityManager->getRepository(Application::class);
+        $candidatureRepository = $this->entityManager->getRepository(Candidature::class);  // ← Changer
         $notificationRepository = $this->entityManager->getRepository(Notification::class);
 
         $users = $userRepository->findAll();
         $jobs = $jobRepository->findAll();
-        $applications = $applicationRepository->findAll();
+        $candidatures = $candidatureRepository->findAll();  
         $notifications = $notificationRepository->findAll();
 
         $output->writeln('<info>Users:</info>');
@@ -50,12 +50,13 @@ class ShowDataCommand extends Command
             $output->writeln(sprintf('- %s at %s', $job->getTitle(), $job->getCompany()));
         }
 
-        $output->writeln('<info>Applications:</info>');
-        foreach ($applications as $application) {
-            $output->writeln(sprintf('- User: %s, Job: %s, Status: %s', 
-                $application->getUser()->getEmail(), 
-                $application->getJob()->getTitle(), 
-                $application->getStatus()
+        $output->writeln('<info>Candidatures:</info>');  
+        foreach ($candidatures as $candidature) {  
+            $output->writeln(sprintf('- User: %s, Poste: %s chez %s, Statut: %s', 
+                $candidature->getUser()->getEmail(), 
+                $candidature->getTitrePoste(),  
+                $candidature->getEntreprise(), 
+                $candidature->getStatut()       
             ));
         }
 

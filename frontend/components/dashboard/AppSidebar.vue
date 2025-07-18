@@ -3,6 +3,7 @@ import type { SidebarProps } from '@/components/ui/sidebar'
 import { ref, computed } from 'vue'
 import { useRoute } from '#app'
 import { useMediaQuery } from '@vueuse/core'
+import { useAuth } from '~/composables/useAuth'
 
 
 import {
@@ -26,7 +27,6 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar'
 
-// Détection responsive pour adapter le comportement de la sidebar
 const isMobile = useMediaQuery('(max-width: 768px)')
 const collapsibleMode = computed(() => isMobile.value ? 'offcanvas' : 'none')
 
@@ -36,83 +36,81 @@ const props = withDefaults(defineProps<SidebarProps>(), {
 
 const route = useRoute()
 
-const user = ref({
-  name: 'John Doe',
-  email: 'john.doe@mail.com',
+const { currentUser, userFullName, isAuthenticated, isAdmin } = useAuth()
+
+const user = computed(() => ({
+  name: userFullName.value || 'Utilisateur',  
+  email: currentUser.value?.email || 'user@off.com',
   avatar: '/logo.png',
+}))
+
+const navigationGroups = computed(() => {
+  const groups = [
+    {
+      label: 'Général',
+      items: [
+        {
+          title: 'Tableau de bord',
+          url: '/dashboard',
+          icon: LayoutDashboard,
+          isActive: route.path === '/dashboard',
+        },
+        {
+          title: 'Candidatures',
+          url: '/dashboard/candidatures',
+          icon: Briefcase,
+          isActive: route.path === '/dashboard/candidatures',
+        },
+        {
+          title: 'Emploi du temps',
+          url: '/dashboard/schedule',
+          icon: Calendar,
+          isActive: route.path === '/dashboard/schedule',
+        },
+        {
+          title: 'Notifications',
+          url: '/dashboard/notifications',
+          icon: Bell,
+          isActive: route.path === '/dashboard/notifications',
+        },
+      ],
+    },
+    {
+      label: 'Premium',
+      items: [
+        {
+          title: 'Offres d\'emploi',
+          url: '/dashboard/jobs',
+          icon: Crown,
+          isActive: route.path === '/dashboard/jobs',
+        },
+      ],
+    },
+  ]
+
+  if (isAdmin.value) {
+    groups.push({
+      label: 'Administration',
+      items: [
+        {
+          title: 'Admin',
+          icon: Users,
+          isActive: route.path.startsWith('/dashboard/admin'),
+          items: [
+            {
+              title: 'Utilisateurs',
+              url: '/dashboard/admin/users',
+            },
+          ],
+        },
+      ],
+    })
+  }
+
+  return groups
 })
 
-const navigationGroups = ref([
-  {
-    label: 'Général',
-    items: [
-      {
-        title: 'Tableau de bord',
-        url: '/dashboard',
-        icon: LayoutDashboard,
-        isActive: computed(() => route.path === '/dashboard'),
-      },
-      {
-        title: 'Candidatures',
-        url: '/dashboard/candidatures',
-        icon: Briefcase,
-        isActive: computed(() => route.path === '/dashboard/candidatures'),
-      },
-      {
-        title: 'Emploi du temps',
-        url: '/dashboard/schedule',
-        icon: Calendar,
-        isActive: computed(() => route.path === '/dashboard/schedule'),
-      },
-      {
-        title: 'Notifications',
-        url: '/dashboard/notifications',
-        icon: Bell,
-        isActive: computed(() => route.path === '/dashboard/notifications'),
-      },
-    ],
-  },
-  {
-    label: 'Premium',
-    items: [
-      {
-        title: 'Offres d\'emploi',
-        url: '/dashboard/jobs',
-        icon: Crown,
-        isActive: computed(() => route.path === '/dashboard/jobs'),
-      },
-    ],
-  },
-  {
-    label: 'Administration',
-    items: [
-      {
-        title: 'Admin',
-        icon: Users,
-        isActive: computed(() => route.path.startsWith('/dashboard/admin')),
-        items: [
-          {
-            title: 'Utilisateurs',
-            url: '/dashboard/admin/users',
-          },
-        ],
-      },
-    ],
-  },
-])
 
-const userActions = ref([
-  {
-    title: 'Profil',
-    url: '/dashboard/profile',
-    icon: User,
-  },
-  {
-    title: 'Déconnexion',
-    url: '/logout',
-    icon: LogOut,
-  },
-])
 </script>
 
 <template>

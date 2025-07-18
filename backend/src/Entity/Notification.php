@@ -11,6 +11,7 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Delete;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\SerializedName;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: NotificationRepository::class)]
@@ -58,6 +59,7 @@ class Notification
 
     #[ORM\Column(type: 'boolean', name: 'is_read')]
     #[Groups(['notification:read', 'notification:write'])]
+    #[SerializedName('isRead')]
     private bool $isRead = false;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'notifications')]
