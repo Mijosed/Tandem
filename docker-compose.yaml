@@ -30,7 +30,7 @@ services:
       - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
-      - ./init-postgres:/docker-entrypoint-initdb.d
+      - ./init-postgres:/01-create-matomo-db.sql
     networks:
       - tandem-network
     healthcheck:

@@ -1,8 +1,6 @@
 <template>
   <div class="space-y-4">
-    <!-- Section des filtres -->
     <div class="flex flex-col gap-4 rounded-lg border p-4 bg-muted/50">
-      <!-- Barre de recherche et bouton d'ajout -->
       <div class="flex items-center gap-4">
         <div class="flex-1">
           <Input 
@@ -21,9 +19,7 @@
         </Button>
       </div>
 
-      <!-- Filtres -->
       <div class="flex justify-between items-center gap-6">
-        <!-- Rôles -->
         <div class="space-y-2 flex-1">
           <Label class="text-sm text-muted-foreground font-medium">Rôle</Label>
           <div class="flex flex-wrap gap-4">
@@ -42,7 +38,6 @@
           </div>
         </div>
 
-        <!-- Tri -->
         <div class="flex items-center gap-4 min-w-[200px]">
           <Label class="text-sm text-muted-foreground font-medium">Trier par</Label>
           <div class="flex gap-2">
@@ -74,7 +69,6 @@
       </div>
     </div>
 
-    <!-- Liste des utilisateurs -->
     <div class="rounded-md border">
       <Table>
         <TableHeader>
@@ -92,9 +86,16 @@
             <TableCell class="font-medium">{{ user.firstName }} {{ user.lastName }}</TableCell>
             <TableCell>{{ user.email }}</TableCell>
             <TableCell>
-              <Badge :variant="getRoleBadgeVariant(user.role)">
-                {{ getRoleLabel(user.role) }}
-              </Badge>
+              <div class="flex flex-wrap gap-1">
+                <Badge 
+                  v-for="role in user.roles" 
+                  :key="role" 
+                  :variant="getRoleBadgeVariant(role)"
+                  class="text-xs"
+                >
+                  {{ getRoleLabel(role) }}
+                </Badge>
+              </div>
             </TableCell>
             <TableCell>{{ formatDate(user.createdAt) }}</TableCell>
             <TableCell>
@@ -132,7 +133,6 @@
       </Table>
     </div>
 
-    <!-- Modal d'édition/création -->
     <UserDialog 
       v-model:open="isUserDialogOpen"
       :user="selectedUser"
@@ -143,6 +143,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useUsers } from '~/composables/useUsers'
 import { 
   Search, 
   UserPlus, 
@@ -183,15 +184,7 @@ import {
 } from '~/components/ui/table'
 import UserDialog from './UserDialog.vue'
 
-interface User {
-  id: number
-  firstName: string
-  lastName: string
-  email: string
-  role: string
-  isActive: boolean
-  createdAt: string
-}
+import type { User, UserFormData } from '~/composables/useUsers'
 
 const props = defineProps<{
   users: User[]
@@ -201,7 +194,8 @@ const emit = defineEmits<{
   (e: 'refresh'): void
 }>()
 
-// État
+const { createUser, updateUser, deleteUser: removeUser, toggleUserStatus: toggleStatus } = useUsers()
+
 const search = ref('')
 const selectedRoles = ref<string[]>([])
 const sortBy = ref('name')
@@ -209,14 +203,12 @@ const sortOrder = ref<'asc' | 'desc'>('asc')
 const isUserDialogOpen = ref(false)
 const selectedUser = ref<User | null>(null)
 
-// Options des filtres
 const roles = [
   { value: 'ROLE_USER', label: 'Utilisateur' },
   { value: 'ROLE_PREMIUM', label: 'Premium' },
   { value: 'ROLE_ADMIN', label: 'Admin' }
 ]
 
-// Méthodes
 const toggleRole = (role: string) => {
   const index = selectedRoles.value.indexOf(role)
   if (index === -1) {
@@ -247,27 +239,32 @@ const openUserDialog = (user: User | null = null) => {
   isUserDialogOpen.value = true
 }
 
-const handleSaveUser = async (userData: Partial<User>) => {
-  // TODO: Appel API pour sauvegarder
+const handleSaveUser = async (userData: UserFormData) => {
+  if (selectedUser.value) {
+    await updateUser(selectedUser.value.id, userData)
+  } else {
+    await createUser(userData)
+  }
   isUserDialogOpen.value = false
   emit('refresh')
 }
 
 const toggleUserStatus = async (user: User) => {
   if (confirm(`Êtes-vous sûr de vouloir ${user.isActive ? 'désactiver' : 'activer'} cet utilisateur ?`)) {
-    // TODO: Appel API pour changer le statut
+    await toggleStatus(user.id)
     emit('refresh')
   }
 }
 
 const deleteUser = async (user: User) => {
   if (confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) {
-    // TODO: Appel API pour supprimer
-    emit('refresh')
+    const success = await removeUser(user.id)
+    if (success) {
+      emit('refresh')
+    }
   }
 }
 
-// Filtres et tri
 const filteredUsers = computed(() => {
   let filtered = props.users.filter(user => {
     const matchesSearch = !search.value || 
@@ -275,7 +272,7 @@ const filteredUsers = computed(() => {
       user.email.toLowerCase().includes(search.value.toLowerCase())
     
     const matchesRole = selectedRoles.value.length === 0 || 
-      selectedRoles.value.includes(user.role)
+      user.roles.some(role => selectedRoles.value.includes(role))
     
     return matchesSearch && matchesRole
   })

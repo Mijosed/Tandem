@@ -9,87 +9,92 @@
 
     <div class="container py-6 px-4">
       <div class="flex justify-between items-center mb-6">
-        <p class="text-muted-foreground">Gérez vos notifications</p>
-        <Button variant="outline" @click="markAllAsRead" :disabled="!hasUnreadNotifications">
+        <div>
+          <p class="text-muted-foreground">Gérez vos notifications</p>
+          <p v-if="!loading && !error" class="text-sm text-muted-foreground mt-1">
+            {{ stats.total }} notification(s) - {{ unreadCount }} non lue(s)
+          </p>
+        </div>
+        <Button 
+          variant="outline" 
+          @click="markAllAsRead" 
+          :disabled="!hasUnreadNotifications || loading"
+        >
           <CheckCheck class="mr-2 h-4 w-4" />
           Tout marquer comme lu
         </Button>
       </div>
 
-      <NotificationsList :notifications="notifications" @update="handleUpdate" />
+      <div v-if="loading" class="flex items-center justify-center py-8">
+        <LoaderIcon class="h-6 w-6 animate-spin mr-2" />
+        <span class="text-muted-foreground">Chargement des notifications...</span>
+      </div>
+
+      <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
+        <div class="flex items-center">
+          <AlertCircle class="h-5 w-5 text-red-500 mr-2" />
+          <p class="text-red-800">{{ error }}</p>
+        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          @click="fetchNotifications" 
+          class="mt-2"
+        >
+          Réessayer
+        </Button>
+      </div>
+
+      <!-- Liste des notifications -->
+      <div v-else-if="notifications.length === 0" class="text-center py-8">
+        <BellIcon class="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+        <p class="text-muted-foreground">Aucune notification pour le moment</p>
+      </div>
+
+      <NotificationsList 
+        v-else
+        :notifications="notifications" 
+        @update="handleUpdate" 
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { CheckCheck } from 'lucide-vue-next'
+import { onMounted } from 'vue'
+import { CheckCheck, LoaderIcon, AlertCircle, BellIcon } from 'lucide-vue-next'
 import { Button } from '~/components/ui/button'
 import NotificationsList from '~/components/notifications/NotificationsList.vue'
 import { SidebarTrigger } from '~/components/ui/sidebar'
 import { useMediaQuery } from '@vueuse/core'
+import { useNotifications } from '~/composables/useNotifications'
+import type { Notification } from '~/types/notification'
 
 definePageMeta({
   layout: 'dashboard'
 })
 
-// Détection mobile pour afficher conditionnellement le SidebarTrigger
 const isMobile = useMediaQuery('(max-width: 768px)')
 
-interface Notification {
-  id: number
-  title: string
-  message: string
-  type: 'reminder' | 'interview' | 'info'
-  date: string
-  read: boolean
-}
-
-const notifications = ref<Notification[]>([
-  {
-    id: 1,
-    title: "Rappel de relance",
-    message: "N'oubliez pas de relancer Tech Corp concernant votre candidature",
-    type: "reminder",
-    date: "2025-05-28",
-    read: false
-  },
-  {
-    id: 2,
-    title: "Entretien à venir",
-    message: "Entretien technique prévu demain avec Web Agency",
-    type: "interview",
-    date: "2025-05-28",
-    read: false
-  },
-  {
-    id: 3,
-    title: "Candidature vue",
-    message: "Votre candidature chez Digital Solutions a été consultée",
-    type: "info",
-    date: "2025-05-26",
-    read: true
-  }
-])
-
-const hasUnreadNotifications = computed(() => 
-  notifications.value.some(notification => !notification.read)
-)
-
-const markAllAsRead = () => {
-  notifications.value = notifications.value.map(notification => ({
-    ...notification,
-    read: true
-  }))
-}
+const {
+  notifications,
+  loading,
+  error,
+  hasUnreadNotifications,
+  unreadCount,
+  stats,
+  fetchNotifications,
+  markAllAsRead,
+  markAsRead
+} = useNotifications()
 
 const handleUpdate = (updatedNotification: Notification) => {
-  notifications.value = notifications.value.map(notification =>
-    notification.id === updatedNotification.id ? updatedNotification : notification
-  )
+  if (!updatedNotification.isRead) {
+    markAsRead(updatedNotification.id)
+  }
 }
 
-onMounted(() => {
-  // TODO: Charger les notifications depuis l'API
+onMounted(async () => {
+  await fetchNotifications()
 })
 </script>

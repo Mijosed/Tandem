@@ -2,7 +2,7 @@
 
 namespace App\Service;
 
-use App\Repository\ApplicationRepository;
+use App\Repository\CandidatureRepository;
 use App\Repository\NotificationRepository;
 use App\Repository\ScheduleEventRepository;
 use App\Repository\PaymentRepository;
@@ -11,7 +11,7 @@ use App\Repository\UserRepository;
 class DashboardService
 {
     public function __construct(
-        private ApplicationRepository $applicationRepository,
+        private CandidatureRepository $candidatureRepository,
         private NotificationRepository $notificationRepository,
         private ScheduleEventRepository $scheduleEventRepository,
         private PaymentRepository $paymentRepository,
@@ -25,8 +25,8 @@ class DashboardService
             throw new \InvalidArgumentException('User not found');
         }
 
-        $applicationStats = $this->applicationRepository->getApplicationsStats($userId);
-        $upcomingInterviews = $this->applicationRepository->findUpcomingInterviews($userId);
+        $applicationStats = $this->candidatureRepository->getApplicationsStats($userId);
+        $upcomingInterviews = $this->candidatureRepository->findUpcomingInterviews($userId);
         $unreadNotifications = $this->notificationRepository->countUnread($userId);
         $todayEvents = $this->scheduleEventRepository->findTodayEvents($userId);
         $upcomingEvents = $this->scheduleEventRepository->findUpcomingEvents($userId, 5);

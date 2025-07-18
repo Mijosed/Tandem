@@ -12,70 +12,39 @@
         <p class="text-muted-foreground">Gérez les utilisateurs de la plateforme</p>
       </div>
 
-      <UsersList :users="users" @refresh="loadUsers" />
+      <div v-if="error" class="mb-6 p-4 bg-destructive/15 border border-destructive/50 rounded-lg">
+        <p class="text-destructive font-medium">{{ error }}</p>
+      </div>
+
+      <div v-if="loading && users.length === 0" class="flex justify-center items-center py-12">
+        <div class="flex items-center gap-2">
+          <LoaderCircle class="h-6 w-6 animate-spin" />
+          <span>Chargement des utilisateurs...</span>
+        </div>
+      </div>
+
+      <UsersList v-else :users="users" @refresh="fetchUsers" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { onMounted } from 'vue'
+import { LoaderCircle } from 'lucide-vue-next'
 import { SidebarTrigger } from '~/components/ui/sidebar'
 import { useMediaQuery } from '@vueuse/core'
+import { useUsers } from '~/composables/useUsers'
 import UsersList from '~/components/admin/UsersList.vue'
 
 definePageMeta({
   layout: 'dashboard'
 })
 
-// Détection mobile pour afficher conditionnellement le SidebarTrigger
 const isMobile = useMediaQuery('(max-width: 768px)')
 
-interface User {
-  id: number
-  firstName: string
-  lastName: string
-  email: string
-  role: string
-  isActive: boolean
-  createdAt: string
-}
-
-const users = ref<User[]>([])
-
-const loadUsers = async () => {
-  // TODO: Remplacer par l'appel API réel
-  users.value = [
-    {
-      id: 1,
-      firstName: 'Jean',
-      lastName: 'Dupont',
-      email: 'jean.dupont@example.com',
-      role: 'ROLE_ADMIN',
-      isActive: true,
-      createdAt: '2025-05-20'
-    },
-    {
-      id: 2,
-      firstName: 'Marie',
-      lastName: 'Martin',
-      email: 'marie.martin@example.com',
-      role: 'ROLE_USER',
-      isActive: true,
-      createdAt: '2025-05-15'
-    },
-    {
-      id: 3,
-      firstName: 'Pierre',
-      lastName: 'Bernard',
-      email: 'pierre.bernard@example.com',
-      role: 'ROLE_PREMIUM',
-      isActive: false,
-      createdAt: '2025-05-10'
-    }
-  ]
-}
+const { users, loading, error, fetchUsers } = useUsers()
 
 onMounted(() => {
-  loadUsers()
+  fetchUsers()
 })
 </script>

@@ -28,6 +28,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { NuxtLink } from '#components'
+import { useAuth } from '~/composables/useAuth'
 
 const props = defineProps<{
   user: {
@@ -38,6 +39,16 @@ const props = defineProps<{
 }>()
 
 const { isMobile } = useSidebar()
+const { logout } = useAuth()
+
+const handleLogout = async () => {
+  try {
+    logout()
+    await navigateTo('/')
+  } catch (error) {
+    console.error('Erreur lors de la déconnexion:', error)
+  }
+}
 </script>
 
 <template>
@@ -105,8 +116,8 @@ const { isMobile } = useSidebar()
             </NuxtLink>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            <LogOut />
+          <DropdownMenuItem @click="handleLogout" class="cursor-pointer">
+            <LogOut class="mr-2 h-4 w-4" />
             Déconnexion
           </DropdownMenuItem>
         </DropdownMenuContent>
