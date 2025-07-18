@@ -1,0 +1,259 @@
+<template>
+<div class="container max-w-7xl mx-auto p-4 space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold">Offres d'emploi</h1>
+      <p class="text-sm text-muted-foreground mt-1">
+        Trouvez les meilleures opportunités en alternance
+      </p>
+    </div>
+  </div>
+  <!-- Section Premium Lock -->
+  <Card v-if="!isPremium" class="bg-gradient-to-br from-amber-50/80 to-yellow-50/80 border-amber-200/50">
+    <CardHeader>
+      <CardTitle class="flex items-center gap-2 text-amber-900">
+        <Crown class="h-5 w-5 text-amber-500" />
+        Accédez à toutes les offres d'emploi
+      </CardTitle>
+      <CardDescription class="text-amber-800">
+        Débloquez notre moteur de recherche d'emploi premium pour trouver les meilleures opportunités
+        en alternance, avec un accès direct aux offres Indeed et bien plus encore.
+      </CardDescription>
+    </CardHeader>
+    <CardContent class="flex flex-col sm:flex-row gap-4 items-center">
+      <Button 
+        class="bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white border-0"
+        size="lg"
+      >
+        Passer à l'offre Premium
+      </Button>
+      <span class="text-sm text-amber-700">
+        Accès illimité aux offres d'emploi
+      </span>
+    </CardContent>
+  </Card>
+
+  <template v-else>
+    <!-- Barre de recherche -->
+    <div class="flex flex-col sm:flex-row gap-4">
+      <div class="flex-1">
+        <div class="relative">
+          <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            v-model="searchQuery"
+            placeholder="Rechercher par poste, entreprise ou lieu..."
+            class="pl-9"
+            @keyup.enter="searchJobs"
+          />
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <Button variant="outline" class="w-full sm:w-auto">
+          <Filter class="h-4 w-4 mr-2" />
+          Filtres
+        </Button>
+        <Button 
+          @click="searchJobs(1)" 
+          :disabled="isLoading"
+          class="w-full sm:w-auto"
+        >
+          <Loader2 
+            v-if="isLoading" 
+            class="h-4 w-4 mr-2 animate-spin" 
+          />
+          <Search v-else class="h-4 w-4 mr-2" />
+          Rechercher
+        </Button>
+      </div>
+    </div>
+
+    <!-- Résultats -->
+    <div v-if="jobs.length" class="space-y-6">
+      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <JobCard
+          v-for="job in jobs"
+          :key="job.id"
+          :job="job"
+        />
+      </div>
+      
+      <!-- Debug: Affichons toujours la section de pagination pour tester -->
+      <div class="border-t pt-6 bg-gray-50 p-4 rounded">
+        <h3 class="font-bold mb-2">DEBUG - Informations de pagination:</h3>
+        <pre class="text-xs">{{ JSON.stringify(pagination, null, 2) }}</pre>
+        
+        <!-- Test avec boutons forcés -->
+        <div class="flex gap-2 mt-4">
+          <Button variant="outline" size="sm">← Précédent TEST</Button>
+          <Button variant="default" size="sm" disabled>Page 1</Button>
+          <Button variant="outline" size="sm">Suivant TEST →</Button>
+        </div>
+      </div>
+      
+      <!-- Pagination normale -->
+      <div v-if="pagination" class="flex items-center justify-between border-t pt-6">
+        <div class="text-sm text-muted-foreground">
+          Page {{ pagination.current_page }} sur {{ pagination.total_pages === '?' ? '?' : pagination.total_pages }}
+          ({{ pagination.total_results }} résultats sur cette page)
+        </div>
+        
+        <div class="flex items-center gap-2">
+          <!-- Bouton Précédent -->
+          <Button 
+            v-if="pagination.has_previous_page"
+            @click="goToPage(pagination.previous_page)"
+            variant="outline"
+            size="sm"
+            :disabled="isLoading"
+          >
+            ← Précédent
+          </Button>
+          
+          <!-- Numéro de page actuelle -->
+          <Button 
+            variant="default" 
+            size="sm"
+            disabled
+          >
+            {{ pagination.current_page }}
+          </Button>
+          
+          <!-- Bouton Suivant -->
+          <Button 
+            v-if="pagination.has_next_page"
+            @click="goToPage(pagination.next_page)"
+            variant="outline"
+            size="sm"
+            :disabled="isLoading"
+          >
+            Suivant →
+          </Button>
+        </div>
+      </div>
+    </div>
+
+    <!-- État vide -->
+    <Card v-else-if="!isLoading" class="text-center py-12">
+      <CardContent>
+        <p class="text-muted-foreground">
+          Aucune offre d'emploi ne correspond à votre recherche.
+          <br>
+          Essayez de modifier vos critères de recherche.
+        </p>
+      </CardContent>
+    </Card>
+  </template>
+</div>
+</template>
+
+<script setup lang="ts">
+definePageMeta({
+  layout: 'dashboard',
+})
+
+import { ref, onMounted, watch } from 'vue'
+import { Search, Filter, Loader2, Crown } from 'lucide-vue-next'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import JobCard from '@/components/jobs/JobCard.vue'
+
+// Simulation de l'état premium (à connecter avec le vrai état utilisateur)
+const isPremium = ref(true) // Activé pour utiliser l'API Pôle Emploi
+
+// États de recherche
+const searchQuery = ref('')
+const isLoading = ref(false)
+const jobs = ref([])
+const pagination = ref(null)
+const currentPage = ref(1)
+
+// Fonction pour rechercher des emplois via l'API Pôle Emploi
+const searchJobs = async (page = 1) => {
+  isLoading.value = true
+  
+  try {
+    const params = new URLSearchParams({
+      page: page.toString()
+    })
+    
+    if (searchQuery.value.trim()) {
+      params.append('motsCles', searchQuery.value.trim())
+    }
+    
+    const response = await fetch(`http://localhost:8888/api/pole-emploi/search?${params}`)
+    
+    if (!response.ok) {
+      throw new Error(`Erreur API: ${response.status}`)
+    }
+    
+    const data = await response.json()
+    
+    // Debug: Affichons les données reçues
+    console.log('Données reçues de l\'API:', data)
+    console.log('Pagination:', data.data?.pagination)
+    
+    // Transformation des données Pôle Emploi vers le format attendu
+    jobs.value = data.data.jobs.map(job => ({
+      id: job.id,
+      title: job.title,
+      company: job.company,
+      location: job.location,
+      type: job.contract_type || 'Non spécifié',
+      salary: job.salary || 'Salaire non communiqué',
+      description: job.description || 'Description non disponible',
+      postedDate: job.publication_date,
+      sourceUrl: job.application_url || '#'
+    }))
+    
+    // Mise à jour des informations de pagination
+    pagination.value = {
+      current_page: data.data.pagination.current_page,
+      per_page: data.data.pagination.per_page,
+      total_results: data.data.pagination.total_results,
+      total_pages: data.data.pagination.total_pages,
+      has_next_page: data.data.pagination.has_next_page,
+      has_previous_page: data.data.pagination.has_previous_page,
+      next_page: data.data.pagination.next_page,
+      previous_page: data.data.pagination.previous_page
+    }
+    
+    console.log('Pagination traitée:', pagination.value)
+    
+    currentPage.value = page
+    
+  } catch (error) {
+    console.error('Erreur lors de la recherche:', error)
+    // En cas d'erreur, on peut afficher un message ou garder les données précédentes
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Fonction pour naviguer vers une page spécifique
+const goToPage = (page) => {
+  if (page && page !== currentPage.value) {
+    searchJobs(page)
+  }
+}
+
+// Surveillance des changements de recherche
+watch(searchQuery, () => {
+  if (searchQuery.value.trim() === '') {
+    // Si la recherche est vide, on recharge la première page
+    searchJobs(1)
+  }
+})
+
+onMounted(() => {
+  if (isPremium.value) {
+    searchJobs(1) // Charger la première page au montage
+  }
+})
+</script>

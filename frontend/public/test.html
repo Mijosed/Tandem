@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Ultra Simple</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .box { background: #f0f0f0; padding: 20px; margin: 10px 0; border-radius: 5px; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>Test Ultra Simple - HTML Statique</h1>
+    
+    <div class="box">
+        <h2>Test 1: HTML statique</h2>
+        <p>✅ Si vous voyez ceci, le serveur web fonctionne</p>
+        <button onclick="alert('Bouton cliqué!')">Cliquer ici</button>
+    </div>
+    
+    <div class="box">
+        <h2>Test 2: JavaScript</h2>
+        <p id="js-test">❌ JavaScript ne fonctionne pas</p>
+        <button onclick="testJS()">Tester JavaScript</button>
+        <p>Compteur: <span id="counter">0</span></p>
+        <button onclick="increment()">+1</button>
+    </div>
+    
+    <div class="box">
+        <h2>Test 3: API Backend</h2>
+        <button onclick="testAPI()">Tester API</button>
+        <pre id="api-result"></pre>
+    </div>
+
+    <script>
+        let count = 0;
+        
+        function testJS() {
+            document.getElementById('js-test').innerHTML = '✅ JavaScript fonctionne!';
+            console.log('JavaScript fonctionne correctement');
+        }
+        
+        function increment() {
+            count++;
+            document.getElementById('counter').innerHTML = count;
+            console.log('Compteur:', count);
+        }
+        
+        async function testAPI() {
+            const resultDiv = document.getElementById('api-result');
+            resultDiv.innerHTML = 'Chargement...';
+            
+            try {
+                const response = await fetch('http://localhost:8888/api/pole-emploi/search?page=1');
+                console.log('Réponse API:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Données API:', data);
+                
+                resultDiv.innerHTML = JSON.stringify({
+                    success: data.success,
+                    jobs_count: data.data?.jobs?.length || 0,
+                    pagination: data.data?.pagination
+                }, null, 2);
+                
+            } catch (error) {
+                console.error('Erreur API:', error);
+                resultDiv.innerHTML = 'Erreur: ' + error.message;
+            }
+        }
+        
+        // Test automatique au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            testJS();
+            console.log('Page chargée');
+        });
+    </script>
+</body>
+</html>
