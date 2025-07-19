@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Service\PoleEmploiService;
+use App\Service\GeolocationService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,11 +14,16 @@ use Psr\Log\LoggerInterface;
 class PoleEmploiController extends AbstractController
 {
     private PoleEmploiService $poleEmploiService;
+    private GeolocationService $geolocationService;
     private LoggerInterface $logger;
 
-    public function __construct(PoleEmploiService $poleEmploiService, LoggerInterface $logger)
-    {
+    public function __construct(
+        PoleEmploiService $poleEmploiService, 
+        GeolocationService $geolocationService,
+        LoggerInterface $logger
+    ) {
         $this->poleEmploiService = $poleEmploiService;
+        $this->geolocationService = $geolocationService;
         $this->logger = $logger;
     }
 
@@ -55,14 +61,9 @@ class PoleEmploiController extends AbstractController
             $criteria = [
                 'keywords' => $request->query->get('keywords', ''),
                 'location' => $request->query->get('location', ''),
-                'distance' => $request->query->getInt('distance', 10),
-                'contractType' => $request->query->get('contractType', ''),
-                'contract' => $request->query->get('contract', ''),
                 'sector' => $request->query->get('sector', ''),
+                'contract_type' => $request->query->get('contract_type', ''),
                 'experience' => $request->query->get('experience', ''),
-                'qualification' => $request->query->get('qualification', ''),
-                'fullTime' => $request->query->getBoolean('fullTime', true),
-                'sort' => $request->query->getInt('sort', 0),
                 'limit' => $request->query->getInt('limit', 20),
                 'page' => $request->query->getInt('page', 1)
             ];
@@ -72,17 +73,21 @@ class PoleEmploiController extends AbstractController
                 return $value !== '' && $value !== null;
             });
 
-            // Utiliser uniquement l'API événements France Travail
-            $eventResults = $this->poleEmploiService->searchJobs($criteria);
+            $this->logger->info('Recherche avec critères', [
+                'criteria' => $criteria
+            ]);
+
+            // Recherche via l'API France Travail
+            $results = $this->poleEmploiService->searchJobs($criteria);
             
-            $this->logger->info('Événements France Travail récupérés', [
-                'count' => $eventResults['total'] ?? 0,
+            $this->logger->info('Résultats France Travail obtenus', [
+                'count' => $results['total'] ?? 0,
                 'criteria' => $criteria
             ]);
 
             return new JsonResponse([
                 'success' => true,
-                'data' => $eventResults,
+                'data' => $results,
                 'message' => 'Recherche effectuée avec succès'
             ]);
 
@@ -97,36 +102,15 @@ class PoleEmploiController extends AbstractController
                 'message' => 'Erreur lors de la recherche d\'offres: ' . $e->getMessage(),
                 'data' => [
                     'jobs' => [],
-                    'total' => 0
+                    'total' => 0,
+                    'pagination' => [
+                        'current_page' => 1,
+                        'per_page' => 20,
+                        'total_results' => 0,
+                        'has_next_page' => false,
+                        'has_previous_page' => false
+                    ]
                 ]
-            ], 500);
-        }
-    }
-
-    /**
-     * Obtenir les détails d'une offre
-     */
-    #[Route('/{id}', name: 'details', methods: ['GET'])]
-    public function getJobDetails(string $id): JsonResponse
-    {
-        try {
-            $jobDetails = $this->poleEmploiService->getJobDetails($id);
-
-            return new JsonResponse([
-                'success' => true,
-                'data' => $jobDetails,
-                'message' => 'Détails récupérés avec succès'
-            ]);
-
-        } catch (\Exception $e) {
-            $this->logger->error('Erreur lors de la récupération des détails', [
-                'error' => $e->getMessage(),
-                'job_id' => $id
-            ]);
-
-            return new JsonResponse([
-                'success' => false,
-                'message' => 'Erreur lors de la récupération des détails: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -201,6 +185,72 @@ class PoleEmploiController extends AbstractController
                 'success' => false,
                 'message' => 'Erreur lors de la génération de suggestions',
                 'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtenir des suggestions de localisation
+     */
+    #[Route('/locations', name: 'locations', methods: ['GET'])]
+    public function getLocationSuggestions(Request $request): JsonResponse
+    {
+        try {
+            $query = $request->query->get('q', '');
+            
+            if (strlen($query) < 2) {
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'La requête doit contenir au moins 2 caractères'
+                ], 400);
+            }
+
+            $suggestions = $this->geolocationService->getLocationSuggestions($query);
+
+            return new JsonResponse([
+                'success' => true,
+                'data' => $suggestions,
+                'message' => 'Suggestions de localisation générées avec succès'
+            ]);
+
+        } catch (\Exception $e) {
+            $this->logger->error('Erreur lors de la génération de suggestions de localisation', [
+                'error' => $e->getMessage(),
+                'query' => $request->query->get('q', '')
+            ]);
+            
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Erreur lors de la génération de suggestions de localisation',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtenir les détails d'une offre (doit être en dernier car la route capture tout)
+     */
+    #[Route('/{id}', name: 'details', methods: ['GET'])]
+    public function getJobDetails(string $id): JsonResponse
+    {
+        try {
+            $jobDetails = $this->poleEmploiService->getJobDetails($id);
+
+            return new JsonResponse([
+                'success' => true,
+                'data' => $jobDetails,
+                'message' => 'Détails récupérés avec succès'
+            ]);
+
+        } catch (\Exception $e) {
+            $this->logger->error('Erreur lors de la récupération des détails', [
+                'error' => $e->getMessage(),
+                'job_id' => $id
+            ]);
+
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des détails: ' . $e->getMessage()
             ], 500);
         }
     }

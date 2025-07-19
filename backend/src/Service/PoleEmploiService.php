@@ -9,6 +9,7 @@ class PoleEmploiService
 {
     private HttpClientInterface $httpClient;
     private LoggerInterface $logger;
+    private GeolocationService $geolocationService;
     private ?string $accessToken = null;
     private ?\DateTime $tokenExpiry = null;
 
@@ -20,11 +21,13 @@ class PoleEmploiService
     public function __construct(
         HttpClientInterface $httpClient,
         LoggerInterface $logger,
+        GeolocationService $geolocationService,
         string $poleEmploiClientId = '',
         string $poleEmploiClientSecret = ''
     ) {
         $this->httpClient = $httpClient;
         $this->logger = $logger;
+        $this->geolocationService = $geolocationService;
         $this->clientId = $poleEmploiClientId;
         $this->clientSecret = $poleEmploiClientSecret;
     }
@@ -109,20 +112,40 @@ class PoleEmploiService
             // Construire les paramètres de recherche
             $params = [];
             
+            // Keywords (mots-clés)
             if (!empty($criteria['keywords'])) {
                 $params['motsCles'] = $criteria['keywords'];
             }
+            
+            // Location (commune)
             if (!empty($criteria['location'])) {
-                $params['commune'] = $criteria['location'];
+                $inseeCode = $this->geolocationService->convertLocationToInsee($criteria['location']);
+                if ($inseeCode) {
+                    $params['commune'] = $inseeCode;
+                    $this->logger->info('Conversion de localisation', [
+                        'original' => $criteria['location'],
+                        'insee_code' => $inseeCode
+                    ]);
+                } else {
+                    $this->logger->warning('Localisation non convertible ignorée', [
+                        'location' => $criteria['location']
+                    ]);
+                }
             }
+            
+            // Sector (secteur d'activité)
             if (!empty($criteria['sector'])) {
                 $params['secteurActivite'] = $criteria['sector'];
             }
+            
+            // Contract type (type de contrat)
             if (!empty($criteria['contract_type'])) {
                 $params['typeContrat'] = $criteria['contract_type'];
             }
+            
+            // Experience (expérience)
             if (!empty($criteria['experience'])) {
-                $params['experienceExigee'] = $criteria['experience'];
+                $params['experience'] = $criteria['experience'];
             }
             
             // Paramètres par défaut
@@ -138,12 +161,92 @@ class PoleEmploiService
                 $url .= '?' . http_build_query($params);
             }
             
+            $this->logger->info('URL de recherche construite', [
+                'url' => $url,
+                'params' => $params
+            ]);
+            
             $response = $this->httpClient->request('GET', $url, [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $token,
                     'Accept' => 'application/json'
                 ]
             ]);
+
+            // Vérifier le code de statut
+            $statusCode = $response->getStatusCode();
+            $this->logger->info('Statut de la réponse API', [
+                'status_code' => $statusCode,
+                'url' => $url
+            ]);
+
+            if ($statusCode >= 400) {
+                $errorContent = $response->getContent(false);
+                $this->logger->error('Erreur API France Travail', [
+                    'status_code' => $statusCode,
+                    'url' => $url,
+                    'error_content' => $errorContent
+                ]);
+                
+                // Si c'est une erreur 400 et qu'on a un paramètre commune, on peut retry sans
+                if ($statusCode === 400 && isset($params['commune']) && 
+                    (strpos($errorContent, 'commune') !== false || strpos($errorContent, 'commune') !== false)) {
+                    
+                    $this->logger->warning('Erreur de commune détectée - retry sans localisation', [
+                        'original_commune' => $params['commune'],
+                        'criteria' => $criteria
+                    ]);
+                    
+                    // Retry sans le paramètre commune
+                    $paramsWithoutLocation = $params;
+                    unset($paramsWithoutLocation['commune']);
+                    
+                    $retryUrl = 'https://api.francetravail.io/partenaire/offresdemploi/v2/offres/search';
+                    if (!empty($paramsWithoutLocation)) {
+                        $retryUrl .= '?' . http_build_query($paramsWithoutLocation);
+                    }
+                    
+                    $this->logger->info('Retry sans localisation', ['url' => $retryUrl]);
+                    
+                    $retryResponse = $this->httpClient->request('GET', $retryUrl, [
+                        'headers' => [
+                            'Authorization' => 'Bearer ' . $token,
+                            'Accept' => 'application/json'
+                        ]
+                    ]);
+                    
+                    $retryStatusCode = $retryResponse->getStatusCode();
+                    
+                    if ($retryStatusCode === 204) {
+                        $this->logger->info('Aucun résultat trouvé pour la recherche (retry)', [
+                            'criteria' => $criteria,
+                            'params' => $paramsWithoutLocation
+                        ]);
+                        return $this->formatJobResults(['resultats' => []], $criteria);
+                    }
+                    
+                    if ($retryStatusCode < 400) {
+                        $retryData = $retryResponse->toArray();
+                        $this->logger->info('Recherche réussie sans localisation', [
+                            'results_count' => isset($retryData['resultats']) ? count($retryData['resultats']) : 0
+                        ]);
+                        return $this->formatJobResults($retryData, $criteria);
+                    }
+                }
+                
+                throw new \Exception("Erreur API France Travail (HTTP $statusCode): $errorContent");
+            }
+
+            // Gérer le cas où il n'y a pas de résultats (HTTP 204 No Content)
+            if ($statusCode === 204) {
+                $this->logger->info('Aucun résultat trouvé pour la recherche', [
+                    'criteria' => $criteria,
+                    'params' => $params
+                ]);
+                
+                // Retourner une structure vide mais valide
+                return $this->formatJobResults(['resultats' => []], $criteria);
+            }
 
             $data = $response->toArray();
             

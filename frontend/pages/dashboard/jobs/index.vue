@@ -9,37 +9,37 @@
       </div>
     </div>
 
-    <!-- Barre de recherche -->
-    <div class="flex flex-col sm:flex-row gap-4">
+    <!-- Composant de filtres -->
+    <JobFilters 
+      :loading="isLoading" 
+      @search="handleSearchWithFilters" 
+    />
+
+    <!-- Barre de recherche rapide (optionnelle) -->
+    <div class="flex flex-col sm:flex-row gap-4 border rounded-lg p-4 bg-gray-50">
       <div class="flex-1">
         <div class="relative">
           <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            v-model="searchQuery"
-            placeholder="Rechercher par poste, entreprise ou lieu..."
+            v-model="quickSearchQuery"
+            placeholder="Recherche rapide par mots-clés..."
             class="pl-9"
-            @keyup.enter="loadJobs(1)"
+            @keyup.enter="quickSearch"
           />
         </div>
       </div>
-      <div class="flex gap-2">
-        <Button variant="outline" class="w-full sm:w-auto">
-          <Filter class="h-4 w-4 mr-2" />
-          Filtres
-        </Button>
-        <Button 
-          @click="loadJobs(1)" 
-          :disabled="isLoading"
-          class="w-full sm:w-auto"
-        >
-          <Loader2 
-            v-if="isLoading" 
-            class="h-4 w-4 mr-2 animate-spin" 
-          />
-          <Search v-else class="h-4 w-4 mr-2" />
-          Rechercher
-        </Button>
-      </div>
+      <Button 
+        @click="quickSearch" 
+        :disabled="isLoading"
+        class="w-full sm:w-auto"
+      >
+        <Loader2 
+          v-if="isLoading" 
+          class="h-4 w-4 mr-2 animate-spin" 
+        />
+        <Search v-else class="h-4 w-4 mr-2" />
+        Recherche rapide
+      </Button>
     </div>
 
     <!-- Résultats -->
@@ -126,14 +126,29 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import JobCard from '@/components/jobs/JobCard.vue'
+import JobFilters from '@/components/jobs/JobFilters.vue'
 
 // Variables réactives
-const searchQuery = ref('')
+const quickSearchQuery = ref('')
 const isLoading = ref(false)
 const jobs = ref([])
 const pagination = ref(null)
 const error = ref('')
 const appliedJobs = ref(new Set()) // Tracker les candidatures
+
+// Fonction pour gérer une recherche avec filtres
+const handleSearchWithFilters = async (filters) => {
+  console.log('🔍 Recherche avec filtres:', filters)
+  await loadJobs(1, filters)
+}
+
+// Fonction pour recherche rapide
+const quickSearch = async () => {
+  if (quickSearchQuery.value.trim()) {
+    const filters = { keywords: quickSearchQuery.value.trim() }
+    await loadJobs(1, filters)
+  }
+}
 
 // Fonction pour gérer une candidature
 const handleApply = async (job) => {
@@ -145,7 +160,7 @@ const handleApply = async (job) => {
       statut: 'a_faire',
       dateDepot: new Date().toISOString().split('T')[0], // Format YYYY-MM-DD
       jobId: job.id, // Ajouter l'ID du job
-      notes: `Candidature via Pôle Emploi - ${job.location}\n\nType: ${job.type}\nSalaire: ${job.salary}\n\nDescription: ${job.description.substring(0, 300)}...`,
+      notes: `Candidature via France Travail - ${job.location}\n\nType: ${job.type}\nSalaire: ${job.salary}\n\nDescription: ${job.description.substring(0, 300)}...`,
       user: '/api/users/12' // TODO: Remplacer par l'utilisateur connecté
     }
     
@@ -189,9 +204,6 @@ const handleApply = async (job) => {
     
     console.log(`✅ Candidature #${newCandidature.id} créée pour: ${job.title}`)
     
-    // Optionnel: Afficher une notification de succès
-    // toast({ title: "Candidature envoyée", description: `Candidature pour "${job.title}" créée avec succès!` })
-    
   } catch (err) {
     console.error('❌ Erreur lors de la candidature:', err)
     error.value = 'Erreur lors de l\'envoi de la candidature: ' + err.message
@@ -204,12 +216,23 @@ const handleApply = async (job) => {
 // Fonction pour vérifier les candidatures existantes
 const checkExistingCandidatures = async (jobIds) => {
   try {
+    // Récupérer l'utilisateur depuis le localStorage
+    const userData = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {}
+    const userId = userData.id || null
+    
+    const headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    }
+    
+    // Ajouter l'ID utilisateur dans le header si disponible
+    if (userId) {
+      headers['X-User-ID'] = userId.toString()
+    }
+    
     const response = await fetch('http://localhost:8888/api/candidatures/check-multiple', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
+      headers,
       body: JSON.stringify({ jobIds })
     })
     
@@ -227,25 +250,31 @@ const checkExistingCandidatures = async (jobIds) => {
         appliedJobs.value.add(job.id)
       }
     })
-    
   } catch (err) {
-    console.error('Erreur lors de la vérification des candidatures:', err)
+    console.warn('Impossible de vérifier les candidatures existantes')
   }
 }
 
-// Fonction pour charger les emplois depuis l'API Pôle Emploi
-const loadJobs = async (page = 1) => {
+// Fonction pour charger les emplois depuis l'API France Travail
+const loadJobs = async (page = 1, filters = {}) => {
   isLoading.value = true
   error.value = ''
   
   try {
+    console.log('🔍 Chargement avec paramètres:', { page, ...filters })
+    
     // Construction de l'URL avec paramètres
     const params = new URLSearchParams({ page: page.toString() })
-    if (searchQuery.value.trim()) {
-      params.append('motsCles', searchQuery.value.trim())
-    }
+    
+    // Ajouter tous les filtres
+    Object.keys(filters).forEach(key => {
+      if (filters[key] && filters[key] !== '') {
+        params.append(key, filters[key].toString())
+      }
+    })
     
     const url = `http://localhost:8888/api/pole-emploi/search?${params}`
+    console.log('📡 URL:', url)
     
     const response = await fetch(url)
     
@@ -288,7 +317,7 @@ const loadJobs = async (page = 1) => {
     }
     
   } catch (err) {
-    console.error('Erreur lors du chargement:', err)
+    console.error('❌ Erreur lors du chargement:', err)
     error.value = err.message
     jobs.value = []
     pagination.value = null
@@ -297,10 +326,10 @@ const loadJobs = async (page = 1) => {
   }
 }
 
-// Chargement initial au montage de la page
+// Chargement initial au montage de la page (recherche vide pour avoir des résultats)
 onMounted(() => {
-  console.log('🚀 Page montée, chargement initial...')
-  loadJobs(1)
+  console.log('🚀 Page montée, chargement initial avec recherche simple...')
+  loadJobs(1, { keywords: 'alternance' }) // Recherche par défaut pour avoir des résultats
 })
 
 // Utiliser le layout dashboard

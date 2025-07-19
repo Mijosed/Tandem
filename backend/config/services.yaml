@@ -30,6 +30,10 @@ services:
     App\DataFixtures\Provider\HashPasswordProvider:
         tags: [ { name: nelmio_alice.faker.provider } ]
 
+    # Configuration du service de géolocalisation
+    App\Service\GeolocationService:
+        # Pas d'arguments supplémentaires nécessaires
+
     # Configuration du service Pôle Emploi
     App\Service\PoleEmploiService:
         arguments:
