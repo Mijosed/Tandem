@@ -83,6 +83,10 @@ class Candidature
     #[Groups(['candidature:read', 'candidature:write'])]
     private ?string $notes = null;
 
+    #[ORM\Column(length: 255, nullable: true, name: 'job_id')]
+    #[Groups(['candidature:read', 'candidature:write'])]
+    private ?string $jobId = null;
+
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'candidatures')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['candidature:read', 'candidature:write'])]
@@ -165,6 +169,17 @@ class Candidature
     public function setNotes(?string $notes): static
     {
         $this->notes = $notes;
+        return $this;
+    }
+
+    public function getJobId(): ?string
+    {
+        return $this->jobId;
+    }
+
+    public function setJobId(?string $jobId): static
+    {
+        $this->jobId = $jobId;
         return $this;
     }
 
