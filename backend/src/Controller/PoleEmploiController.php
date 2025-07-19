@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Service\PoleEmploiService;
 use App\Service\GeolocationService;
+use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,15 +17,18 @@ class PoleEmploiController extends AbstractController
     private PoleEmploiService $poleEmploiService;
     private GeolocationService $geolocationService;
     private LoggerInterface $logger;
+    private UserRepository $userRepository;
 
     public function __construct(
         PoleEmploiService $poleEmploiService, 
         GeolocationService $geolocationService,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        UserRepository $userRepository
     ) {
         $this->poleEmploiService = $poleEmploiService;
         $this->geolocationService = $geolocationService;
         $this->logger = $logger;
+        $this->userRepository = $userRepository;
     }
 
     /**
@@ -52,11 +56,43 @@ class PoleEmploiController extends AbstractController
     }
 
     /**
-     * Rechercher des offres d'emploi
+     * Rechercher des offres d'emploi (nécessite un abonnement premium)
      */
     #[Route('/search', name: 'search', methods: ['GET'])]
     public function search(Request $request): JsonResponse
     {
+        // Vérifier l'abonnement premium
+        $userId = $request->headers->get('X-User-ID');
+        
+        if (!$userId) {
+            return new JsonResponse([
+                'success' => false,
+                'error' => 'premium_required',
+                'message' => 'Un abonnement premium est requis pour accéder aux offres d\'emploi'
+            ], 403);
+        }
+
+        $user = $this->userRepository->find($userId);
+        if (!$user) {
+            return new JsonResponse([
+                'success' => false,
+                'error' => 'user_not_found',
+                'message' => 'Utilisateur non trouvé'
+            ], 404);
+        }
+
+        if (!$user->isPremium()) {
+            return new JsonResponse([
+                'success' => false,
+                'error' => 'premium_required',
+                'message' => 'Un abonnement premium est requis pour accéder aux offres d\'emploi',
+                'subscription_status' => [
+                    'plan' => $user->getSubscription()?->getPlan() ?? 'free',
+                    'status' => $user->getSubscription()?->getStatus() ?? 'inactive'
+                ]
+            ], 403);
+        }
+
         try {
             $criteria = [
                 'keywords' => $request->query->get('keywords', ''),
@@ -73,17 +109,8 @@ class PoleEmploiController extends AbstractController
                 return $value !== '' && $value !== null;
             });
 
-            $this->logger->info('Recherche avec critères', [
-                'criteria' => $criteria
-            ]);
-
             // Recherche via l'API France Travail
             $results = $this->poleEmploiService->searchJobs($criteria);
-            
-            $this->logger->info('Résultats France Travail obtenus', [
-                'count' => $results['total'] ?? 0,
-                'criteria' => $criteria
-            ]);
 
             return new JsonResponse([
                 'success' => true,

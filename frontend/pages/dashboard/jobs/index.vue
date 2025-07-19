@@ -1,91 +1,124 @@
 <template>
-  <div class="container max-w-7xl mx-auto p-4 space-y-6">
-    <div class="flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-bold">Offres d'emploi</h1>
-        <p class="text-sm text-muted-foreground mt-1">
+  <div class="min-h-screen bg-gray-50">
+    <div class="container max-w-7xl mx-auto py-8 px-4">
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Offres d'emploi</h1>
+        <p class="text-gray-600">
           Trouvez les meilleures opportunités en alternance
         </p>
       </div>
-    </div>
 
-    <!-- Composant de filtres -->
-    <JobFilters 
-      :loading="isLoading" 
-      @search="handleSearchWithFilters" 
-    />
+      <!-- Statut de l'abonnement -->
+      <SubscriptionStatus />
 
-    
+      <!-- Composant de filtres -->
+      <JobFilters 
+        :loading="isLoading" 
+        @search="handleSearchWithFilters" 
+      />
 
-    <!-- Résultats -->
-    <div v-if="jobs.length" class="space-y-6">
-      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <JobCard
-          v-for="job in jobs"
-          :key="job.id"
-          :job="job"
-          @apply="handleApply"
-        />
-      </div>
-      
-      <!-- Pagination -->
-      <div v-if="pagination" class="flex items-center justify-between border-t pt-6">
-        <div class="text-sm text-muted-foreground">
-          Page {{ pagination.current_page }} 
-          ({{ pagination.total_results }} résultats sur cette page)
+      <!-- Résultats -->
+      <div v-if="jobs.length" class="space-y-6">
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div
+            v-for="job in jobs"
+            :key="job.id"
+            class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+          >
+            <div class="space-y-4">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ job.title }}</h3>
+                <p class="text-gray-600 font-medium">{{ job.company }}</p>
+                <p class="text-sm text-gray-500">{{ job.location }}</p>
+              </div>
+              
+              <div v-if="job.salary" class="text-sm text-green-600 font-medium">
+                {{ job.salary }}
+              </div>
+              
+              <div v-if="job.type" class="text-xs text-gray-500 uppercase tracking-wide">
+                {{ job.type }}
+              </div>
+              
+              <p class="text-gray-700 text-sm line-clamp-3">
+                {{ job.description?.substring(0, 150) }}...
+              </p>
+              
+              <div class="pt-4 border-t">
+                <button
+                  @click="handleApply(job)"
+                  :disabled="appliedJobs.has(job.id.toString()) || job.hasApplied"
+                  :class="[
+                    'w-full px-4 py-2 rounded-md font-medium transition-colors',
+                    appliedJobs.has(job.id.toString()) || job.hasApplied
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  ]"
+                >
+                  {{ appliedJobs.has(job.id.toString()) || job.hasApplied ? 'Candidature envoyée' : 'Postuler' }}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
         
-        <div class="flex items-center gap-2">
-          <!-- Bouton Précédent -->
-          <Button 
-            v-if="pagination.has_previous_page"
-            @click="loadJobs(pagination.previous_page)"
-            variant="outline"
-            size="sm"
-            :disabled="isLoading"
-          >
-            ← Précédent
-          </Button>
+        <!-- Pagination -->
+        <div v-if="pagination" class="flex items-center justify-between border-t pt-6">
+          <div class="text-sm text-gray-500">
+            Page {{ pagination.current_page }} 
+            ({{ pagination.total_results }} résultats sur cette page)
+          </div>
           
-          <!-- Numéro de page actuelle -->
-          <Button 
-            variant="default" 
-            size="sm"
-            disabled
-          >
-            {{ pagination.current_page }}
-          </Button>
-          
-          <!-- Bouton Suivant -->
-          <Button 
-            v-if="pagination.has_next_page"
-            @click="loadJobs(pagination.next_page)"
-            variant="outline"
-            size="sm"
-            :disabled="isLoading"
-          >
-            Suivant →
-          </Button>
+          <div class="flex items-center gap-2">
+            <!-- Bouton Précédent -->
+            <button 
+              v-if="pagination.has_previous_page"
+              @click="loadJobs(pagination.previous_page)"
+              :disabled="isLoading"
+              class="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+            >
+              ← Précédent
+            </button>
+            
+            <!-- Bouton Suivant -->
+            <button 
+              v-if="pagination.has_next_page"
+              @click="loadJobs(pagination.next_page)"
+              :disabled="isLoading"
+              class="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+            >
+              Suivant →
+            </button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- État vide -->
-    <Card v-else-if="!isLoading" class="text-center py-12">
-      <CardContent>
-        <p class="text-muted-foreground">
-          Aucune offre d'emploi ne correspond à votre recherche.
-          <br>
-          Essayez de modifier vos critères de recherche.
-        </p>
-      </CardContent>
-    </Card>
+      <!-- Message si pas de résultats -->
+      <div v-else-if="!isLoading && !error" class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">Aucune offre trouvée</h3>
+        <p class="mt-1 text-sm text-gray-500">Utilisez les filtres pour trouver des opportunités.</p>
+      </div>
 
-    <!-- Erreurs -->
-    <div v-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4">
-      <div class="flex items-center">
-        <AlertCircle class="h-5 w-5 text-red-600 mr-2" />
-        <p class="text-red-800">{{ error }}</p>
+      <!-- Loading -->
+      <div v-if="isLoading" class="text-center py-12">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <p class="mt-2 text-sm text-gray-500">Chargement des offres...</p>
+      </div>
+
+      <!-- Message d'erreur -->
+      <div v-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+        <div class="flex">
+          <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-red-800">Erreur</h3>
+            <p class="text-sm text-red-700 mt-1">{{ error }}</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -93,83 +126,62 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { Search, Filter, Loader2, AlertCircle } from 'lucide-vue-next'
-import {
-  Card,
-  CardContent,
-} from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import JobCard from '@/components/jobs/JobCard.vue'
 import JobFilters from '@/components/jobs/JobFilters.vue'
+import SubscriptionStatus from '@/components/dashboard/SubscriptionStatus.vue'
 
 // Variables réactives
-const quickSearchQuery = ref('')
 const isLoading = ref(false)
 const jobs = ref([])
 const pagination = ref(null)
 const error = ref('')
-const appliedJobs = ref(new Set()) // Tracker les candidatures
+const appliedJobs = ref(new Set())
 
 // Fonction pour gérer une recherche avec filtres
 const handleSearchWithFilters = async (filters) => {
-  console.log('🔍 Recherche avec filtres:', filters)
   await loadJobs(1, filters)
-}
-
-// Fonction pour recherche rapide
-const quickSearch = async () => {
-  if (quickSearchQuery.value.trim()) {
-    const filters = { keywords: quickSearchQuery.value.trim() }
-    await loadJobs(1, filters)
-  }
 }
 
 // Fonction pour gérer une candidature
 const handleApply = async (job) => {
   try {
-    // Créer une candidature via l'API backend avec jobId
+    // Récupérer l'utilisateur connecté
+    const userData = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {}
+    const userId = userData.id
+    
+    if (!userId) {
+      throw new Error('Utilisateur non connecté')
+    }
+
     const candidatureData = {
       titrePoste: job.title,
       entreprise: job.company,
       statut: 'a_faire',
-      dateDepot: new Date().toISOString().split('T')[0], // Format YYYY-MM-DD
-      jobId: job.id, // Ajouter l'ID du job
+      dateDepot: new Date().toISOString().split('T')[0],
+      jobId: job.id,
       notes: `Candidature via France Travail - ${job.location}\n\nType: ${job.type}\nSalaire: ${job.salary}\n\nDescription: ${job.description.substring(0, 300)}...`,
-      user: '/api/users/12' // TODO: Remplacer par l'utilisateur connecté
+      user: `/api/users/${userId}`
     }
-    
-    console.log('📤 Création candidature:', candidatureData)
     
     const response = await fetch('http://localhost:8888/api/candidatures', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/ld+json', // Format API Platform
-        'Accept': 'application/ld+json',
+        'Content-Type': 'application/ld+json',
       },
       body: JSON.stringify(candidatureData)
     })
     
-    console.log('📈 Statut réponse:', response.status)
-    
     if (!response.ok) {
-      const errorData = await response.text()
-      console.error('❌ Erreur API:', response.status, errorData)
-      
-      if (response.status === 422) {
-        throw new Error('Données invalides. Vérifiez les informations.')
-      } else if (response.status === 404) {
-        throw new Error('Utilisateur non trouvé.')
-      } else {
-        throw new Error(`Erreur serveur: ${response.status}`)
-      }
+      const errorText = await response.text()
+      throw new Error(`Erreur ${response.status}: ${errorText}`)
     }
     
     const newCandidature = await response.json()
+    
     console.log('✅ Candidature créée:', newCandidature)
     
-    // Marquer le job comme candidaté
-    appliedJobs.value.add(job.id)
+    // Marquer le job comme candidaté (s'assurer que les types correspondent)
+    const jobIdStr = job.id.toString()
+    appliedJobs.value.add(jobIdStr)
     
     // Mettre à jour le job dans la liste
     const jobIndex = jobs.value.findIndex(j => j.id === job.id)
@@ -177,13 +189,10 @@ const handleApply = async (job) => {
       jobs.value[jobIndex].hasApplied = true
     }
     
-    console.log(`✅ Candidature #${newCandidature.id} créée pour: ${job.title}`)
+    console.log('🎯 Job marqué comme candidaté:', jobIdStr)
     
   } catch (err) {
-    console.error('❌ Erreur lors de la candidature:', err)
     error.value = 'Erreur lors de l\'envoi de la candidature: ' + err.message
-    
-    // Retirer le job des candidatures appliquées en cas d'erreur
     appliedJobs.value.delete(job.id)
   }
 }
@@ -191,108 +200,117 @@ const handleApply = async (job) => {
 // Fonction pour vérifier les candidatures existantes
 const checkExistingCandidatures = async (jobIds) => {
   try {
-    // Récupérer l'utilisateur depuis le localStorage
     const userData = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {}
     const userId = userData.id || null
     
-    const headers = {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    }
-    
-    // Ajouter l'ID utilisateur dans le header si disponible
-    if (userId) {
-      headers['X-User-ID'] = userId.toString()
-    }
-    
-    const response = await fetch('http://localhost:8888/api/candidatures/check-multiple', {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ jobIds })
-    })
-    
-    if (!response.ok) {
-      console.warn('Impossible de vérifier les candidatures existantes')
+    if (!userId || !jobIds.length) {
+      console.log('❌ Pas d\'userId ou pas de jobIds pour vérifier les candidatures')
       return
     }
     
-    const results = await response.json()
+    console.log('🔍 Vérification candidatures pour userId:', userId, 'jobIds:', jobIds.length)
     
-    // Mettre à jour l'état des jobs avec les candidatures existantes
-    jobs.value.forEach(job => {
-      if (results[job.id] && results[job.id].hasApplied) {
-        job.hasApplied = true
-        appliedJobs.value.add(job.id)
+    const response = await fetch(`http://localhost:8888/api/candidatures?user.id=${userId}`)
+    
+    if (!response.ok) {
+      console.warn('❌ Erreur lors de la récupération des candidatures:', response.status)
+      return
+    }
+    
+    const data = await response.json()
+    const candidatures = data.member || []
+    
+    console.log('📋 Candidatures trouvées:', candidatures.length, candidatures)
+    console.log('🔍 Structure des données reçues:', Object.keys(data))
+    
+    // Réinitialiser les candidatures appliquées
+    appliedJobs.value.clear()
+    
+    candidatures.forEach(candidature => {
+      if (candidature.jobId) {
+        appliedJobs.value.add(candidature.jobId.toString()) // Assurer que c'est un string
+        console.log('✅ Job déjà candidaté:', candidature.jobId, candidature.titrePoste)
       }
     })
+    
+    console.log('📊 Total jobs déjà candidatés:', appliedJobs.value.size)
+    
+    // Mettre à jour les jobs dans la liste
+    jobs.value.forEach(job => {
+      const jobIdStr = job.id.toString()
+      if (appliedJobs.value.has(jobIdStr)) {
+        job.hasApplied = true
+        console.log('🔒 Job marqué comme candidaté:', jobIdStr, job.title)
+      } else {
+        job.hasApplied = false
+      }
+    })
+    
   } catch (err) {
-    console.warn('Impossible de vérifier les candidatures existantes')
+    console.error('❌ Erreur lors de la vérification des candidatures:', err)
   }
 }
 
-// Fonction pour charger les emplois depuis l'API France Travail
+// Fonction principale pour charger les jobs
 const loadJobs = async (page = 1, filters = {}) => {
   isLoading.value = true
   error.value = ''
   
   try {
-    console.log('🔍 Chargement avec paramètres:', { page, ...filters })
+    const userData = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {}
+    const userId = userData.id
     
-    // Construction de l'URL avec paramètres
-    const params = new URLSearchParams({ page: page.toString() })
+    if (!userId) {
+      throw new Error('Utilisateur non connecté')
+    }
     
-    // Ajouter tous les filtres
-    Object.keys(filters).forEach(key => {
-      if (filters[key] && filters[key] !== '') {
-        params.append(key, filters[key].toString())
+    const params = new URLSearchParams({
+      page: page.toString(),
+      ...filters
+    })
+    
+    const response = await fetch(`http://localhost:8888/api/pole-emploi/search?${params}`, {
+      headers: {
+        'X-User-ID': userId.toString(),
+        'Content-Type': 'application/json'
       }
     })
     
-    const url = `http://localhost:8888/api/pole-emploi/search?${params}`
-    console.log('📡 URL:', url)
-    
-    const response = await fetch(url)
-    
     if (!response.ok) {
-      throw new Error(`Erreur HTTP: ${response.status}`)
+      const errorData = await response.json().catch(() => ({}))
+      
+      if (response.status === 403 && errorData.error === 'premium_required') {
+        throw new Error('Un abonnement premium est requis pour accéder aux offres d\'emploi.')
+      }
+      
+      throw new Error(`Erreur ${response.status}: ${response.statusText}`)
     }
     
     const data = await response.json()
     
+    // Récupérer les données selon la structure du backend
+    let jobsArray = []
+    let paginationData = null
+    
     if (data.success && data.data) {
-      // Transformation des données vers le format JobCard
-      jobs.value = data.data.jobs.map(job => ({
-        id: job.id,
-        title: job.title,
-        company: job.company,
-        location: job.location,
-        type: job.contract_type || 'Non spécifié',
-        salary: job.salary || 'Salaire non communiqué',
-        description: job.description || 'Description non disponible',
-        postedDate: job.publication_date,
-        sourceUrl: job.application_url || '#',
-        hasApplied: appliedJobs.value.has(job.id) // Vérifier si déjà candidaté
-      }))
-      
-      // Récupération des données de pagination
-      pagination.value = data.data.pagination
-      
-      // Vérifier les candidatures existantes pour ces jobs
-      const jobIds = jobs.value.map(job => job.id)
-      if (jobIds.length > 0) {
-        await checkExistingCandidatures(jobIds)
-      }
-      
-      // Scroll vers le haut après changement de page
-      if (page > 1) {
-        window.scrollTo({ top: 0, behavior: 'smooth' })
-      }
+      const apiData = data.data
+      jobsArray = apiData.jobs || apiData.resultats || []
+      paginationData = apiData.pagination
     } else {
-      throw new Error('Format de réponse invalide')
+      jobsArray = data.resultats || data.jobs || data['hydra:member'] || []
+      paginationData = data.pagination || data['hydra:view']
+    }
+    
+    jobs.value = jobsArray
+    pagination.value = paginationData
+    
+    // Vérifier les candidatures existantes
+    if (jobs.value.length > 0) {
+      const jobIds = jobs.value.map(job => job.id)
+      await checkExistingCandidatures(jobIds)
     }
     
   } catch (err) {
-    console.error('❌ Erreur lors du chargement:', err)
     error.value = err.message
     jobs.value = []
     pagination.value = null
@@ -301,14 +319,53 @@ const loadJobs = async (page = 1, filters = {}) => {
   }
 }
 
-// Chargement initial au montage de la page (recherche vide pour avoir des résultats)
-onMounted(() => {
-  console.log('🚀 Page montée, chargement initial avec recherche simple...')
-  loadJobs(1, { keywords: 'alternance' }) // Recherche par défaut pour avoir des résultats
+// Charger les jobs au montage du composant
+onMounted(async () => {
+  // Vérifier et rafraîchir le statut de l'utilisateur
+  await refreshUserStatus()
+  await loadJobs(1, { keywords: 'alternance' })
 })
 
-// Utiliser le layout dashboard
+// Fonction pour rafraîchir le statut de l'utilisateur
+const refreshUserStatus = async () => {
+  try {
+    const userData = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {}
+    const userId = userData.id
+    
+    if (!userId) return
+    
+    // Récupérer le statut d'abonnement à jour
+    const response = await fetch(`http://localhost:8888/api/stripe/subscription-status/${userId}`)
+    
+    if (response.ok) {
+      const subscriptionData = await response.json()
+      
+      // Mettre à jour les données utilisateur
+      userData.isPremium = subscriptionData.isPremium || false
+      userData.subscription = {
+        plan: subscriptionData.plan,
+        status: subscriptionData.status
+      }
+      
+      localStorage.setItem('user', JSON.stringify(userData))
+    }
+  } catch (err) {
+    // Silencieux en cas d'erreur
+  }
+}
+
+// Meta pour le layout
 definePageMeta({
   layout: 'dashboard'
 })
 </script>
+
+<style scoped>
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+</style>
