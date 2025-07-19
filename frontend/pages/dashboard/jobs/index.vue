@@ -177,8 +177,6 @@ const handleApply = async (job) => {
     
     const newCandidature = await response.json()
     
-    console.log('✅ Candidature créée:', newCandidature)
-    
     // Marquer le job comme candidaté (s'assurer que les types correspondent)
     const jobIdStr = job.id.toString()
     appliedJobs.value.add(jobIdStr)
@@ -188,8 +186,6 @@ const handleApply = async (job) => {
     if (jobIndex !== -1) {
       jobs.value[jobIndex].hasApplied = true
     }
-    
-    console.log('🎯 Job marqué comme candidaté:', jobIdStr)
     
   } catch (err) {
     error.value = 'Erreur lors de l\'envoi de la candidature: ' + err.message
@@ -204,50 +200,39 @@ const checkExistingCandidatures = async (jobIds) => {
     const userId = userData.id || null
     
     if (!userId || !jobIds.length) {
-      console.log('❌ Pas d\'userId ou pas de jobIds pour vérifier les candidatures')
       return
     }
-    
-    console.log('🔍 Vérification candidatures pour userId:', userId, 'jobIds:', jobIds.length)
     
     const response = await fetch(`http://localhost:8888/api/candidatures?user.id=${userId}`)
     
     if (!response.ok) {
-      console.warn('❌ Erreur lors de la récupération des candidatures:', response.status)
       return
     }
     
     const data = await response.json()
     const candidatures = data.member || []
     
-    console.log('📋 Candidatures trouvées:', candidatures.length, candidatures)
-    console.log('🔍 Structure des données reçues:', Object.keys(data))
-    
     // Réinitialiser les candidatures appliquées
     appliedJobs.value.clear()
     
     candidatures.forEach(candidature => {
       if (candidature.jobId) {
-        appliedJobs.value.add(candidature.jobId.toString()) // Assurer que c'est un string
-        console.log('✅ Job déjà candidaté:', candidature.jobId, candidature.titrePoste)
+        appliedJobs.value.add(candidature.jobId.toString())
       }
     })
-    
-    console.log('📊 Total jobs déjà candidatés:', appliedJobs.value.size)
     
     // Mettre à jour les jobs dans la liste
     jobs.value.forEach(job => {
       const jobIdStr = job.id.toString()
       if (appliedJobs.value.has(jobIdStr)) {
         job.hasApplied = true
-        console.log('🔒 Job marqué comme candidaté:', jobIdStr, job.title)
       } else {
         job.hasApplied = false
       }
     })
     
   } catch (err) {
-    console.error('❌ Erreur lors de la vérification des candidatures:', err)
+    // Erreur silencieuse pour ne pas perturber l'utilisateur
   }
 }
 

@@ -93,12 +93,6 @@
             <p>{{ pagination.total_results }} résultats sur cette page</p>
             <p v-if="pagination.estimated_total">Estimation: {{ pagination.estimated_total }} résultats au total</p>
           </div>
-          
-          <!-- Debug (pliable) -->
-          <details class="mt-4">
-            <summary class="cursor-pointer text-sm text-gray-500 hover:text-gray-700">🔍 Détails techniques</summary>
-            <pre class="text-xs bg-gray-100 p-3 mt-2 rounded overflow-auto">{{ JSON.stringify(pagination, null, 2) }}</pre>
-          </details>
         </div>
       </div>
       
