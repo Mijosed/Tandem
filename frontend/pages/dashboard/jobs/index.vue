@@ -15,32 +15,7 @@
       @search="handleSearchWithFilters" 
     />
 
-    <!-- Barre de recherche rapide (optionnelle) -->
-    <div class="flex flex-col sm:flex-row gap-4 border rounded-lg p-4 bg-gray-50">
-      <div class="flex-1">
-        <div class="relative">
-          <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            v-model="quickSearchQuery"
-            placeholder="Recherche rapide par mots-clés..."
-            class="pl-9"
-            @keyup.enter="quickSearch"
-          />
-        </div>
-      </div>
-      <Button 
-        @click="quickSearch" 
-        :disabled="isLoading"
-        class="w-full sm:w-auto"
-      >
-        <Loader2 
-          v-if="isLoading" 
-          class="h-4 w-4 mr-2 animate-spin" 
-        />
-        <Search v-else class="h-4 w-4 mr-2" />
-        Recherche rapide
-      </Button>
-    </div>
+    
 
     <!-- Résultats -->
     <div v-if="jobs.length" class="space-y-6">
