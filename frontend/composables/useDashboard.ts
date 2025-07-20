@@ -43,18 +43,14 @@ export const useDashboard = () => {
 
   const config = useRuntimeConfig()
 
-  // Récupérer les données utilisateur depuis le localStorage ou l'API
   const fetchUserProfile = async () => {
     try {
       loading.value = true
       
-      // Pour l'instant, on utilise des données de test
-      // Dans une vraie app, on récupérerait les données depuis l'API avec un token
       const storedUser = localStorage.getItem('user')
       if (storedUser) {
         user.value = JSON.parse(storedUser)
       } else {
-        // Données de test par défaut
         user.value = {
           id: 1,
           email: 'admin@tandem.com',
@@ -76,12 +72,10 @@ export const useDashboard = () => {
     }
   }
 
-  // Récupérer les candidatures
   const fetchApplications = async () => {
     try {
-      // Récupérer l'utilisateur connecté
       const userData = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {}
-      const userId = userData.id || 4 // Fallback pour les tests
+      const userId = userData.id || 4
       
       const token = localStorage.getItem('jwt')
       const response = await fetch(`http://localhost:8888/api/candidatures/user/${userId}`, {
@@ -96,7 +90,6 @@ export const useDashboard = () => {
       const data = await response.json()
       applications.value = data.member || []
       
-      // Calculer les statistiques des candidatures
       const totalApplications = applications.value.length
       const pending = applications.value.filter((app: any) => app.statut === 'en_attente').length
       const active = applications.value.filter((app: any) => app.statut === 'entretien').length
@@ -115,7 +108,6 @@ export const useDashboard = () => {
     }
   }
 
-  // Récupérer les notifications
   const fetchNotifications = async () => {
     try {
       const token = localStorage.getItem('jwt')
@@ -131,7 +123,6 @@ export const useDashboard = () => {
       const data = await response.json()
       notifications.value = data.member || []
       
-      // Compter les messages non lus
       const unreadMessages = notifications.value.filter((notif: any) => !notif.isRead).length
       stats.value.messages = unreadMessages
 
@@ -141,7 +132,6 @@ export const useDashboard = () => {
     }
   }
 
-  // Récupérer les offres d'emploi
   const fetchJobs = async () => {
     try {
       const token = localStorage.getItem('jwt')
@@ -163,7 +153,6 @@ export const useDashboard = () => {
     }
   }
 
-  // Récupérer toutes les données du dashboard
   const fetchDashboardData = async () => {
     loading.value = true
     error.value = ''
@@ -176,7 +165,6 @@ export const useDashboard = () => {
         fetchJobs()
       ])
       
-      // Calculer les entretiens à venir (simulation basée sur les candidatures actives)
       stats.value.upcomingInterviews = Math.floor(stats.value.activeApplications * 0.4)
       
     } catch (err: any) {
@@ -186,7 +174,6 @@ export const useDashboard = () => {
     }
   }
 
-  // Données calculées
   const recentApplications = computed(() => {
     return applications.value
       .slice(0, 5)
@@ -204,14 +191,12 @@ export const useDashboard = () => {
     return jobs.value.slice(0, 3)
   })
 
-  // Sauvegarder les données utilisateur
   const saveUserProfile = (userData: UserProfile) => {
     user.value = userData
     localStorage.setItem('user', JSON.stringify(userData))
   }
 
   return {
-    // État
     loading,
     error,
     user,
@@ -220,12 +205,10 @@ export const useDashboard = () => {
     notifications,
     jobs,
     
-    // Données calculées
     recentApplications,
     recentNotifications,
     featuredJobs,
     
-    // Actions
     fetchDashboardData,
     fetchUserProfile,
     fetchApplications,

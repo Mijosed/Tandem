@@ -29,7 +29,6 @@
         </Button>
       </div>
       
-      <!-- Version mobile -->
       <div class="md:hidden">
         <Button 
           size="sm"
@@ -41,7 +40,6 @@
       </div>
     </div>
     
-    <!-- Features sur mobile -->
     <div class="md:hidden mt-4 pt-4 border-t border-blue-400">
       <div class="grid grid-cols-2 gap-2 text-sm">
         <div class="flex items-center">

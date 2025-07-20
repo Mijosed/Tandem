@@ -39,7 +39,6 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useStripe } from '@/composables/useStripe'
 
-// State
 const subscriptionStatus = ref({
   plan: 'free',
   status: 'inactive',
@@ -47,10 +46,8 @@ const subscriptionStatus = ref({
   currentPeriodEnd: null
 })
 
-// Composables
 const { getSubscriptionStatus } = useStripe()
 
-// Computed
 const isPremium = computed(() => subscriptionStatus.value.isPremium)
 
 const planName = computed(() => {
@@ -80,7 +77,6 @@ const iconClass = computed(() => {
     : 'bg-gray-100 text-gray-600'
 })
 
-// Methods
 const loadSubscriptionStatus = async () => {
   try {
     const userData = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {}
@@ -92,7 +88,6 @@ const loadSubscriptionStatus = async () => {
     }
   } catch (error) {
     console.warn('Impossible de charger le statut de l\'abonnement:', error)
-    // Garder les valeurs par défaut
   }
 }
 

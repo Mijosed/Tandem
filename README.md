@@ -35,8 +35,28 @@ docker-compose up --build
 Connexion à la base données via Adminer :
 - **Système** : PostgreSQL
 - **Serveur** : database 
-- **User** : app
-- **Password** : !ChangeMe!
+- **User** : admin
+- **Password** : admin
+
+## 👥 Comptes de test
+
+Après avoir chargé les fixtures, vous pouvez utiliser ces comptes pour tester l'application :
+
+### Comptes principaux
+- **Administrateur**
+  - Email : `admin@tandem.com`
+  - Mot de passe : `password123`
+  - Rôle : ROLE_ADMIN
+
+- **Utilisateur de test**
+  - Email : `test@user.fr`
+  - Mot de passe : `test1234`
+  - Rôle : ROLE_USER
+
+- **Recruteur**
+  - Email : `recruiter@tandem.com`
+  - Mot de passe : `password123`
+  - Rôle : ROLE_RECRUITER
 
 ## ⚙️ Commandes utiles
 

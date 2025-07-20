@@ -79,12 +79,10 @@ const selectedDate = ref('')
 const notes = ref('')
 const isSubmitting = ref(false)
 
-// Date d'aujourd'hui au format YYYY-MM-DD pour la validation
 const today = computed(() => {
   return new Date().toISOString().split('T')[0]
 })
 
-// Réinitialiser le formulaire quand le dialog s'ouvre
 watch(() => props.open, (newValue) => {
   if (newValue) {
     selectedDate.value = props.candidature?.dateEntretien || ''

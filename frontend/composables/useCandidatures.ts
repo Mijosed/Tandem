@@ -29,16 +29,13 @@ export const useCandidatures = () => {
 
   const apiBase = 'http://localhost:8888/api'
 
-  // Récupérer toutes les candidatures de l'utilisateur connecté
   const fetchCandidatures = async () => {
     loading.value = true
     error.value = ''
     
     try {
-      // Récupérer l'utilisateur connecté
       const userData = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {}
       
-      // Utiliser l'utilisateur 12 par défaut si pas d'utilisateur en localStorage (pour les tests)
       const userId = userData.id || 12
       
       if (!userId) {
@@ -60,7 +57,6 @@ export const useCandidatures = () => {
       const data = await response.json()
       const userCandidatures = data.member || []
       
-      // Transformer les données (déjà filtrées côté serveur)
       candidatures.value = userCandidatures.map(transformCandidatureFromAPI)
       
     } catch (err: any) {
@@ -71,7 +67,6 @@ export const useCandidatures = () => {
     }
   }
 
-  // Créer une nouvelle candidature
   const createCandidature = async (candidatureData: CandidatureFormData) => {
     loading.value = true
     error.value = ''
@@ -79,10 +74,8 @@ export const useCandidatures = () => {
     try {
       const userData = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {}
       
-      // Utiliser l'utilisateur 12 par défaut si pas d'utilisateur en localStorage (pour les tests)
       const userId = userData.id || 12
       
-      // Fonction pour convertir date YYYY-MM-DD en format ISO avec timezone
       const formatDateForAPI = (dateString: string) => {
         if (!dateString) return null
         return new Date(dateString + 'T00:00:00Z').toISOString()
@@ -115,7 +108,6 @@ export const useCandidatures = () => {
       
       const newCandidature = await response.json()
       
-      // Transformer la réponse pour l'interface
       const transformedCandidature = transformCandidatureFromAPI(newCandidature)
       candidatures.value.push(transformedCandidature)
       
@@ -129,25 +121,21 @@ export const useCandidatures = () => {
     }
   }
 
-  // Mettre à jour une candidature existante
   const updateCandidature = async (id: number, candidatureData: Partial<Candidature>) => {
     loading.value = true
     error.value = ''
     
     try {
-      // Récupérer la candidature existante d'abord
       const currentCandidature = candidatures.value.find(c => c.id === id)
       if (!currentCandidature) {
         throw new Error('Candidature non trouvée')
       }
       
-      // Fonction pour convertir date YYYY-MM-DD en format ISO avec timezone
       const formatDateForAPI = (dateString: string) => {
         if (!dateString) return null
         return new Date(dateString + 'T00:00:00Z').toISOString()
       }
       
-      // Fusionner avec les données existantes et convertir les dates
       const updatePayload: any = {
         titrePoste: candidatureData.titrePoste || currentCandidature.titrePoste,
         entreprise: candidatureData.entreprise || currentCandidature.entreprise,
@@ -175,7 +163,6 @@ export const useCandidatures = () => {
       
       const updatedCandidature = await response.json()
       
-      // Mettre à jour la liste locale
       const index = candidatures.value.findIndex(c => c.id === id)
       if (index !== -1) {
         candidatures.value[index] = transformCandidatureFromAPI(updatedCandidature)
@@ -192,7 +179,6 @@ export const useCandidatures = () => {
     }
   }
 
-  // Supprimer une candidature
   const deleteCandidature = async (id: number) => {
     loading.value = true
     error.value = ''
@@ -207,7 +193,6 @@ export const useCandidatures = () => {
         throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`)
       }
       
-      // Retirer de la liste locale
       candidatures.value = candidatures.value.filter(c => c.id !== id)
       
     } catch (err: any) {
@@ -227,12 +212,10 @@ export const useCandidatures = () => {
   })
   }
 
-  // Mettre à jour uniquement le statut d'une candidature
   const updateCandidatureStatus = async (id: number, statut: CandidatureStatus) => {
     return updateCandidature(id, { statut })
   }
 
-  // Statistiques calculées selon votre modèle
   const stats = computed((): CandidatureStats => {
     const total = candidatures.value.length
     const aFaire = candidatures.value.filter(c => c.statut === 'a_faire').length
@@ -254,14 +237,12 @@ export const useCandidatures = () => {
     }
   })
 
-  // Candidatures récentes (dernières 5)
   const candidaturesRecentes = computed(() => {
     return [...candidatures.value]
       .sort((a, b) => new Date(b.dateDepot).getTime() - new Date(a.dateDepot).getTime())
       .slice(0, 5)
   })
 
-  // Candidatures par statut
   const candidaturesParStatut = computed(() => {
     const parStatut: Record<string, Candidature[]> = {}
     candidatures.value.forEach(candidature => {
@@ -273,7 +254,6 @@ export const useCandidatures = () => {
     return parStatut
   })
 
-  // Recherche et filtrage
   const searchCandidatures = (query: string, statusFilter?: string[]) => {
     return candidatures.value.filter(candidature => {
       const matchesQuery = !query || 
@@ -288,24 +268,20 @@ export const useCandidatures = () => {
   }
 
   return {
-    // État
     candidatures,
     loading,
     error,
     
-    // Données calculées
     stats,
     candidaturesRecentes,
     candidaturesParStatut,
     
-    // Actions CRUD
     fetchCandidatures,
     createCandidature,
     updateCandidature,
     deleteCandidature,
     updateCandidatureStatus,
     
-    // Utilitaires
     searchCandidatures
   }
 }

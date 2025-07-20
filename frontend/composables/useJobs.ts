@@ -35,7 +35,6 @@ export interface JobSearchResult {
 
 export const useJobs = () => {
   const { apiCall } = useApi()
-  // Récupère le token JWT à chaque appel
   const getJwtHeaders = () => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
     return token ? { Authorization: `Bearer ${token}` } : {}
@@ -48,7 +47,6 @@ export const useJobs = () => {
   const total = ref(0)
   const sectors = ref<any[]>([])
 
-  // États de recherche
   const searchCriteria = ref<JobSearchCriteria>({
     keywords: '',
     location: '',
@@ -60,9 +58,6 @@ export const useJobs = () => {
     sort: 0
   })
 
-  /**
-   * Rechercher des offres d'emploi
-   */
   const searchJobs = async (criteria?: JobSearchCriteria) => {
     loading.value = true
     error.value = null
@@ -70,7 +65,6 @@ export const useJobs = () => {
     try {
       const searchParams = { ...searchCriteria.value, ...criteria }
       
-      // Convertir 'ALL' en chaîne vide pour l'API
       if (searchParams.contractType === 'ALL') {
         searchParams.contractType = ''
       }
@@ -93,7 +87,6 @@ export const useJobs = () => {
         jobs.value = response.data.jobs
         total.value = response.data.total
         
-        // Mettre à jour les critères de recherche
         Object.assign(searchCriteria.value, searchParams)
       } else {
         throw new Error(response.message || 'Erreur lors de la recherche')
@@ -106,9 +99,6 @@ export const useJobs = () => {
     }
   }
 
-  /**
-   * Obtenir les détails d'une offre
-   */
   const getJobDetails = async (jobId: string) => {
     loading.value = true
     error.value = null
@@ -139,9 +129,6 @@ export const useJobs = () => {
     }
   }
 
-  /**
-   * Obtenir des suggestions d'offres
-   */
   const getSuggestions = async (userId: number, criteria?: Partial<JobSearchCriteria>) => {
     loading.value = true
     error.value = null
@@ -172,9 +159,6 @@ export const useJobs = () => {
     }
   }
 
-  /**
-   * Obtenir les secteurs d'activité
-   */
   const getSectors = async () => {
     try {
       const response = await apiCall<{
@@ -197,9 +181,6 @@ export const useJobs = () => {
     }
   }
 
-  /**
-   * Réinitialiser les critères de recherche
-   */
   const resetSearch = () => {
     searchCriteria.value = {
       keywords: '',
@@ -216,9 +197,6 @@ export const useJobs = () => {
     error.value = null
   }
 
-  /**
-   * Créer une candidature à partir d'une offre
-   */
   const createApplicationFromJob = async (job: JobOffer, userId: number) => {
     try {
       const applicationData = {
@@ -245,12 +223,10 @@ export const useJobs = () => {
     }
   }
 
-  // États calculés
   const hasJobs = computed(() => jobs.value.length > 0)
   const hasError = computed(() => !!error.value)
   const isSearching = computed(() => loading.value)
 
-  // Filtres pour l'interface
   const contractTypes = [
     { value: 'ALL', label: 'Tous les contrats' },
     { value: 'CDI', label: 'CDI' },
@@ -273,7 +249,6 @@ export const useJobs = () => {
   ]
 
   return {
-    // États
     jobs: readonly(jobs),
     currentJob: readonly(currentJob),
     loading: readonly(loading),
@@ -282,7 +257,6 @@ export const useJobs = () => {
     sectors: readonly(sectors),
     searchCriteria,
 
-    // Actions
     searchJobs,
     getJobDetails,
     getSuggestions,
@@ -290,12 +264,10 @@ export const useJobs = () => {
     resetSearch,
     createApplicationFromJob,
 
-    // États calculés
     hasJobs,
     hasError,
     isSearching,
 
-    // Options pour les filtres
     contractTypes,
     experienceLevels,
     sortOptions

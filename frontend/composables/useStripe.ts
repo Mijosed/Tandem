@@ -9,7 +9,6 @@ export const useStripe = () => {
   }
   const getStripe = async () => {
     if (!stripePromise) {
-      // Récupérer la clé publique depuis l'API
       const response = await fetch('http://localhost:8888/api/stripe/config', {
         headers: {
           ...getJwtHeaders(),
