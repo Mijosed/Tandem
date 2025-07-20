@@ -119,10 +119,21 @@ Si vous rencontrez une erreur avec la migration `Version20250720203805` concerna
 
 ```bash
 # Marquer la migration problématique comme exécutée
-docker-compose exec php php bin/console doctrine:migrations:version DoctrineMigrations\\Version20250720203805 --add --no-interaction
+docker-compose exec php php bin/console doctrine:migrations:version DoctrineMigrations\Version20250720203805 --add --no-interaction
 
 # Puis continuer avec les autres migrations
 docker-compose exec php php bin/console doctrine:migrations:migrate --no-interaction
+
+# Si le schéma n'est toujours pas synchronisé
+docker-compose exec php php bin/console doctrine:schema:update --force
+```
+
+### En cas d'erreur de fixtures
+Si vous obtenez une erreur concernant `nextBilling` dans les fixtures Subscription :
+
+```bash
+# Les fixtures ont été corrigées pour utiliser les bonnes propriétés
+docker-compose exec php php bin/console hautelook:fixtures:load --no-interaction
 ```
 
 ### ✅ État actuel

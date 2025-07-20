@@ -23,17 +23,40 @@ final class Version20250720203805 extends AbstractMigration
         $this->addSql(<<<'SQL'
             ALTER TABLE candidature ALTER heure_entretien TYPE VARCHAR(10)
         SQL);
+        
+        // Vérifier si la contrainte existe avant de la supprimer
         $this->addSql(<<<'SQL'
-            ALTER TABLE notification DROP CONSTRAINT fk_bf5476cab6121583
+            DO $$ 
+            BEGIN
+                IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_bf5476cab6121583') THEN
+                    ALTER TABLE notification DROP CONSTRAINT fk_bf5476cab6121583;
+                END IF;
+            END $$;
         SQL);
+        
+        // Vérifier si l'index existe avant de le supprimer
         $this->addSql(<<<'SQL'
-            DROP INDEX idx_bf5476cab6121583
+            DROP INDEX IF EXISTS idx_bf5476cab6121583
         SQL);
+        
+        // Vérifier si la colonne existe avant de la supprimer
         $this->addSql(<<<'SQL'
-            ALTER TABLE notification DROP candidature_id
+            DO $$ 
+            BEGIN
+                IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'notification' AND column_name = 'candidature_id') THEN
+                    ALTER TABLE notification DROP candidature_id;
+                END IF;
+            END $$;
         SQL);
+        
+        // Vérifier si la colonne existe avant de la supprimer
         $this->addSql(<<<'SQL'
-            ALTER TABLE notification DROP interview_time
+            DO $$ 
+            BEGIN
+                IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'notification' AND column_name = 'interview_time') THEN
+                    ALTER TABLE notification DROP interview_time;
+                END IF;
+            END $$;
         SQL);
     }
 

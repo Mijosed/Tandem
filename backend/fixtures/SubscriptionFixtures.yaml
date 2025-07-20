@@ -3,7 +3,9 @@ App\Entity\Subscription:
     user: '@user_admin'
     plan: 'premium'
     status: 'active'
-    nextBilling: <dateTimeBetween('+1 month', '+2 months')>
+    stripeSubscriptionId: 'sub_admin_premium_123'
+    currentPeriodStart: <dateTimeBetween('-1 month', 'now')>
+    currentPeriodEnd: <dateTimeBetween('+1 month', '+2 months')>
     createdAt: <dateTimeBetween('-6 months', '-3 months')>
     updatedAt: <dateTimeBetween('-1 week', 'now')>
 
@@ -11,7 +13,9 @@ App\Entity\Subscription:
     user: '@user_test'
     plan: 'premium'
     status: 'active'
-    nextBilling: <dateTimeBetween('+15 days', '+1 month')>
+    stripeSubscriptionId: 'sub_test_premium_456'
+    currentPeriodStart: <dateTimeBetween('-15 days', 'now')>
+    currentPeriodEnd: <dateTimeBetween('+15 days', '+1 month')>
     createdAt: <dateTimeBetween('-2 months', '-1 month')>
     updatedAt: <dateTimeBetween('-3 days', 'now')>
 
@@ -19,6 +23,8 @@ App\Entity\Subscription:
     user: '@user_recruiter'
     plan: 'free'
     status: 'active'
-    nextBilling: null
+    stripeSubscriptionId: null
+    currentPeriodStart: <dateTimeBetween('-3 months', '-1 month')>
+    currentPeriodEnd: null
     createdAt: <dateTimeBetween('-3 months', '-1 month')>
     updatedAt: <dateTimeBetween('-1 month', 'now')> 

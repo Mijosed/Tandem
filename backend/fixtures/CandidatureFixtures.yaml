@@ -6,6 +6,7 @@ App\Entity\Candidature:
     statut: 'en_attente'
     dateDepot: <dateTimeBetween('-1 week', 'now')>
     dateEntretien: null
+    heureEntretien: null
     notes: 'Candidature envoyée avec CV et lettre de motivation'
     dateCreation: <dateTimeBetween('-1 week', 'now')>
 
@@ -16,6 +17,7 @@ App\Entity\Candidature:
     statut: 'entretien'
     dateDepot: <dateTimeBetween('-2 weeks', 'now')>
     dateEntretien: <dateTimeBetween('+1 day', '+1 week')>
+    heureEntretien: '14:30'
     notes: 'Entretien prévu la semaine prochaine'
     dateCreation: <dateTimeBetween('-2 weeks', 'now')>
 
@@ -26,6 +28,7 @@ App\Entity\Candidature:
     statut: 'refuse'
     dateDepot: <dateTimeBetween('-1 month', 'now')>
     dateEntretien: null
+    heureEntretien: null
     notes: 'Réponse négative reçue'
     dateCreation: <dateTimeBetween('-1 month', 'now')>
 
@@ -34,8 +37,9 @@ App\Entity\Candidature:
     titrePoste: 'Data Scientist'
     entreprise: 'AI Solutions'
     statut: 'a_faire'
-    dateDepot: null
+    dateDepot: <dateTimeBetween('-2 days', 'now')>
     dateEntretien: null
+    heureEntretien: null
     notes: 'Poste trouvé via LinkedIn - Préparer CV spécialisé IA'
     dateCreation: <dateTimeBetween('-2 days', 'now')>
 
@@ -46,6 +50,7 @@ App\Entity\Candidature:
     statut: 'relance'
     dateDepot: <dateTimeBetween('-10 days', '-5 days')>
     dateEntretien: null
+    heureEntretien: null
     notes: 'Candidature spontanée envoyée - Relancer dans 1 semaine'
     dateCreation: <dateTimeBetween('-10 days', '-5 days')>
 
@@ -56,5 +61,6 @@ App\Entity\Candidature:
     statut: 'accepte'
     dateDepot: <dateTimeBetween('-1 month', '-3 weeks')>
     dateEntretien: <dateTimeBetween('-2 weeks', '-1 week')>
+    heureEntretien: '10:00'
     notes: 'Mission acceptée ! Début prévu le mois prochain - Négociation salaire réussie'
     dateCreation: <dateTimeBetween('-1 month', '-3 weeks')>
