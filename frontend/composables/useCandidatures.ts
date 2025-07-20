@@ -45,8 +45,13 @@ export const useCandidatures = () => {
         throw new Error('Utilisateur non connecté')
       }
 
-      // Récupérer seulement les candidatures de l'utilisateur connecté
-      const response = await fetch(`${apiBase}/candidatures/user/${userId}`)
+      const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
+      const response = await fetch(`${apiBase}/candidatures/user/${userId}`, {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+        }
+      })
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
@@ -93,9 +98,11 @@ export const useCandidatures = () => {
         user: `/api/users/${userId}`
       }
       
+      const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
       const response = await fetch(`${apiBase}/candidatures`, {
         method: 'POST',
         headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
           'Content-Type': 'application/ld+json',
         },
         body: JSON.stringify(candidaturePayload)
@@ -151,9 +158,11 @@ export const useCandidatures = () => {
         user: currentCandidature.utilisateur
       }
       
+      const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
       const response = await fetch(`${apiBase}/candidatures/${id}`, {
         method: 'PUT',
         headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
           'Content-Type': 'application/ld+json',
         },
         body: JSON.stringify(updatePayload)
@@ -208,6 +217,14 @@ export const useCandidatures = () => {
     } finally {
       loading.value = false
     }
+  const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
+  const response = await fetch(`${apiBase}/candidatures/${id}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': token ? `Bearer ${token}` : '',
+      'Content-Type': 'application/json',
+    }
+  })
   }
 
   // Mettre à jour uniquement le statut d'une candidature

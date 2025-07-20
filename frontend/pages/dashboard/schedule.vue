@@ -23,7 +23,8 @@ import { Switch } from '~/components/ui/switch'
 import { useToast } from '~/components/ui/toast/use-toast'
 
 definePageMeta({
-  layout: 'dashboard'
+  layout: 'dashboard',
+  middleware: ['auth']
 })
 
 // Détection mobile pour afficher conditionnellement le SidebarTrigger

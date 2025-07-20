@@ -21,6 +21,10 @@ export interface UserFormData {
 }
 
 export const useUsers = () => {
+  const getJwtHeaders = () => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
+    return token ? { Authorization: `Bearer ${token}` } : {}
+  }
   const users = ref<User[]>([])
   const loading = ref(false)
   const error = ref('')
@@ -32,7 +36,12 @@ export const useUsers = () => {
     error.value = ''
     
     try {
-      const response = await fetch(`${apiBase}/users`)
+      const response = await fetch(`${apiBase}/users`, {
+        headers: {
+          ...getJwtHeaders(),
+          'Content-Type': 'application/json',
+        }
+      })
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
@@ -69,6 +78,7 @@ export const useUsers = () => {
       const response = await fetch(`${apiBase}/users`, {
         method: 'POST',
         headers: {
+          ...getJwtHeaders(),
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -108,6 +118,7 @@ export const useUsers = () => {
       const response = await fetch(`${apiBase}/users/${id}`, {
         method: 'PUT',
         headers: {
+          ...getJwtHeaders(),
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(userData),
@@ -143,6 +154,10 @@ export const useUsers = () => {
     try {
       const response = await fetch(`${apiBase}/users/${id}`, {
         method: 'DELETE',
+        headers: {
+          ...getJwtHeaders(),
+          'Content-Type': 'application/json',
+        }
       })
       
       if (!response.ok) {

@@ -144,7 +144,8 @@ import {
 } from '~/components/ui/avatar'
 
 definePageMeta({
-  layout: 'dashboard'
+  layout: 'dashboard',
+  middleware: ['auth']
 })
 
 // Détection mobile pour afficher conditionnellement le SidebarTrigger

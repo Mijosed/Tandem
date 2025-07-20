@@ -22,7 +22,13 @@ export const useFranceTravail = () => {
       const url = `${baseUrl}/search?${params}`
       console.log('📡 URL de recherche:', url)
       
-      const response = await fetch(url)
+      const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+        }
+      })
       
       if (!response.ok) {
         throw new Error(`Erreur HTTP: ${response.status}`)
@@ -49,7 +55,13 @@ export const useFranceTravail = () => {
     try {
       console.log('📊 Chargement des secteurs...')
       
-      const response = await fetch(`${baseUrl}/sectors`)
+      const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
+      const response = await fetch(`${baseUrl}/sectors`, {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+        }
+      })
       
       if (!response.ok) {
         throw new Error(`Erreur HTTP: ${response.status}`)
@@ -82,7 +94,13 @@ export const useFranceTravail = () => {
     try {
       console.log('📝 Chargement des détails pour:', jobId)
       
-      const response = await fetch(`${baseUrl}/${jobId}`)
+      const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
+      const response = await fetch(`${baseUrl}/${jobId}`, {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+        }
+      })
       
       if (!response.ok) {
         throw new Error(`Erreur HTTP: ${response.status}`)
@@ -109,7 +127,13 @@ export const useFranceTravail = () => {
     try {
       console.log('🔧 Test de connexion...')
       
-      const response = await fetch(`${baseUrl}/test`)
+      const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
+      const response = await fetch(`${baseUrl}/test`, {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+        }
+      })
       
       if (!response.ok) {
         throw new Error(`Erreur HTTP: ${response.status}`)
@@ -139,7 +163,13 @@ export const useFranceTravail = () => {
         return []
       }
       
-      const response = await fetch(`${baseUrl}/suggestions?q=${encodeURIComponent(query)}`)
+      const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
+      const response = await fetch(`${baseUrl}/suggestions?q=${encodeURIComponent(query)}`, {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+        }
+      })
       
       if (!response.ok) {
         throw new Error(`Erreur HTTP: ${response.status}`)

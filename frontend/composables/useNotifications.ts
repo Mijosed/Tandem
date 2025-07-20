@@ -23,6 +23,10 @@ const transformNotificationFromAPI = (apiNotification: any): Notification => {
 }
 
 export const useNotifications = () => {
+  const getJwtHeaders = () => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
+    return token ? { Authorization: `Bearer ${token}` } : {}
+  }
   const notifications = ref<Notification[]>([])
   const loading = ref(false)
   const error = ref('')
@@ -39,7 +43,12 @@ export const useNotifications = () => {
         throw new Error('Utilisateur non connecté')
       }
 
-      const response = await fetch(`${apiBase}/notifications`)
+      const response = await fetch(`${apiBase}/notifications`, {
+        headers: {
+          ...getJwtHeaders(),
+          'Content-Type': 'application/json',
+        }
+      })
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
@@ -92,6 +101,7 @@ export const useNotifications = () => {
       const response = await fetch(`${apiBase}/notifications/${id}`, {
         method: 'PUT',
         headers: {
+          ...getJwtHeaders(),
           'Content-Type': 'application/ld+json',
         },
         body: JSON.stringify({
@@ -123,6 +133,7 @@ export const useNotifications = () => {
           fetch(`${apiBase}/notifications/${notification.id}`, {
             method: 'PUT',
             headers: {
+              ...getJwtHeaders(),
               'Content-Type': 'application/ld+json',
             },
             body: JSON.stringify({
@@ -146,7 +157,11 @@ export const useNotifications = () => {
   const deleteNotification = async (id: number) => {
     try {
       const response = await fetch(`${apiBase}/notifications/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+          ...getJwtHeaders(),
+          'Content-Type': 'application/json',
+        }
       })
 
       if (!response.ok) {
@@ -170,6 +185,7 @@ export const useNotifications = () => {
       const response = await fetch(`${apiBase}/notifications`, {
         method: 'POST',
         headers: {
+          ...getJwtHeaders(),
           'Content-Type': 'application/ld+json',
         },
         body: JSON.stringify({

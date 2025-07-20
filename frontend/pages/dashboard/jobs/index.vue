@@ -182,9 +182,11 @@ const handleSaveToApplications = async (job) => {
       user: `/api/users/${userId}`
     }
     
+    const token = localStorage.getItem('jwt')
     const response = await fetch('http://localhost:8888/api/candidatures', {
       method: 'POST',
       headers: {
+        'Authorization': token ? `Bearer ${token}` : '',
         'Content-Type': 'application/ld+json',
       },
       body: JSON.stringify(candidatureData)
@@ -226,7 +228,13 @@ const checkExistingCandidatures = async (jobIds) => {
       return
     }
     
-    const response = await fetch(`http://localhost:8888/api/candidatures/user/${userId}`)
+    const token = localStorage.getItem('jwt')
+    const response = await fetch(`http://localhost:8888/api/candidatures/user/${userId}`, {
+      headers: {
+        'Authorization': token ? `Bearer ${token}` : '',
+        'Content-Type': 'application/json',
+      }
+    })
     
     if (!response.ok) {
       return
@@ -277,8 +285,10 @@ const loadJobs = async (page = 1, filters = {}) => {
       ...filters
     })
     
+    const token = localStorage.getItem('jwt')
     const response = await fetch(`http://localhost:8888/api/pole-emploi/search?${params}`, {
       headers: {
+        'Authorization': token ? `Bearer ${token}` : '',
         'X-User-ID': userId.toString(),
         'Content-Type': 'application/json'
       }
@@ -343,7 +353,13 @@ const refreshUserStatus = async () => {
     if (!userId) return
     
     // Récupérer le statut d'abonnement à jour
-    const response = await fetch(`http://localhost:8888/api/stripe/subscription-status/${userId}`)
+    const token = localStorage.getItem('jwt')
+    const response = await fetch(`http://localhost:8888/api/stripe/subscription-status/${userId}`, {
+      headers: {
+        'Authorization': token ? `Bearer ${token}` : '',
+        'Content-Type': 'application/json',
+      }
+    })
     
     if (response.ok) {
       const subscriptionData = await response.json()
@@ -364,7 +380,8 @@ const refreshUserStatus = async () => {
 
 // Meta pour le layout
 definePageMeta({
-  layout: 'dashboard'
+  layout: 'dashboard',
+  middleware: ['auth']
 })
 </script>
 

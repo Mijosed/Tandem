@@ -3,7 +3,6 @@ import type { SidebarProps } from '@/components/ui/sidebar'
 import { ref, computed } from 'vue'
 import { useRoute } from '#app'
 import { useMediaQuery } from '@vueuse/core'
-import { useAuth } from '~/composables/useAuth'
 
 
 import {

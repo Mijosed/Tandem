@@ -18,6 +18,11 @@ interface ApiScheduleEvent {
 
 export const useSchedule = () => {
   const { get, post, put, delete: del } = useApi()
+  // Récupère le token JWT à chaque appel
+  const getJwtHeaders = () => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
+    return token ? { Authorization: `Bearer ${token}` } : {}
+  }
   const events = ref<ScheduleEvent[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
@@ -78,7 +83,11 @@ export const useSchedule = () => {
       const userData = JSON.parse(localStorage.getItem('user') || '{}')
       const userId = userData.id || 12 // Fallback pour les tests
       
-      const response: any = await get(`/api/schedule/events/user/${userId}`)
+      const response: any = await get(`/api/schedule/events/user/${userId}`, {
+        headers: {
+          ...getJwtHeaders()
+        }
+      })
       
       if (response['hydra:member']) {
         events.value = response['hydra:member'].map(formatEventFromAPI)
@@ -105,7 +114,11 @@ export const useSchedule = () => {
         userId: userId
       }
 
-      const response = await post('/api/schedule/events', payload) as ApiScheduleEvent
+      const response = await post('/api/schedule/events', payload, {
+        headers: {
+          ...getJwtHeaders()
+        }
+      }) as ApiScheduleEvent
 
       const newEvent = formatEventFromAPI(response)
       events.value.push(newEvent)
@@ -128,7 +141,11 @@ export const useSchedule = () => {
     try {
       const payload = formatEventForAPI(eventData as ScheduleEventInput)
       
-      const response = await put(`/api/schedule_events/${eventId}`, payload) as ApiScheduleEvent
+      const response = await put(`/api/schedule_events/${eventId}`, payload, {
+        headers: {
+          ...getJwtHeaders()
+        }
+      }) as ApiScheduleEvent
 
       const updatedEvent = formatEventFromAPI(response)
       const index = events.value.findIndex(e => e.id === eventId)
@@ -152,7 +169,11 @@ export const useSchedule = () => {
     error.value = null
 
     try {
-      await del(`/api/schedule_events/${eventId}`)
+      await del(`/api/schedule_events/${eventId}`, {
+        headers: {
+          ...getJwtHeaders()
+        }
+      })
 
       events.value = events.value.filter(e => e.id !== eventId)
       return true
@@ -206,7 +227,11 @@ export const useSchedule = () => {
       const userData = JSON.parse(localStorage.getItem('user') || '{}')
       const userId = userData.id || 12
       
-      const response: any = await get(`/api/schedule/stats/${userId}`)
+      const response: any = await get(`/api/schedule/stats/${userId}`, {
+        headers: {
+          ...getJwtHeaders()
+        }
+      })
       return response
     } catch (err: any) {
       console.error('Erreur fetchEventStats:', err)

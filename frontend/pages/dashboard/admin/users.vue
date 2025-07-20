@@ -37,7 +37,8 @@ import { useUsers } from '~/composables/useUsers'
 import UsersList from '~/components/admin/UsersList.vue'
 
 definePageMeta({
-  layout: 'dashboard'
+  layout: 'dashboard',
+  middleware: ['auth']
 })
 
 const isMobile = useMediaQuery('(max-width: 768px)')

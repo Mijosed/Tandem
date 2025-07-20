@@ -35,6 +35,11 @@ export interface JobSearchResult {
 
 export const useJobs = () => {
   const { apiCall } = useApi()
+  // Récupère le token JWT à chaque appel
+  const getJwtHeaders = () => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
+    return token ? { Authorization: `Bearer ${token}` } : {}
+  }
   
   const jobs = ref<JobOffer[]>([])
   const currentJob = ref<JobOffer | null>(null)
@@ -78,7 +83,10 @@ export const useJobs = () => {
         data: JobSearchResult
         message: string
       }>('/api/pole-emploi/search', {
-        params: searchParams
+        params: searchParams,
+        headers: {
+          ...getJwtHeaders()
+        }
       })
 
       if (response.success) {
@@ -110,7 +118,11 @@ export const useJobs = () => {
         success: boolean
         data: JobOffer
         message: string
-      }>(`/api/pole-emploi/${jobId}`)
+      }>(`/api/pole-emploi/${jobId}`, {
+        headers: {
+          ...getJwtHeaders()
+        }
+      })
 
       if (response.success) {
         currentJob.value = response.data
@@ -140,7 +152,10 @@ export const useJobs = () => {
         data: JobSearchResult
         message: string
       }>(`/api/pole-emploi/suggestions/${userId}`, {
-        params: criteria || {}
+        params: criteria || {},
+        headers: {
+          ...getJwtHeaders()
+        }
       })
 
       if (response.success) {
@@ -166,7 +181,11 @@ export const useJobs = () => {
         success: boolean
         data: any[]
         message: string
-      }>('/api/pole-emploi/sectors')
+      }>('/api/pole-emploi/sectors', {
+        headers: {
+          ...getJwtHeaders()
+        }
+      })
 
       if (response.success) {
         sectors.value = response.data
@@ -213,7 +232,10 @@ export const useJobs = () => {
 
       const response = await apiCall<any>('/candidatures', {
         method: 'POST',
-        body: applicationData
+        body: applicationData,
+        headers: {
+          ...getJwtHeaders()
+        }
       })
 
       return response
