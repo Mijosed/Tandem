@@ -29,6 +29,7 @@ docker-compose up --build
 - **Frontend** : http://localhost:3000
 - **API Platform** : http://localhost:8000/api/docs.html  
 - **Adminer** : http://localhost:8080
+- **MailHog** (Test emails) : http://localhost:8025
 
 ## 🗄️ Base de données
 
@@ -61,7 +62,30 @@ Si vous avez des erreurs de modules manquants :
 2. Relancez `docker-compose up --build`
 
 
-## 🗃️ Initialisation de la base de données
+## � Configuration des emails
+
+Le système envoie automatiquement des emails lors de la création de notifications.
+
+### Configuration Gmail (Production)
+1. Créer un mot de passe d'application Gmail
+2. Configurer les variables dans `backend/.env` :
+```bash
+MAILER_DSN=gmail://votre-email@gmail.com:votre-mot-de-passe-app@default
+FRONTEND_URL=https://votre-domaine.com
+```
+
+### Tests locaux avec MailHog
+MailHog capture tous les emails pour les tests :
+- Interface web : http://localhost:8025
+- Les emails ne sont pas envoyés mais stockés localement
+
+### Types d'emails automatiques
+- **Interview** : Convocation avec date/heure
+- **Information** : Updates importantes
+- **Rappel** : Notifications de suivi
+- **Candidature** : Statuts de candidature
+
+## �🗃️ Initialisation de la base de données
 
 ### Première installation
 ```bash
@@ -84,6 +108,11 @@ docker-compose exec php php bin/console doctrine:migrations:migrate --no-interac
 ### ✅ État actuel
 Le système fonctionne parfaitement. Les heures d'entretien sont correctement sauvegardées et affichées.
 Les fixtures sont chargées avec succès.
+
+**📧 Système d'emails configuré :**
+- Envoi automatique d'emails lors de création de notifications
+- Configuration Gmail active (voir `backend/.env`)
+- MailHog disponible pour tests locaux : http://localhost:8025
 
 **Comptes de test disponibles :**
 - **Admin** : `admin@tandem.com` / `password123`

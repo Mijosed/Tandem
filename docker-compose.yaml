@@ -140,6 +140,17 @@ services:
     env_file:
       - ./frontend/.env
 
+  # 📧 MailHog pour tester les emails
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mailhog
+    restart: always
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Interface web
+    networks:
+      - tandem-network
+
 volumes:
   db-data:
   matomo-data:

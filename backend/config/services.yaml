@@ -44,3 +44,10 @@ services:
             $persistProcessor: '@api_platform.doctrine.orm.state.persist_processor'
         tags:
             - { name: 'api_platform.state.processor' }
+
+    # Service d'envoi d'emails pour les notifications
+    App\Service\NotificationEmailService:
+        arguments:
+            $mailer: '@mailer.mailer'
+            $twig: '@twig'
+            $parameterBag: '@parameter_bag'

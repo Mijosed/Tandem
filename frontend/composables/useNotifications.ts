@@ -50,8 +50,6 @@ export const useNotifications = () => {
         throw new Error('Utilisateur non connecté')
       }
 
-      console.log('🔍 Utilisateur connecté ID:', currentUser.value.id)
-
       const response = await fetch(`${apiBase}/notifications`, {
         headers: {
           ...getJwtHeaders(),
@@ -64,7 +62,6 @@ export const useNotifications = () => {
       }
       
       const data = await response.json()
-      console.log('📊 Réponse API complète:', data)
       
       let allNotifications: any[] = []
       
@@ -80,8 +77,6 @@ export const useNotifications = () => {
         throw new Error('Format de réponse API non supporté')
       }
       
-      console.log('📋 Toutes les notifications reçues:', allNotifications)
-      
       const userNotifications = allNotifications.filter((notif: any) => {
         let userId: number = 0
         
@@ -92,12 +87,8 @@ export const useNotifications = () => {
           userId = notif.user.id
         }
         
-        console.log(`🔍 Notification ${notif.id}: userId=${userId}, currentUser=${currentUser.value?.id}`)
-        
         return userId === currentUser.value?.id
       })
-      
-      console.log('✅ Notifications filtrées pour l\'utilisateur:', userNotifications)
       
       notifications.value = userNotifications.map(transformNotificationFromAPI)
       
