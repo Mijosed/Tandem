@@ -48,6 +48,17 @@
               class="col-span-3"
             />
           </div>
+          <div class="grid grid-cols-4 items-center gap-4">
+            <Label class="text-right" for="interviewTime">Heure d'entretien</Label>
+            <Input
+              id="interviewTime"
+              v-model="form.heureEntretien"
+              type="time"
+              class="col-span-3"
+              placeholder="14:30"
+              :disabled="!form.dateEntretien"
+            />
+          </div>
           <div class="grid grid-cols-4 items-start gap-4">
             <Label class="text-right mt-2">Statut</Label>
             <div class="col-span-3 space-y-3">
@@ -126,6 +137,7 @@ const form = ref<{
   entreprise: string
   dateDepot: string
   dateEntretien: string
+  heureEntretien: string
   statut: CandidatureStatus
   notes: string
 }>({
@@ -133,6 +145,7 @@ const form = ref<{
   entreprise: '',
   dateDepot: '',
   dateEntretien: '',
+  heureEntretien: '',
   statut: 'a_faire',
   notes: '',
 })
@@ -140,21 +153,26 @@ const form = ref<{
 const isSubmitting = ref(false)
 
 watch(() => props.candidature, (newVal) => {
+  console.log('🔧 DEBUG CandidatureDialog - watch candidature:', newVal)
   if (newVal) {
+    console.log('  heureEntretien from props:', newVal.heureEntretien, typeof newVal.heureEntretien)
     form.value = {
       titrePoste: newVal.titrePoste,
       entreprise: newVal.entreprise,
       dateDepot: newVal.dateDepot,
       dateEntretien: newVal.dateEntretien || '',
+      heureEntretien: newVal.heureEntretien || '',
       statut: newVal.statut,
       notes: newVal.notes || ''
     }
+    console.log('  form.heureEntretien after set:', form.value.heureEntretien, typeof form.value.heureEntretien)
   } else {
     form.value = {
       titrePoste: '',
       entreprise: '',
       dateDepot: new Date().toISOString().split('T')[0],
       dateEntretien: '',
+      heureEntretien: '',
       statut: 'a_faire',
       notes: '',
     }
@@ -180,6 +198,12 @@ const handleSubmit = async () => {
       ...form.value,
       id: props.candidature?.id,
     }
+    
+    // Debug logs pour l'heure
+    console.log('🔧 DEBUG CandidatureDialog - handleSubmit:')
+    console.log('  form.heureEntretien:', form.value.heureEntretien, typeof form.value.heureEntretien)
+    console.log('  candidatureData.heureEntretien:', candidatureData.heureEntretien, typeof candidatureData.heureEntretien)
+    
     emit('save', candidatureData)
   } finally {
     isSubmitting.value = false

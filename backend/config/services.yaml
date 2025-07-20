@@ -37,3 +37,17 @@ services:
         arguments:
             $poleEmploiClientId: '%pole_emploi.client_id%'
             $poleEmploiClientSecret: '%pole_emploi.client_secret%'
+
+    # Configuration du processor pour les notifications
+    App\State\NotificationProcessor:
+        arguments:
+            $persistProcessor: '@api_platform.doctrine.orm.state.persist_processor'
+        tags:
+            - { name: 'api_platform.state.processor' }
+
+    # Service d'envoi d'emails pour les notifications
+    App\Service\NotificationEmailService:
+        arguments:
+            $mailer: '@mailer.mailer'
+            $twig: '@twig'
+            $parameterBag: '@parameter_bag'

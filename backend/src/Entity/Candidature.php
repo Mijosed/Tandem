@@ -79,6 +79,10 @@ class Candidature
     #[Groups(['candidature:read', 'candidature:write'])]
     private ?\DateTimeInterface $dateEntretien = null;
 
+    #[ORM\Column(type: 'string', length: 10, nullable: true, name: 'heure_entretien')]
+    #[Groups(['candidature:read', 'candidature:write'])]
+    private ?string $heureEntretien = null;
+
     #[ORM\Column(type: 'text', nullable: true)]
     #[Groups(['candidature:read', 'candidature:write'])]
     private ?string $notes = null;
@@ -158,6 +162,17 @@ class Candidature
     public function setDateEntretien(?\DateTimeInterface $dateEntretien): static
     {
         $this->dateEntretien = $dateEntretien;
+        return $this;
+    }
+
+    public function getHeureEntretien(): ?string
+    {
+        return $this->heureEntretien;
+    }
+
+    public function setHeureEntretien(?string $heureEntretien): static
+    {
+        $this->heureEntretien = $heureEntretien;
         return $this;
     }
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { SidebarProps } from '@/components/ui/sidebar'
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from '#app'
 import { useMediaQuery } from '@vueuse/core'
 
@@ -37,9 +37,16 @@ const route = useRoute()
 
 const { currentUser, userFullName, isAuthenticated, isAdmin } = useAuth()
 
+// État pour gérer l'hydratation côté client
+const isHydrated = ref(false)
+
+onMounted(() => {
+  isHydrated.value = true
+})
+
 const user = computed(() => ({
-  name: userFullName.value || 'Utilisateur',  
-  email: currentUser.value?.email || 'user@off.com',
+  name: isHydrated.value ? (userFullName.value || 'Utilisateur') : 'Utilisateur',  
+  email: isHydrated.value ? (currentUser.value?.email || 'user@off.com') : 'user@off.com',
   avatar: '/logo.png',
 }))
 
@@ -87,7 +94,8 @@ const navigationGroups = computed(() => {
     },
   ]
 
-  if (isAdmin.value) {
+  // N'ajouter la section admin qu'après hydratation côté client
+  if (isHydrated.value && isAdmin.value) {
     groups.push({
       label: 'Administration',
       items: [
@@ -101,7 +109,7 @@ const navigationGroups = computed(() => {
               url: '/dashboard/admin/users',
             },
           ],
-        },
+        } as any, // Correction temporaire du type
       ],
     })
   }
@@ -127,7 +135,7 @@ const navigationGroups = computed(() => {
       </template>
     </SidebarContent>
     <SidebarFooter>
-      <NavUser :user="user" :actions="userActions" />
+      <NavUser :user="user" />
     </SidebarFooter>
     <SidebarRail />
   </Sidebar>
