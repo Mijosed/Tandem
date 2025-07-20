@@ -140,7 +140,8 @@ const handleSaveCandidature = async (candidature: Candidature) => {
         dateDepot: candidature.dateDepot || '',
         statut: candidature.statut,
         notes: candidature.notes || '',
-        dateEntretien: candidature.dateEntretien
+        dateEntretien: candidature.dateEntretien,
+        heureEntretien: candidature.heureEntretien || ''
       }
       await createCandidature(createData)
     }

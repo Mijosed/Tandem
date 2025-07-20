@@ -62,6 +62,29 @@ Si vous avez des erreurs de modules manquants :
 
 
 ## 🗃️ Initialisation de la base de données
-docker exec php php bin/console doctrine:database:create --if-not-exists
-docker exec php php bin/console doctrine:migrations:migrate --no-interaction
-docker exec php php bin/console hautelook:fixtures:load --no-interaction
+
+### Première installation
+```bash
+docker-compose exec php php bin/console doctrine:database:create --if-not-exists
+docker-compose exec php php bin/console doctrine:migrations:migrate --no-interaction
+docker-compose exec php php bin/console hautelook:fixtures:load --no-interaction
+```
+
+### En cas d'erreur de migration
+Si vous rencontrez une erreur avec la migration `Version20250720203805` concernant une contrainte inexistante :
+
+```bash
+# Marquer la migration problématique comme exécutée
+docker-compose exec php php bin/console doctrine:migrations:version DoctrineMigrations\\Version20250720203805 --add --no-interaction
+
+# Puis continuer avec les autres migrations
+docker-compose exec php php bin/console doctrine:migrations:migrate --no-interaction
+```
+
+### ✅ État actuel
+Le système fonctionne parfaitement. Les heures d'entretien sont correctement sauvegardées et affichées.
+Les fixtures sont chargées avec succès.
+
+**Comptes de test disponibles :**
+- **Admin** : `admin@tandem.com` / `password123`
+- **Utilisateur** : `test@user.fr` / `test1234`

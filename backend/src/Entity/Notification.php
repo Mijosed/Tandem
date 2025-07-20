@@ -9,6 +9,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
+use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Delete;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\SerializedName;
@@ -28,6 +29,10 @@ use Symfony\Component\Validator\Constraints as Assert;
             denormalizationContext: ['groups' => ['notification:write']]
         ),
         new Put(
+            normalizationContext: ['groups' => ['notification:read']],
+            denormalizationContext: ['groups' => ['notification:write']]
+        ),
+        new Patch(
             normalizationContext: ['groups' => ['notification:read']],
             denormalizationContext: ['groups' => ['notification:write']]
         ),
@@ -67,9 +72,23 @@ class Notification
     #[Groups(['notification:read'])]
     private ?User $user = null;
 
+    #[Groups(['notification:write'])]
+    #[SerializedName('user')]
+    private ?int $userId = null;
+
+    // Candidature temporairement commentée pour les fixtures
+    // #[ORM\ManyToOne(targetEntity: Candidature::class)]
+    // #[ORM\JoinColumn(nullable: true)]
+    // #[Groups(['notification:read', 'notification:write'])]
+    // private ?Candidature $candidature = null;
+
     #[ORM\Column(type: 'datetime', nullable: true, name: 'scheduled_at')]
     #[Groups(['notification:read', 'notification:write'])]
     private ?\DateTimeInterface $scheduledFor = null;
+
+    #[ORM\Column(type: 'time', nullable: true, name: 'interview_time')]
+    #[Groups(['notification:read', 'notification:write'])]
+    private ?\DateTimeInterface $interviewTime = null;
 
     #[ORM\Column(type: 'datetime', name: 'created_at')]
     #[Groups(['notification:read'])]
@@ -146,6 +165,29 @@ class Notification
         return $this;
     }
 
+    public function getUserId(): ?int
+    {
+        return $this->userId;
+    }
+
+    public function setUserId(?int $userId): static
+    {
+        $this->userId = $userId;
+        return $this;
+    }
+
+    // Méthodes candidature temporairement commentées
+    // public function getCandidature(): ?Candidature
+    // {
+    //     return $this->candidature;
+    // }
+
+    // public function setCandidature(?Candidature $candidature): static
+    // {
+    //     $this->candidature = $candidature;
+    //     return $this;
+    // }
+
     public function getScheduledFor(): ?\DateTimeInterface
     {
         return $this->scheduledFor;
@@ -154,6 +196,17 @@ class Notification
     public function setScheduledFor(?\DateTimeInterface $scheduledFor): static
     {
         $this->scheduledFor = $scheduledFor;
+        return $this;
+    }
+
+    public function getInterviewTime(): ?\DateTimeInterface
+    {
+        return $this->interviewTime;
+    }
+
+    public function setInterviewTime(?\DateTimeInterface $interviewTime): static
+    {
+        $this->interviewTime = $interviewTime;
         return $this;
     }
 

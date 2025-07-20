@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref, computed, readonly } from 'vue'
 import type { Candidature, CandidatureStatus, CandidatureStats, CandidatureFormData } from '~/types/candidature'
 
 // Fonction utilitaire pour convertir une date ISO vers le format yyyy-MM-dd
@@ -7,19 +7,33 @@ const formatDateFromAPI = (isoDate: string | null): string => {
   return isoDate.split('T')[0] // Prend seulement la partie date avant le 'T'
 }
 
+// Helper pour gérer les notifications sans problème de dépendance circulaire
+const handleNotifications = async () => {
+  try {
+    const { useNotifications } = await import('~/composables/useNotifications')
+    return useNotifications()
+  } catch (error) {
+    console.error('Erreur lors de l\'import des notifications:', error)
+    return null
+  }
+}
+
 // Fonction utilitaire pour transformer les données de l'API vers le format de l'interface
 const transformCandidatureFromAPI = (apiCandidature: any): Candidature => {
-  return {
+  const transformed = {
     id: apiCandidature.id,
     titrePoste: apiCandidature.titrePoste,
     entreprise: apiCandidature.entreprise,
     statut: apiCandidature.statut,
     dateDepot: formatDateFromAPI(apiCandidature.dateDepot),
     dateEntretien: formatDateFromAPI(apiCandidature.dateEntretien),
+    heureEntretien: apiCandidature.heureEntretien || '',
     notes: apiCandidature.notes,
     utilisateur: apiCandidature.user,
     dateCreation: apiCandidature.dateCreation
   }
+  
+  return transformed
 }
 
 export const useCandidatures = () => {
@@ -28,6 +42,12 @@ export const useCandidatures = () => {
   const error = ref('')
 
   const apiBase = 'http://localhost:8888/api'
+
+  // Fonction utilitaire pour les headers JWT
+  const getJwtHeaders = () => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
+    return token ? { Authorization: `Bearer ${token}` } : {}
+  }
 
   // Récupérer toutes les candidatures de l'utilisateur connecté
   const fetchCandidatures = async () => {
@@ -41,31 +61,31 @@ export const useCandidatures = () => {
       // Utiliser l'utilisateur 12 par défaut si pas d'utilisateur en localStorage (pour les tests)
       const userId = userData.id || 12
       
-      if (!userId) {
-        throw new Error('Utilisateur non connecté')
-      }
-
-      const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
-      const response = await fetch(`${apiBase}/candidatures/user/${userId}`, {
-        headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
-          'Content-Type': 'application/json',
-        }
+      const response = await fetch(`${apiBase}/candidatures?user.id=${userId}`, {
+        headers: getJwtHeaders()
       })
       
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        const errorText = await response.text()
+        throw new Error(`HTTP ${response.status}: ${errorText}`)
       }
       
       const data = await response.json()
-      const userCandidatures = data.member || []
       
-      // Transformer les données (déjà filtrées côté serveur)
-      candidatures.value = userCandidatures.map(transformCandidatureFromAPI)
+      // Vérifier que data contient des candidatures (soit 'hydra:member' soit 'member')
+      const candidaturesData = data['hydra:member'] || data.member || []
+      
+      if (!candidaturesData || !Array.isArray(candidaturesData)) {
+        console.error('Pas de données candidatures dans la réponse:', data)
+        candidatures.value = []
+        return
+      }
+      
+      candidatures.value = candidaturesData.map(transformCandidatureFromAPI)
       
     } catch (err: any) {
-      error.value = err.message || 'Erreur lors de la récupération des candidatures'
-      console.error('Erreur lors de la récupération des candidatures:', err)
+      error.value = err.message || 'Erreur lors du chargement des candidatures'
+      console.error('Erreur fetchCandidatures:', err)
     } finally {
       loading.value = false
     }
@@ -88,21 +108,24 @@ export const useCandidatures = () => {
         return new Date(dateString + 'T00:00:00Z').toISOString()
       }
       
-      const candidaturePayload: any = {
+      // Préparer le payload pour l'API avec conversion des dates
+      const candidaturePayload = {
         titrePoste: candidatureData.titrePoste,
         entreprise: candidatureData.entreprise,
         statut: candidatureData.statut,
         dateDepot: formatDateForAPI(candidatureData.dateDepot),
         dateEntretien: candidatureData.dateEntretien ? formatDateForAPI(candidatureData.dateEntretien) : null,
+        heureEntretien: candidatureData.heureEntretien || null,
         notes: candidatureData.notes || '',
         user: `/api/users/${userId}`
       }
       
-      const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
+      console.log('Payload candidature avec heure:', candidaturePayload)
+      
       const response = await fetch(`${apiBase}/candidatures`, {
         method: 'POST',
         headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
+          ...getJwtHeaders(),
           'Content-Type': 'application/ld+json',
         },
         body: JSON.stringify(candidaturePayload)
@@ -114,10 +137,49 @@ export const useCandidatures = () => {
       }
       
       const newCandidature = await response.json()
+      console.log('Réponse API candidature:', newCandidature)
       
       // Transformer la réponse pour l'interface
       const transformedCandidature = transformCandidatureFromAPI(newCandidature)
       candidatures.value.push(transformedCandidature)
+
+      // Créer une notification si une date d'entretien est définie lors de la création
+      if (candidatureData.dateEntretien) {
+        try {
+          console.log('Tentative de création de notification pour:', {
+            titre: candidatureData.titrePoste,
+            entreprise: candidatureData.entreprise,
+            date: candidatureData.dateEntretien,
+            heure: candidatureData.heureEntretien
+          })
+          
+          const notificationsComposable = await handleNotifications()
+          if (notificationsComposable) {
+            const { createInterviewNotification, fetchNotifications } = notificationsComposable
+            
+            await createInterviewNotification(
+              candidatureData.titrePoste,
+              candidatureData.entreprise,
+              candidatureData.dateEntretien,
+              newCandidature.id,
+              candidatureData.heureEntretien
+            )
+            
+            console.log('Notification créée avec succès')
+            
+            // Petit délai pour s'assurer que la notification est bien enregistrée
+            await new Promise(resolve => setTimeout(resolve, 500))
+            
+            // Rafraîchir les notifications pour les afficher immédiatement
+            await fetchNotifications()
+            
+            console.log('Notifications rafraîchies')
+          }
+        } catch (notifError) {
+          console.error('Erreur lors de la création de la notification d\'entretien:', notifError)
+          // Ne pas faire échouer la création de la candidature si la notification échoue
+        }
+      }
       
       return transformedCandidature
       
@@ -154,15 +216,17 @@ export const useCandidatures = () => {
         statut: candidatureData.statut || currentCandidature.statut,
         dateDepot: candidatureData.dateDepot ? formatDateForAPI(candidatureData.dateDepot) : formatDateForAPI(currentCandidature.dateDepot),
         dateEntretien: candidatureData.dateEntretien ? formatDateForAPI(candidatureData.dateEntretien) : (currentCandidature.dateEntretien ? formatDateForAPI(currentCandidature.dateEntretien) : null),
+        heureEntretien: candidatureData.heureEntretien !== undefined ? candidatureData.heureEntretien : currentCandidature.heureEntretien,
         notes: candidatureData.notes !== undefined ? candidatureData.notes : currentCandidature.notes,
         user: currentCandidature.utilisateur
       }
       
-      const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
+      console.log('Payload update candidature avec heure:', updatePayload)
+      
       const response = await fetch(`${apiBase}/candidatures/${id}`, {
         method: 'PUT',
         headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
+          ...getJwtHeaders(),
           'Content-Type': 'application/ld+json',
         },
         body: JSON.stringify(updatePayload)
@@ -174,18 +238,69 @@ export const useCandidatures = () => {
       }
       
       const updatedCandidature = await response.json()
+      console.log('Réponse API update candidature:', updatedCandidature)
       
       // Mettre à jour la liste locale
       const index = candidatures.value.findIndex(c => c.id === id)
       if (index !== -1) {
         candidatures.value[index] = transformCandidatureFromAPI(updatedCandidature)
       }
+
+      // Créer une notification si une date d'entretien a été ajoutée
+      const hadInterviewDate = currentCandidature.dateEntretien && currentCandidature.dateEntretien !== ''
+      const hasNewInterviewDate = candidatureData.dateEntretien && candidatureData.dateEntretien !== ''
       
-      return updatedCandidature
+      if (!hadInterviewDate && hasNewInterviewDate) {
+        try {
+          console.log('Tentative de création de notification pour mise à jour:', {
+            titre: candidatureData.titrePoste || currentCandidature.titrePoste,
+            entreprise: candidatureData.entreprise || currentCandidature.entreprise,
+            date: candidatureData.dateEntretien,
+            heure: candidatureData.heureEntretien || currentCandidature.heureEntretien
+          })
+          
+          const { createInterviewNotification, fetchNotifications } = useNotifications()
+          
+          await createInterviewNotification(
+            candidatureData.titrePoste || currentCandidature.titrePoste,
+            candidatureData.entreprise || currentCandidature.entreprise,
+            candidatureData.dateEntretien,
+            id,
+            candidatureData.heureEntretien || currentCandidature.heureEntretien
+          )
+          
+          console.log('Notification de mise à jour créée avec succès')
+          
+          // Petit délai pour s'assurer que la notification est bien enregistrée
+          await new Promise(resolve => setTimeout(resolve, 500))
+          
+          // Rafraîchir les notifications pour les afficher immédiatement
+          await fetchNotifications()
+          
+          console.log('Notifications rafraîchies après mise à jour')
+        } catch (notifError) {
+          console.error('Erreur lors de la création de la notification d\'entretien:', notifError)
+          // Ne pas faire échouer la mise à jour de la candidature si la notification échoue
+        }
+      }
+      
+      // Si la date d'entretien a été supprimée, supprimer les notifications associées
+      if (hadInterviewDate && !hasNewInterviewDate) {
+        try {
+          const { deleteInterviewNotificationsForCandidature, fetchNotifications } = useNotifications()
+          
+          await deleteInterviewNotificationsForCandidature(id)
+          console.log('Notifications d\'entretien supprimées')
+          await fetchNotifications()
+        } catch (notifError) {
+          console.error('Erreur lors de la suppression des notifications d\'entretien:', notifError)
+        }
+      }
+      
+      return transformCandidatureFromAPI(updatedCandidature)
       
     } catch (err: any) {
       error.value = err.message || 'Erreur lors de la mise à jour de la candidature'
-      console.error('Erreur lors de la mise à jour de la candidature:', err)
       throw err
     } finally {
       loading.value = false
@@ -198,13 +313,24 @@ export const useCandidatures = () => {
     error.value = ''
     
     try {
+      // Supprimer d'abord les notifications d'entretien associées
+      try {
+        const { deleteInterviewNotificationsForCandidature } = useNotifications()
+        
+        await deleteInterviewNotificationsForCandidature(id)
+        console.log('Notifications d\'entretien supprimées avant suppression candidature')
+      } catch (notifError) {
+        console.error('Erreur lors de la suppression des notifications:', notifError)
+        // Continuer même si la suppression des notifications échoue
+      }
+      
       const response = await fetch(`${apiBase}/candidatures/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: getJwtHeaders()
       })
       
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Erreur lors de la suppression' }))
-        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`)
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
       
       // Retirer de la liste locale
@@ -212,28 +338,14 @@ export const useCandidatures = () => {
       
     } catch (err: any) {
       error.value = err.message || 'Erreur lors de la suppression de la candidature'
-      console.error('Erreur lors de la suppression de la candidature:', err)
       throw err
     } finally {
       loading.value = false
     }
-  const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
-  const response = await fetch(`${apiBase}/candidatures/${id}`, {
-    method: 'DELETE',
-    headers: {
-      'Authorization': token ? `Bearer ${token}` : '',
-      'Content-Type': 'application/json',
-    }
-  })
   }
 
-  // Mettre à jour uniquement le statut d'une candidature
-  const updateCandidatureStatus = async (id: number, statut: CandidatureStatus) => {
-    return updateCandidature(id, { statut })
-  }
-
-  // Statistiques calculées selon votre modèle
-  const stats = computed((): CandidatureStats => {
+  // Statistiques calculées
+  const stats = computed<CandidatureStats>(() => {
     const total = candidatures.value.length
     const aFaire = candidatures.value.filter(c => c.statut === 'a_faire').length
     const enAttente = candidatures.value.filter(c => c.statut === 'en_attente').length
@@ -250,62 +362,40 @@ export const useCandidatures = () => {
       entretien,
       accepte,
       refuse,
-      tauxReussite: total > 0 ? Math.round((accepte / total) * 100) : 0
+      tauxReussite: total > 0 ? Math.round(((accepte) / total) * 100) : 0
     }
   })
 
-  // Candidatures récentes (dernières 5)
-  const candidaturesRecentes = computed(() => {
-    return [...candidatures.value]
-      .sort((a, b) => new Date(b.dateDepot).getTime() - new Date(a.dateDepot).getTime())
-      .slice(0, 5)
-  })
+  // Candidatures avec entretien programmé
+  const candidaturesAvecEntretien = computed(() => 
+    candidatures.value.filter(c => c.dateEntretien && c.dateEntretien !== '')
+  )
 
-  // Candidatures par statut
-  const candidaturesParStatut = computed(() => {
-    const parStatut: Record<string, Candidature[]> = {}
-    candidatures.value.forEach(candidature => {
-      if (!parStatut[candidature.statut]) {
-        parStatut[candidature.statut] = []
-      }
-      parStatut[candidature.statut].push(candidature)
-    })
-    return parStatut
+  // Prochains entretiens (dans les 7 prochains jours)
+  const prochainsEntretiens = computed(() => {
+    const maintenant = new Date()
+    const dansSeptJours = new Date()
+    dansSeptJours.setDate(maintenant.getDate() + 7)
+    
+    return candidatures.value
+      .filter(c => {
+        if (!c.dateEntretien) return false
+        const dateEntretien = new Date(c.dateEntretien)
+        return dateEntretien >= maintenant && dateEntretien <= dansSeptJours
+      })
+      .sort((a, b) => new Date(a.dateEntretien!).getTime() - new Date(b.dateEntretien!).getTime())
   })
-
-  // Recherche et filtrage
-  const searchCandidatures = (query: string, statusFilter?: string[]) => {
-    return candidatures.value.filter(candidature => {
-      const matchesQuery = !query || 
-        candidature.titrePoste.toLowerCase().includes(query.toLowerCase()) ||
-        candidature.entreprise.toLowerCase().includes(query.toLowerCase()) ||
-        (candidature.notes && candidature.notes.toLowerCase().includes(query.toLowerCase()))
-      
-      const matchesStatus = !statusFilter || statusFilter.length === 0 || statusFilter.includes(candidature.statut)
-      
-      return matchesQuery && matchesStatus
-    })
-  }
 
   return {
-    // État
-    candidatures,
-    loading,
-    error,
-    
-    // Données calculées
+    candidatures: readonly(candidatures),
+    loading: readonly(loading),
+    error: readonly(error),
     stats,
-    candidaturesRecentes,
-    candidaturesParStatut,
-    
-    // Actions CRUD
+    candidaturesAvecEntretien,
+    prochainsEntretiens,
     fetchCandidatures,
     createCandidature,
     updateCandidature,
-    deleteCandidature,
-    updateCandidatureStatus,
-    
-    // Utilitaires
-    searchCandidatures
+    deleteCandidature
   }
 }
