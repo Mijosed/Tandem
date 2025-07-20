@@ -27,7 +27,6 @@ export const useSchedule = () => {
   const loading = ref(false)
   const error = ref<string | null>(null)
 
-  // Convertir les événements de l'API au format FullCalendar
   const formatEventFromAPI = (apiEvent: ApiScheduleEvent): ScheduleEvent => {
     return {
       id: apiEvent.id.toString(),
@@ -48,7 +47,6 @@ export const useSchedule = () => {
     }
   }
 
-  // Convertir les événements du format FullCalendar vers l'API
   const formatEventForAPI = (event: ScheduleEventInput): any => {
     return {
       title: event.title,
@@ -62,26 +60,24 @@ export const useSchedule = () => {
     }
   }
 
-  // Obtenir la couleur selon le type d'événement
   const getEventColor = (type: string): string => {
     const colors = {
-      interview: '#10b981', // vert
-      meeting: '#3b82f6',   // bleu
-      reminder: '#f59e0b',  // orange
-      deadline: '#ef4444',  // rouge
-      personal: '#8b5cf6'   // violet
+      interview: '#10b981',
+      meeting: '#3b82f6',
+      reminder: '#f59e0b',
+      deadline: '#ef4444',
+      personal: '#8b5cf6'
     }
     return colors[type as keyof typeof colors] || colors.personal
   }
 
-  // Récupérer tous les événements de l'utilisateur
   const fetchEvents = async () => {
     loading.value = true
     error.value = null
     
     try {
       const userData = JSON.parse(localStorage.getItem('user') || '{}')
-      const userId = userData.id || 12 // Fallback pour les tests
+      const userId = userData.id || 12
       
       const response: any = await get(`/api/schedule/events/user/${userId}`, {
         headers: {
@@ -100,7 +96,6 @@ export const useSchedule = () => {
     }
   }
 
-  // Créer un nouvel événement
   const createEvent = async (eventData: ScheduleEventInput): Promise<ScheduleEvent | null> => {
     loading.value = true
     error.value = null
@@ -133,7 +128,6 @@ export const useSchedule = () => {
     }
   }
 
-  // Mettre à jour un événement
   const updateEvent = async (eventId: string, eventData: Partial<ScheduleEventInput>): Promise<ScheduleEvent | null> => {
     loading.value = true
     error.value = null
@@ -163,7 +157,6 @@ export const useSchedule = () => {
     }
   }
 
-  // Supprimer un événement
   const deleteEvent = async (eventId: string): Promise<boolean> => {
     loading.value = true
     error.value = null
@@ -186,7 +179,6 @@ export const useSchedule = () => {
     }
   }
 
-  // Obtenir les événements d'aujourd'hui
   const todayEvents = computed(() => {
     const today = new Date().toISOString().split('T')[0]
     return events.value.filter(event => {
@@ -195,7 +187,6 @@ export const useSchedule = () => {
     })
   })
 
-  // Obtenir les événements à venir
   const upcomingEvents = computed(() => {
     const now = new Date()
     return events.value
@@ -204,7 +195,6 @@ export const useSchedule = () => {
       .slice(0, 5)
   })
 
-  // Statistiques des événements
   const eventStats = computed(() => {
     const stats = {
       total: events.value.length,
@@ -221,7 +211,6 @@ export const useSchedule = () => {
     return stats
   })
 
-  // Récupérer les statistiques d'événements
   const fetchEventStats = async () => {
     try {
       const userData = JSON.parse(localStorage.getItem('user') || '{}')

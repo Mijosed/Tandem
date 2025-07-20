@@ -43,22 +43,21 @@ export const useCandidatures = () => {
 
   const apiBase = 'http://localhost:8888/api'
 
+
   // Fonction utilitaire pour les headers JWT
   const getJwtHeaders = () => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
     return token ? { Authorization: `Bearer ${token}` } : {}
   }
 
-  // Récupérer toutes les candidatures de l'utilisateur connecté
+
   const fetchCandidatures = async () => {
     loading.value = true
     error.value = ''
     
     try {
-      // Récupérer l'utilisateur connecté
       const userData = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {}
       
-      // Utiliser l'utilisateur 12 par défaut si pas d'utilisateur en localStorage (pour les tests)
       const userId = userData.id || 12
       
       const response = await fetch(`${apiBase}/candidatures?user.id=${userId}`, {
@@ -72,6 +71,7 @@ export const useCandidatures = () => {
       
       const data = await response.json()
       
+
       // Vérifier que data contient des candidatures (soit 'hydra:member' soit 'member')
       const candidaturesData = data['hydra:member'] || data.member || []
       
@@ -82,6 +82,7 @@ export const useCandidatures = () => {
       }
       
       candidatures.value = candidaturesData.map(transformCandidatureFromAPI)
+
       
     } catch (err: any) {
       error.value = err.message || 'Erreur lors du chargement des candidatures'
@@ -91,7 +92,6 @@ export const useCandidatures = () => {
     }
   }
 
-  // Créer une nouvelle candidature
   const createCandidature = async (candidatureData: CandidatureFormData) => {
     loading.value = true
     error.value = ''
@@ -99,10 +99,8 @@ export const useCandidatures = () => {
     try {
       const userData = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {}
       
-      // Utiliser l'utilisateur 12 par défaut si pas d'utilisateur en localStorage (pour les tests)
       const userId = userData.id || 12
       
-      // Fonction pour convertir date YYYY-MM-DD en format ISO avec timezone
       const formatDateForAPI = (dateString: string) => {
         if (!dateString) return null
         return new Date(dateString + 'T00:00:00Z').toISOString()
@@ -139,7 +137,6 @@ export const useCandidatures = () => {
       const newCandidature = await response.json()
       console.log('Réponse API candidature:', newCandidature)
       
-      // Transformer la réponse pour l'interface
       const transformedCandidature = transformCandidatureFromAPI(newCandidature)
       candidatures.value.push(transformedCandidature)
 
@@ -191,25 +188,21 @@ export const useCandidatures = () => {
     }
   }
 
-  // Mettre à jour une candidature existante
   const updateCandidature = async (id: number, candidatureData: Partial<Candidature>) => {
     loading.value = true
     error.value = ''
     
     try {
-      // Récupérer la candidature existante d'abord
       const currentCandidature = candidatures.value.find(c => c.id === id)
       if (!currentCandidature) {
         throw new Error('Candidature non trouvée')
       }
       
-      // Fonction pour convertir date YYYY-MM-DD en format ISO avec timezone
       const formatDateForAPI = (dateString: string) => {
         if (!dateString) return null
         return new Date(dateString + 'T00:00:00Z').toISOString()
       }
       
-      // Fusionner avec les données existantes et convertir les dates
       const updatePayload: any = {
         titrePoste: candidatureData.titrePoste || currentCandidature.titrePoste,
         entreprise: candidatureData.entreprise || currentCandidature.entreprise,
@@ -240,7 +233,6 @@ export const useCandidatures = () => {
       const updatedCandidature = await response.json()
       console.log('Réponse API update candidature:', updatedCandidature)
       
-      // Mettre à jour la liste locale
       const index = candidatures.value.findIndex(c => c.id === id)
       if (index !== -1) {
         candidatures.value[index] = transformCandidatureFromAPI(updatedCandidature)
@@ -307,7 +299,6 @@ export const useCandidatures = () => {
     }
   }
 
-  // Supprimer une candidature
   const deleteCandidature = async (id: number) => {
     loading.value = true
     error.value = ''
@@ -333,7 +324,6 @@ export const useCandidatures = () => {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
       
-      // Retirer de la liste locale
       candidatures.value = candidatures.value.filter(c => c.id !== id)
       
     } catch (err: any) {
@@ -344,8 +334,13 @@ export const useCandidatures = () => {
     }
   }
 
-  // Statistiques calculées
+
   const stats = computed<CandidatureStats>(() => {
+
+  const updateCandidatureStatus = async (id: number, statut: CandidatureStatus) => {
+    return updateCandidature(id, { statut })
+  }
+
     const total = candidatures.value.length
     const aFaire = candidatures.value.filter(c => c.statut === 'a_faire').length
     const enAttente = candidatures.value.filter(c => c.statut === 'en_attente').length
@@ -365,6 +360,7 @@ export const useCandidatures = () => {
       tauxReussite: total > 0 ? Math.round(((accepte) / total) * 100) : 0
     }
   })
+
 
   // Candidatures avec entretien programmé
   const candidaturesAvecEntretien = computed(() => 
@@ -397,5 +393,6 @@ export const useCandidatures = () => {
     createCandidature,
     updateCandidature,
     deleteCandidature
+
   }
 }

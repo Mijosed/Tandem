@@ -1,0 +1,77 @@
+App\Entity\ScheduleEvent:
+  event_interview_1:
+    user: '@user_test'
+    title: 'Entretien technique - TechCorp'
+    description: 'Entretien de 2h avec l équipe technique pour le poste de développeur full stack'
+    startDate: <dateTimeBetween('+2 days', '+5 days')>
+    endDate: <dateTimeBetween('+2 days', '+5 days')>
+    type: 'interview'
+    location: 'Visioconférence - Teams'
+    allDay: false
+    color: '#10b981'
+
+  event_interview_2:
+    user: '@user_test'
+    title: 'Entretien RH - AI Solutions'
+    description: 'Premier entretien avec la RH pour le poste de Data Scientist'
+    startDate: <dateTimeBetween('+1 week', '+2 weeks')>
+    endDate: <dateTimeBetween('+1 week', '+2 weeks')>
+    type: 'interview'
+    location: 'Bureau Bordeaux'
+    allDay: false
+    color: '#10b981'
+
+  event_meeting_1:
+    user: '@user_test'
+    title: 'Présentation projet de fin d études'
+    description: 'Soutenance du projet devant le jury'
+    startDate: <dateTimeBetween('+3 days', '+1 week')>
+    endDate: <dateTimeBetween('+3 days', '+1 week')>
+    type: 'meeting'
+    location: 'Amphithéâtre A - École'
+    allDay: false
+    color: '#3b82f6'
+
+  event_reminder_1:
+    user: '@user_test'
+    title: 'Relancer candidature DesignStudio'
+    description: 'Envoyer un mail de relance pour la candidature UI/UX Designer'
+    startDate: <dateTimeBetween('+1 day', '+3 days')>
+    endDate: <dateTimeBetween('+1 day', '+3 days')>
+    type: 'reminder'
+    location: null
+    allDay: true
+    color: '#f59e0b'
+
+  event_deadline_1:
+    user: '@user_test'
+    title: 'Date limite candidature SecureNet'
+    description: 'Dernier jour pour postuler au stage cybersécurité'
+    startDate: <dateTimeBetween('+5 days', '+1 week')>
+    endDate: <dateTimeBetween('+5 days', '+1 week')>
+    type: 'deadline'
+    location: null
+    allDay: true
+    color: '#ef4444'
+
+  event_personal_1:
+    user: '@user_test'
+    title: 'Formation Git avancé'
+    description: 'Formation en ligne sur les bonnes pratiques Git et GitHub'
+    startDate: <dateTimeBetween('+2 weeks', '+3 weeks')>
+    endDate: <dateTimeBetween('+2 weeks', '+3 weeks')>
+    type: 'personal'
+    location: 'En ligne'
+    allDay: false
+    color: '#8b5cf6'
+
+  event_admin_meeting:
+    user: '@user_admin'
+    title: 'Réunion équipe Tandem'
+    description: 'Point hebdomadaire avec l équipe de développement'
+    startDate: <dateTimeBetween('now', '+3 days')>
+    endDate: <dateTimeBetween('now', '+3 days')>
+    type: 'meeting'
+    location: 'Salle de réunion'
+    allDay: false
+    color: '#3b82f6' 

@@ -111,6 +111,29 @@ class AuthController extends AbstractController
             return $this->json(['error' => 'Compte désactivé'], 401);
         }
 
+        // Vérifier si l'utilisateur a activé le 2FA
+        if ($user->isTwoFactorEnabled()) {
+            // Générer un token temporaire pour la vérification 2FA
+            $tempJwt = $this->jwtService->generate([
+                'sub' => $user->getId(),
+                'email' => $user->getEmail(),
+                'temp' => true, // Marquer comme token temporaire
+                'exp' => time() + 300 // 5 minutes pour saisir le code 2FA
+            ]);
+
+            return $this->json([
+                'requiresTwoFactor' => true,
+                'tempToken' => $tempJwt,
+                'message' => 'Please enter your 2FA code',
+                'user' => [
+                    'email' => $user->getEmail(),
+                    'firstName' => $user->getFirstName(),
+                    'lastName' => $user->getLastName()
+                ]
+            ]);
+        }
+
+        // Si pas de 2FA, procéder normalement
         try {
             $subscription = $this->subscriptionRepository->findByUser($user->getId());
         } catch (\Exception $e) {
@@ -118,7 +141,7 @@ class AuthController extends AbstractController
             $subscription = null;
         }
 
-        // Utilisation du service JwtService pour générer le JWT
+        // Utilisation du service JwtService pour générer le JWT complet
         $jwt = $this->jwtService->generate([
             'sub' => $user->getId(),
             'email' => $user->getEmail(),
@@ -135,6 +158,7 @@ class AuthController extends AbstractController
                 'lastName' => $user->getLastName(),
                 'fullName' => $user->getFullName(),
                 'roles' => $user->getRoles(),
+                'twoFactorEnabled' => $user->isTwoFactorEnabled(),
                 'subscription' => $subscription ? [
                     'plan' => $subscription->getPlan(),
                     'status' => $subscription->getStatus(),

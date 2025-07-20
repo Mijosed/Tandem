@@ -4,7 +4,6 @@
     <SidebarInset>
       <slot />
     </SidebarInset>
-    <!-- Toast notifications -->
     <Toast />
   </SidebarProvider>
 </template>

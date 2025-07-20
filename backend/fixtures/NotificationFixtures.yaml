@@ -24,3 +24,30 @@ App\Entity\Notification:
     type: "info"
     isRead: true
     createdAt: <dateTimeBetween('-2 days', 'now')>
+
+  notification_4:
+    user: '@user_test'
+    title: "Nouvelle offre correspondante"
+    message: "Une offre Data Scientist chez AI Solutions correspond a votre profil."
+    type: "info"
+    isRead: false
+    scheduledFor: <dateTimeBetween('-2 hours', 'now')>
+    createdAt: <dateTimeBetween('-2 hours', 'now')>
+
+  notification_5:
+    user: '@user_test'
+    title: "Relance recommandee"
+    message: "Il est temps de relancer votre candidature chez SecureNet (10 jours sans reponse)."
+    type: "reminder"
+    isRead: false
+    scheduledFor: <dateTimeBetween('now', '+6 hours')>
+    createdAt: <dateTimeBetween('-1 hour', 'now')>
+
+  notification_6:
+    user: '@user_recruiter'
+    title: "Mission confirmee"
+    message: "Félicitations ! Votre mission Product Owner chez Agile Tech est confirmee."
+    type: "success"
+    isRead: true
+    scheduledFor: <dateTimeBetween('-3 days', '-1 day')>
+    createdAt: <dateTimeBetween('-3 days', '-1 day')>

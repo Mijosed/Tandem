@@ -113,6 +113,83 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal 2FA -->
+    <Dialog v-model:open="show2FAModal">
+      <DialogContent class="max-w-md">
+        <DialogHeader>
+          <DialogTitle class="flex items-center gap-3">
+            <Shield class="h-6 w-6 text-blue-600" />
+            Authentification à deux facteurs
+          </DialogTitle>
+          <DialogDescription>
+            Entrez le code à 6 chiffres de votre application d'authentification
+          </DialogDescription>
+        </DialogHeader>
+
+        <div class="space-y-4 py-4">
+          <div class="text-center">
+            <p class="text-sm text-gray-600 mb-4">
+              Bonjour {{ userInfo?.firstName || 'Utilisateur' }}, votre compte est protégé par 2FA
+            </p>
+          </div>
+
+          <div class="space-y-2">
+            <Label for="twoFactorCode">Code d'authentification</Label>
+            <Input 
+              id="twoFactorCode"
+              v-model="twoFactorCode"
+              placeholder="123456"
+              maxlength="6"
+              class="text-center text-lg tracking-widest font-mono"
+              @input="error2FA = ''"
+            />
+            <p class="text-xs text-gray-500">
+              Saisissez le code de votre application Google Authenticator
+            </p>
+          </div>
+
+          <div v-if="error2FA" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-3">
+            <AlertCircle class="h-5 w-5 flex-shrink-0" />
+            <span class="text-sm">{{ error2FA }}</span>
+          </div>
+
+          <div class="text-center">
+            <p class="text-xs text-gray-500">
+              Vous avez perdu votre appareil ? Utilisez un 
+              <button class="text-blue-600 hover:underline" @click="showBackupCodeInput = true">
+                code de récupération
+              </button>
+            </p>
+          </div>
+
+          <!-- Champ pour code de récupération -->
+          <div v-if="showBackupCodeInput" class="space-y-2">
+            <Label for="backupCode">Code de récupération</Label>
+            <Input 
+              id="backupCode"
+              v-model="backupCode"
+              placeholder="CODE12AB"
+              class="text-center font-mono"
+            />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button @click="show2FAModal = false" variant="outline">
+            Annuler
+          </Button>
+          <Button 
+            @click="verify2FA"
+            :disabled="loading2FA || (!twoFactorCode && !backupCode)"
+          >
+            <Loader2 v-if="loading2FA" class="w-4 h-4 mr-2 animate-spin" />
+            <Shield class="w-4 h-4 mr-2" />
+            Vérifier
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
@@ -128,9 +205,12 @@ import {
   Lock, 
   AlertCircle, 
   CheckCircle, 
-  LoaderCircle 
+  LoaderCircle,
+  Shield,
+  Loader2
 } from 'lucide-vue-next'
 import AppHeader from '@/components/sections/AppHeader.vue'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 const form = ref({
   email: '',
@@ -140,6 +220,16 @@ const form = ref({
 const loading = ref(false)
 const error = ref('')
 const success = ref('')
+
+// Variables pour 2FA
+const show2FAModal = ref(false)
+const loading2FA = ref(false)
+const error2FA = ref('')
+const twoFactorCode = ref('')
+const tempToken = ref('')
+const userInfo = ref(null)
+const showBackupCodeInput = ref(false)
+const backupCode = ref('')
 
 const config = useRuntimeConfig()
 
@@ -175,6 +265,16 @@ const handleSubmit = async () => {
     const result = await response.json()
     console.log('Réponse API:', result)
 
+    // Vérifier si 2FA est requis
+    if (result.requiresTwoFactor) {
+      // Stocker les informations temporaires et afficher le modal 2FA
+      tempToken.value = result.tempToken
+      userInfo.value = result.user
+      show2FAModal.value = true
+      return
+    }
+
+    // Connexion normale réussie
     success.value = 'Connexion réussie ! Redirection...'
 
     // Stocke le token JWT si présent
@@ -201,6 +301,79 @@ const handleSubmit = async () => {
     error.value = err.message || 'Une erreur est survenue lors de la connexion'
   } finally {
     loading.value = false
+  }
+}
+
+const verify2FA = async () => {
+  loading2FA.value = true
+  error2FA.value = ''
+
+  try {
+    const codeToVerify = twoFactorCode.value || backupCode.value
+    
+    if (!codeToVerify) {
+      error2FA.value = 'Veuillez entrer un code d\'authentification ou de récupération'
+      return
+    }
+
+    if (twoFactorCode.value && twoFactorCode.value.length !== 6) {
+      error2FA.value = 'Le code d\'authentification doit contenir 6 chiffres'
+      return
+    }
+
+    const response = await fetch(`http://localhost:8888/api/auth/2fa/verify`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email: form.value.email,
+        code: codeToVerify
+      })
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Erreur de vérification' }))
+      throw new Error(errorData.error || 'Code invalide')
+    }
+
+    const result = await response.json()
+
+    // Connexion 2FA réussie
+    success.value = 'Authentification réussie ! Redirection...'
+    show2FAModal.value = false
+
+    // Afficher un avertissement si c'est un code de récupération
+    if (result.warning) {
+      console.warn(result.warning)
+      // Vous pourriez afficher une notification ici
+    }
+
+    // Stocker les informations utilisateur
+    if (result.token) {
+      localStorage.setItem('jwt', result.token)
+    }
+    if (result.user) {
+      localStorage.setItem('user', JSON.stringify(result.user))
+      localStorage.setItem('isLoggedIn', 'true')
+    }
+
+    // Nettoyer les données temporaires
+    tempToken.value = ''
+    twoFactorCode.value = ''
+    backupCode.value = ''
+    showBackupCodeInput.value = false
+    form.value = { email: '', password: '' }
+
+    setTimeout(() => {
+      navigateTo('/dashboard')
+    }, 1000)
+
+  } catch (err: any) {
+    console.error('Erreur lors de la vérification 2FA:', err)
+    error2FA.value = err.message || 'Code invalide'
+  } finally {
+    loading2FA.value = false
   }
 }
 </script>

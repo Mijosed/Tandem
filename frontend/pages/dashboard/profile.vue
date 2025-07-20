@@ -89,6 +89,9 @@
           </CardContent>
         </Card>
 
+        <!-- Section Authentification à deux facteurs -->
+        <TwoFactorAuth />
+
         <!-- Section de notification -->
         <Card>
           <CardHeader>
@@ -142,6 +145,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from '~/components/ui/avatar'
+import TwoFactorAuth from '~/components/dashboard/TwoFactorAuth.vue'
 
 definePageMeta({
   layout: 'dashboard',

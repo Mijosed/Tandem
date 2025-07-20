@@ -36,7 +36,6 @@
       </div>
     </div>
 
-    <!-- Conseils rapides (collapsible) -->
     <div v-if="showQuickTips" class="mt-3 bg-white border border-gray-200 rounded-lg p-4 space-y-3">
       <h4 class="font-medium text-gray-900 flex items-center gap-2">
         <Lightbulb class="h-4 w-4 text-yellow-500" />

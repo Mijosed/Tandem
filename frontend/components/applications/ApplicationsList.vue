@@ -1,8 +1,7 @@
 <template>
   <div class="space-y-4">
-    <!-- Section des filtres -->
+
     <div class="flex flex-col gap-4 rounded-lg border p-4 bg-muted/50">
-      <!-- Barre de recherche -->
       <div class="flex-1">
         <Input 
           v-model="search" 
@@ -15,9 +14,7 @@
         </Input>
       </div>
 
-      <!-- Filtres -->
       <div class="flex justify-between items-center gap-6">
-        <!-- Statut -->
         <div class="space-y-2 flex-1">
           <Label class="text-sm text-muted-foreground font-medium">Statut</Label>
           <div class="flex flex-wrap gap-4">
@@ -36,7 +33,6 @@
           </div>
         </div>
 
-        <!-- Tri -->
         <div class="flex items-center gap-4 min-w-[200px]">
           <Label class="text-sm text-muted-foreground font-medium">Trier par</Label>
           <div class="flex gap-2">
@@ -200,7 +196,6 @@ const filteredApplications = computed(() => {
     return matchesSearch && matchesStatus
   })
 
-  // Tri
   filtered.sort((a, b) => {
     let comparison = 0
     

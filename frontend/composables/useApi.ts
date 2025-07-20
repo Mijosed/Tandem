@@ -5,13 +5,11 @@ export const useApi = () => {
   const config = useRuntimeConfig()
   const apiBase = config.public.apiBase
 
-  // Headers par défaut pour API Platform
   const defaultHeaders = {
     'Accept': 'application/ld+json',
     'Content-Type': 'application/ld+json',
   }
 
-  // Fonction générique pour les appels API
   const apiCall = async <T>(endpoint: string, options: any = {}) => {
     const url = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
     
@@ -24,7 +22,6 @@ export const useApi = () => {
     })
   }
 
-  // Méthodes HTTP spécifiques
   const get = <T>(endpoint: string, options: any = {}) => {
     return apiCall<T>(endpoint, { method: 'GET', ...options })
   }

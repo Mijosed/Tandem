@@ -2,17 +2,17 @@ import { ref, computed, readonly } from 'vue'
 import type { Notification, NotificationFormData, NotificationStats } from '~/types/notification'
 import { useAuth } from '~/composables/useAuth'
 
+
 // Instance globale partagée pour éviter les problèmes de synchronisation
 let globalNotificationsInstance: any = null
 
-// Fonction utilitaire pour transformer les données de l'API vers le format de l'interface
 const transformNotificationFromAPI = (apiNotification: any): Notification => {
   return {
     id: apiNotification.id,
     title: apiNotification.title,
     message: apiNotification.message,
     type: apiNotification.type,
-    isRead: apiNotification.isRead ?? false, // Par défaut false si la propriété n'est pas présente
+    isRead: apiNotification.isRead ?? false,
     user: typeof apiNotification.user === 'string' 
       ? (() => {
           const matches = apiNotification.user.match(/\/(\d+)$/)
