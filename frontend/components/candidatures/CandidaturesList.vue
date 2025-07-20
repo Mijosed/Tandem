@@ -1,8 +1,6 @@
 <template>
   <div class="space-y-4">
-    <!-- Section des filtres -->
     <div class="flex flex-col gap-4 rounded-lg border p-4 bg-muted/50">
-      <!-- Barre de recherche -->
       <div class="flex-1">
         <Input 
           v-model="search" 
@@ -15,9 +13,7 @@
         </Input>
       </div>
 
-      <!-- Filtres -->
       <div class="flex justify-between items-center gap-6">
-        <!-- Statut -->
         <div class="space-y-2 flex-1">
           <Label class="text-sm text-muted-foreground font-medium">Statut</Label>
           <div class="flex flex-wrap gap-4">
@@ -36,7 +32,6 @@
           </div>
         </div>
 
-        <!-- Tri -->
         <div class="flex items-center gap-4 min-w-[200px]">
           <Label class="text-sm text-muted-foreground font-medium">Trier par</Label>
           <div class="flex gap-2">
@@ -94,7 +89,6 @@
             </TableCell>
             <TableCell class="text-center">
               <div class="flex items-center justify-center gap-1">
-                <!-- Bouton Relancer (visible seulement si pas déjà relancé) -->
                 <Button 
                   v-if="candidature.statut !== 'relance'" 
                   variant="ghost" 
@@ -106,7 +100,6 @@
                   <Bell class="h-4 w-4 text-orange-600" />
                 </Button>
                 
-                <!-- Bouton Entretien (visible seulement si pas déjà en entretien/accepté/refusé) -->
                 <Button 
                   v-if="!['entretien', 'accepte', 'refuse'].includes(candidature.statut)" 
                   variant="ghost" 
@@ -118,7 +111,6 @@
                   <CalendarDays class="h-4 w-4 text-blue-600" />
                 </Button>
                 
-                <!-- Bouton Accepté (visible seulement si en entretien) -->
                 <Button 
                   v-if="candidature.statut === 'entretien'" 
                   variant="ghost" 
@@ -130,7 +122,6 @@
                   <UserCheck class="h-4 w-4 text-green-600" />
                 </Button>
                 
-                <!-- Bouton Refusé (visible seulement si pas déjà refusé) -->
                 <Button 
                   v-if="candidature.statut !== 'refuse'" 
                   variant="ghost" 
@@ -169,7 +160,6 @@
       </Table>
     </div>
 
-    <!-- Dialog pour planifier un entretien -->
     <InterviewScheduleDialog
       :open="isInterviewDialogOpen"
       :candidature="selectedCandidatureForInterview"
@@ -212,7 +202,6 @@ const selectedStatuses = ref<string[]>([])
 const sortBy = ref('date')
 const sortOrder = ref<'asc' | 'desc'>('desc')
 
-// Variables pour le dialog d'entretien
 const isInterviewDialogOpen = ref(false)
 const selectedCandidatureForInterview = ref<Candidature | null>(null)
 
@@ -259,7 +248,6 @@ const filteredCandidatures = computed(() => {
     return matchesSearch && matchesStatus
   })
 
-  // Tri
   filtered.sort((a, b) => {
     let comparison = 0
     
@@ -313,14 +301,12 @@ const deleteCandidature = (candidature: Candidature) => {
   emit('delete', candidature)
 }
 
-// Fonctions pour gérer le dialog d'entretien
 const openInterviewDialog = (candidature: Candidature) => {
   selectedCandidatureForInterview.value = candidature
   isInterviewDialogOpen.value = true
 }
 
 const handleScheduleInterview = (data: { candidature: Candidature, dateEntretien: string, notes: string }) => {
-  // Émettre un événement spécifique pour la planification d'entretien
   emit('schedule-interview', data.candidature, data.dateEntretien, data.notes)
 }
 </script>

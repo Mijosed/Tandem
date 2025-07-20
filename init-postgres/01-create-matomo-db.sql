@@ -1,2 +1,0 @@
-CREATE DATABASE matomo;
-CREATE DATABASE admin;

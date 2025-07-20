@@ -36,7 +36,6 @@ defineProps<{
     <SidebarGroupLabel>{{ label }}</SidebarGroupLabel>
     <SidebarMenu>
       <template v-for="item in items" :key="item.title">
-        <!-- Menu avec sous-items -->
         <Collapsible
           v-if="item.items"
           as-child
@@ -68,7 +67,6 @@ defineProps<{
           </SidebarMenuItem>
         </Collapsible>
 
-        <!-- Menu simple sans sous-items -->
         <SidebarMenuItem v-else>
           <SidebarMenuButton as-child>
             <a :href="item.url">

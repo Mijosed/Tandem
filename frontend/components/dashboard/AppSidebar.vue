@@ -116,7 +116,9 @@ const navigationGroups = computed(() => {
   <Sidebar v-bind="{ ...props, collapsible: collapsibleMode }">
     <SidebarHeader>
       <div class="flex h-16 items-center px-4">
-        <img src="/logo.png" alt="Tandem" class="h-16" />
+        <NuxtLink to="/">
+          <img src="/logo.png" alt="Tandem" class="h-16" />
+        </NuxtLink>
       </div>
     </SidebarHeader>
     <SidebarContent>

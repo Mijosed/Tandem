@@ -1,17 +1,11 @@
-/**
- * Composable pour gérer les interactions avec l'API France Travail
- */
+
 export const useFranceTravail = () => {
   const baseUrl = 'http://localhost:8888/api/pole-emploi'
 
-  /**
-   * Rechercher des offres d'emploi
-   */
   const searchJobs = async (filters: Record<string, any> = {}) => {
     try {
       console.log('🔍 Recherche avec filtres:', filters)
       
-      // Construction des paramètres
       const params = new URLSearchParams()
       Object.keys(filters).forEach(key => {
         if (filters[key] && filters[key] !== '') {
@@ -48,9 +42,6 @@ export const useFranceTravail = () => {
     }
   }
 
-  /**
-   * Récupérer les secteurs d'activité
-   */
   const getSectors = async () => {
     try {
       console.log('📊 Chargement des secteurs...')
@@ -73,7 +64,6 @@ export const useFranceTravail = () => {
         throw new Error(data.message || 'Erreur lors du chargement des secteurs')
       }
       
-      // Trier les secteurs par libellé
       const sectors = data.data.sort((a: any, b: any) => 
         a.libelle.localeCompare(b.libelle)
       )
@@ -87,9 +77,6 @@ export const useFranceTravail = () => {
     }
   }
 
-  /**
-   * Récupérer les détails d'une offre
-   */
   const getJobDetails = async (jobId: string) => {
     try {
       console.log('📝 Chargement des détails pour:', jobId)
@@ -120,9 +107,6 @@ export const useFranceTravail = () => {
     }
   }
 
-  /**
-   * Tester la connexion à l'API
-   */
   const testConnection = async () => {
     try {
       console.log('🔧 Test de connexion...')
@@ -154,9 +138,6 @@ export const useFranceTravail = () => {
     }
   }
 
-  /**
-   * Obtenir des suggestions de recherche
-   */
   const getSuggestions = async (query: string) => {
     try {
       if (query.length < 2) {

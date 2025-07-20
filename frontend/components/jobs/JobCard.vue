@@ -34,7 +34,6 @@
         Publié le {{ new Date(job.postedDate).toLocaleDateString('fr-FR') }}
       </span>
       
-      <!-- Boutons d'action -->
       <div class="flex flex-col gap-2">
         <Button 
           variant="default"

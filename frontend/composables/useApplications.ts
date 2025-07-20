@@ -1,18 +1,16 @@
 import { ref, computed } from 'vue'
 import type { Application, ApplicationStatus, ApplicationStats } from '~/types/application'
 
-// Fonction utilitaire pour transformer les données de l'API vers le format de l'interface
 const transformApplicationFromAPI = (apiApplication: any): Application => {
   return {
     id: apiApplication.id,
-    job: null, // Plus de relation job
+    job: null,
     appliedAt: apiApplication.dateDepot,
     coverLetter: apiApplication.notes,
-    resumePath: null, // Plus de CV
+    resumePath: null,
     status: apiApplication.statut,
     user: apiApplication.user,
     updatedAt: apiApplication.dateCreation,
-    // Propriétés calculées pour l'interface
     position: apiApplication.titrePoste || '',
     company: apiApplication.entreprise || '',
     applicationDate: apiApplication.dateDepot?.split('T')[0] || '',
@@ -31,20 +29,17 @@ export const useApplications = () => {
 
   const apiBase = 'http://localhost:8888/api'
 
-  // Récupérer toutes les candidatures
   const fetchApplications = async () => {
     loading.value = true
     error.value = ''
     
     try {
-      // Récupérer l'utilisateur connecté
       const userData = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {}
       
       if (!userData.id) {
         throw new Error('Utilisateur non connecté')
       }
 
-      // Récupérer toutes les candidatures et filtrer côté client
       const response = await fetch(`${apiBase}/candidatures`, {
         headers: {
           ...getJwtHeaders(),
@@ -59,13 +54,11 @@ export const useApplications = () => {
       const data = await response.json()
       const allApplications = data.member || []
       
-      // Filtrer côté client par utilisateur
       const userApplications = allApplications.filter((app: any) => {
         return app.user === `/api/users/${userData.id}` || 
                (app.user && app.user.id === userData.id)
       })
       
-      // Transformer les données filtrées
       applications.value = userApplications.map(transformApplicationFromAPI)
       
     } catch (err: any) {
@@ -76,7 +69,6 @@ export const useApplications = () => {
     }
   }
 
-  // Créer une nouvelle candidature
   const createApplication = async (applicationData: {
     position: string
     company: string
@@ -89,7 +81,6 @@ export const useApplications = () => {
     error.value = ''
     
     try {
-      // D'abord, créer ou récupérer le job correspondant
       const jobsResponse = await fetch(`${apiBase}/jobs`, {
         headers: {
           ...getJwtHeaders(),
@@ -103,12 +94,10 @@ export const useApplications = () => {
       const jobsData = await jobsResponse.json()
       const existingJobs = jobsData.member || []
       
-      // Chercher un job existant qui correspond
       let jobToUse = existingJobs.find((job: any) => 
         job.title === applicationData.position && job.company === applicationData.company
       )
       
-      // Si aucun job correspondant n'existe, créer un nouveau job
       if (!jobToUse) {
         const jobPayload = {
           title: applicationData.position,
@@ -137,7 +126,6 @@ export const useApplications = () => {
         jobToUse = await jobResponse.json()
       }
 
-      // Ensuite, créer la candidature
       const userData = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {}
       
       const applicationPayload: any = {
@@ -148,7 +136,6 @@ export const useApplications = () => {
         resumePath: null
       }
       
-      // Ajouter l'utilisateur si disponible
       if (userData.id) {
         applicationPayload.user = `/api/users/${userData.id}`
       }
@@ -169,7 +156,6 @@ export const useApplications = () => {
       
       const newApplication = await response.json()
       
-      // Transformer la réponse pour l'interface
       const transformedApplication = transformApplicationFromAPI(newApplication)
       applications.value.push(transformedApplication)
       
@@ -183,7 +169,6 @@ export const useApplications = () => {
     }
   }
 
-  // Mettre à jour une candidature existante
   const updateApplication = async (id: number, applicationData: Partial<Application>) => {
     loading.value = true
     error.value = ''
@@ -205,7 +190,6 @@ export const useApplications = () => {
       
       const updatedApplication = await response.json()
       
-      // Mettre à jour la liste locale
       const index = applications.value.findIndex(app => app.id === id)
       if (index !== -1) {
         applications.value[index] = updatedApplication
@@ -222,7 +206,6 @@ export const useApplications = () => {
     }
   }
 
-  // Supprimer une candidature
   const deleteApplication = async (id: number) => {
     loading.value = true
     error.value = ''
@@ -241,7 +224,6 @@ export const useApplications = () => {
         throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`)
       }
       
-      // Retirer de la liste locale
       applications.value = applications.value.filter(app => app.id !== id)
       
     } catch (err: any) {
@@ -253,12 +235,10 @@ export const useApplications = () => {
     }
   }
 
-  // Mettre à jour uniquement le statut d'une candidature
   const updateApplicationStatus = async (id: number, status: Application['status']) => {
     return updateApplication(id, { status })
   }
 
-  // Statistiques calculées
   const stats = computed(() => {
     const total = applications.value.length
     const pending = applications.value.filter(app => app.status === 'pending').length
@@ -278,14 +258,12 @@ export const useApplications = () => {
     }
   })
 
-  // Candidatures récentes (dernières 5)
   const recentApplications = computed(() => {
     return [...applications.value]
       .sort((a, b) => new Date(b.appliedAt || b.applicationDate || '').getTime() - new Date(a.appliedAt || a.applicationDate || '').getTime())
       .slice(0, 5)
   })
 
-  // Candidatures par statut
   const applicationsByStatus = computed(() => {
     const byStatus: Record<string, Application[]> = {}
     applications.value.forEach(app => {
@@ -297,7 +275,6 @@ export const useApplications = () => {
     return byStatus
   })
 
-  // Recherche et filtrage
   const searchApplications = (query: string, statusFilter?: string[]) => {
     return applications.value.filter(app => {
       const matchesQuery = !query || 
@@ -312,24 +289,20 @@ export const useApplications = () => {
   }
 
   return {
-    // État
     applications,
     loading,
     error,
     
-    // Données calculées
     stats,
     recentApplications,
     applicationsByStatus,
     
-    // Actions CRUD
     fetchApplications,
     createApplication,
     updateApplication,
     deleteApplication,
     updateApplicationStatus,
     
-    // Utilitaires
     searchApplications
   }
 }

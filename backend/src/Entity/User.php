@@ -101,6 +101,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['user:read'])]
     private ?\DateTimeInterface $updatedAt = null;
 
+    #[ORM\Column(type: 'string', length: 32, nullable: true, name: 'two_factor_secret')]
+    private ?string $twoFactorSecret = null;
+
+    #[ORM\Column(type: 'boolean', name: 'two_factor_enabled')]
+    #[Groups(['user:read'])]
+    private bool $twoFactorEnabled = false;
+
+    #[ORM\Column(type: 'json', nullable: true, name: 'backup_codes')]
+    private ?array $backupCodes = null;
+
     public function __construct()
     {
         $this->candidatures = new ArrayCollection();
@@ -386,5 +396,59 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function hasRole(string $role): bool
     {
         return in_array($role, $this->getRoles());
+    }
+
+    public function getTwoFactorSecret(): ?string
+    {
+        return $this->twoFactorSecret;
+    }
+
+    public function setTwoFactorSecret(?string $twoFactorSecret): static
+    {
+        $this->twoFactorSecret = $twoFactorSecret;
+        return $this;
+    }
+
+    public function isTwoFactorEnabled(): bool
+    {
+        return $this->twoFactorEnabled;
+    }
+
+    public function setTwoFactorEnabled(bool $twoFactorEnabled): static
+    {
+        $this->twoFactorEnabled = $twoFactorEnabled;
+        return $this;
+    }
+
+    public function getBackupCodes(): ?array
+    {
+        return $this->backupCodes;
+    }
+
+    public function setBackupCodes(?array $backupCodes): static
+    {
+        $this->backupCodes = $backupCodes;
+        return $this;
+    }
+
+    public function useBackupCode(string $code): bool
+    {
+        if (!$this->backupCodes || !in_array($code, $this->backupCodes)) {
+            return false;
+        }
+
+        // Retirer le code utilisé de la liste
+        $this->backupCodes = array_values(array_filter($this->backupCodes, fn($c) => $c !== $code));
+        return true;
+    }
+
+    public function generateBackupCodes(): array
+    {
+        $codes = [];
+        for ($i = 0; $i < 8; $i++) {
+            $codes[] = substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 8);
+        }
+        $this->backupCodes = $codes;
+        return $codes;
     }
 }

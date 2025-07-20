@@ -28,3 +28,33 @@ App\Entity\Candidature:
     dateEntretien: null
     notes: 'Réponse négative reçue'
     dateCreation: <dateTimeBetween('-1 month', 'now')>
+
+  application_4:
+    user: '@user_test'
+    titrePoste: 'Data Scientist'
+    entreprise: 'AI Solutions'
+    statut: 'a_faire'
+    dateDepot: null
+    dateEntretien: null
+    notes: 'Poste trouvé via LinkedIn - Préparer CV spécialisé IA'
+    dateCreation: <dateTimeBetween('-2 days', 'now')>
+
+  application_5:
+    user: '@user_test'
+    titrePoste: 'Consultant Cybersécurité'
+    entreprise: 'SecureNet'
+    statut: 'relance'
+    dateDepot: <dateTimeBetween('-10 days', '-5 days')>
+    dateEntretien: null
+    notes: 'Candidature spontanée envoyée - Relancer dans 1 semaine'
+    dateCreation: <dateTimeBetween('-10 days', '-5 days')>
+
+  application_6:
+    user: '@user_recruiter'
+    titrePoste: 'Product Owner'
+    entreprise: 'Agile Tech'
+    statut: 'accepte'
+    dateDepot: <dateTimeBetween('-1 month', '-3 weeks')>
+    dateEntretien: <dateTimeBetween('-2 weeks', '-1 week')>
+    notes: 'Mission acceptée ! Début prévu le mois prochain - Négociation salaire réussie'
+    dateCreation: <dateTimeBetween('-1 month', '-3 weeks')>

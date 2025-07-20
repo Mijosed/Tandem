@@ -6,7 +6,7 @@ import interactionPlugin from '@fullcalendar/interaction'
 import { SidebarTrigger } from '~/components/ui/sidebar'
 import { Button } from '~/components/ui/button'
 import { useMediaQuery } from '@vueuse/core'
-import { Plus, Calendar, Clock, MapPin, Trash2, Edit } from 'lucide-vue-next'
+import { Plus, Calendar, Clock, MapPin, Trash2, Edit, Filter, ChevronDown } from 'lucide-vue-next'
 import {
   Dialog,
   DialogContent,
@@ -15,11 +15,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from '~/components/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '~/components/ui/dropdown-menu'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Textarea } from '~/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { Switch } from '~/components/ui/switch'
+import { Badge } from '~/components/ui/badge'
 import { useToast } from '~/components/ui/toast/use-toast'
 
 definePageMeta({
@@ -27,17 +36,16 @@ definePageMeta({
   middleware: ['auth']
 })
 
-// Détection mobile pour afficher conditionnellement le SidebarTrigger
 const isMobile = useMediaQuery('(max-width: 768px)')
 
-// Composables
 const { events, loading, error, fetchEvents, createEvent, updateEvent, deleteEvent, eventStats, getEventColor } = useSchedule()
 const { toast } = useToast()
 
-// État local
 const isDialogOpen = ref(false)
 const isEditMode = ref(false)
 const selectedEvent = ref(null)
+const filterType = ref('all')
+const currentView = ref('dayGridMonth')
 const newEvent = ref({
   title: '',
   description: '',
@@ -48,19 +56,22 @@ const newEvent = ref({
   allDay: false
 })
 
-// Types d'événements disponibles
 const eventTypes = [
-  { value: 'personal', label: 'Personnel', color: '#8b5cf6' },
-  { value: 'meeting', label: 'Réunion', color: '#3b82f6' },
-  { value: 'interview', label: 'Entretien', color: '#10b981' },
-  { value: 'reminder', label: 'Rappel', color: '#f59e0b' },
-  { value: 'deadline', label: 'Échéance', color: '#ef4444' }
+  { value: 'personal', label: 'Personnel', color: '#8b5cf6', icon: '👤' },
+  { value: 'meeting', label: 'Réunion', color: '#3b82f6', icon: '🤝' },
+  { value: 'interview', label: 'Entretien', color: '#10b981', icon: '💼' },
+  { value: 'reminder', label: 'Rappel', color: '#f59e0b', icon: '⏰' },
+  { value: 'deadline', label: 'Échéance', color: '#ef4444', icon: '🎯' }
 ]
 
-// Configuration du calendrier
+const filteredEvents = computed(() => {
+  if (filterType.value === 'all') return events.value
+  return events.value.filter(event => event.extendedProps?.type === filterType.value)
+})
+
 const calendarOptions = computed(() => ({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
-  initialView: 'dayGridMonth',
+  initialView: currentView.value,
   headerToolbar: {
     left: 'prev,next today',
     center: 'title',
@@ -69,28 +80,29 @@ const calendarOptions = computed(() => ({
   locale: 'fr',
   weekends: true,
   height: 'auto',
-  aspectRatio: 1.35,
+  aspectRatio: 1.5,
   selectable: true,
   selectMirror: true,
-  dayMaxEvents: true,
-  events: events.value,
-  eventColor: '#3b82f6',
-  eventTextColor: '#ffffff',
-  eventBorderColor: '#2563eb',
+  dayMaxEvents: 3,
+  events: filteredEvents.value,
+  eventDisplay: 'block',
+  eventClassNames: 'calendar-event',
   select: handleDateSelect,
   eventClick: handleEventClick,
   editable: true,
   droppable: true,
   eventDrop: handleEventDrop,
-  eventResize: handleEventResize
+  eventResize: handleEventResize,
+  dateClick: handleDateClick,
+  viewDidMount: (info) => {
+    currentView.value = info.view.type
+  }
 }))
 
-// Charger les événements au montage
 onMounted(() => {
   fetchEvents()
 })
 
-// Méthodes
 const openNewEventDialog = () => {
   isEditMode.value = false
   selectedEvent.value = null
@@ -111,7 +123,6 @@ const resetNewEvent = () => {
 }
 
 const handleDateSelect = (selectInfo) => {
-  // Pré-remplir la date sélectionnée
   const startDate = selectInfo.startStr
   const endDate = selectInfo.endStr || selectInfo.startStr
   
@@ -121,11 +132,18 @@ const handleDateSelect = (selectInfo) => {
   openNewEventDialog()
 }
 
+const handleDateClick = (info) => {
+  if (currentView.value === 'dayGridMonth') {
+    newEvent.value.startDate = info.dateStr
+    newEvent.value.endDate = info.dateStr
+    openNewEventDialog()
+  }
+}
+
 const handleEventClick = (clickInfo) => {
   const event = clickInfo.event
   selectedEvent.value = event
   
-  // Pré-remplir le formulaire avec les données de l'événement
   newEvent.value = {
     title: event.title,
     description: event.extendedProps.description || '',
@@ -150,7 +168,6 @@ const saveEvent = async () => {
     return
   }
 
-  // Si pas de date de fin, utiliser la date de début
   if (!newEvent.value.endDate) {
     newEvent.value.endDate = newEvent.value.startDate
   }
@@ -210,6 +227,11 @@ const handleEventDrop = async (info) => {
       type: event.extendedProps.type,
       allDay: event.allDay
     })
+    
+    toast({
+      title: "Succès",
+      description: "Événement déplacé avec succès"
+    })
   } catch (err) {
     info.revert()
     toast({
@@ -230,6 +252,11 @@ const handleEventResize = async (info) => {
       type: event.extendedProps.type,
       allDay: event.allDay
     })
+    
+    toast({
+      title: "Succès",
+      description: "Durée mise à jour avec succès"
+    })
   } catch (err) {
     info.revert()
     toast({
@@ -239,74 +266,179 @@ const handleEventResize = async (info) => {
     })
   }
 }
+
+const getTypeIcon = (type) => {
+  const eventType = eventTypes.find(t => t.value === type)
+  return eventType?.icon || '📅'
+}
+
+const getTypeLabel = (type) => {
+  const eventType = eventTypes.find(t => t.value === type)
+  return eventType?.label || 'Personnel'
+}
 </script>
+
 <template>
-  <div>
-    <header class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear">
-      <div class="flex items-center gap-2 px-4">
-        <SidebarTrigger v-if="isMobile" class="-ml-1" />
-        <h1 class="text-2xl font-bold">Planning</h1>
+  <div class="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <header class="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
+      <div class="container flex h-16 items-center justify-between px-4">
+        <div class="flex items-center gap-3">
+          <SidebarTrigger v-if="isMobile" class="-ml-1" />
+          <div class="flex items-center gap-2">
+            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+              <Calendar class="h-4 w-4 text-primary" />
+            </div>
+            <h1 class="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+              Planning
+            </h1>
+          </div>
+        </div>
+        
+        <div class="flex items-center gap-3">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" class="gap-2">
+                <Filter class="h-4 w-4" />
+                <span class="hidden sm:inline">
+                  {{ filterType === 'all' ? 'Tous' : getTypeLabel(filterType) }}
+                </span>
+                <ChevronDown class="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" class="w-48">
+              <DropdownMenuLabel>Filtrer par type</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem @click="filterType = 'all'">
+                <span class="mr-2">📅</span>
+                Tous les événements
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                v-for="type in eventTypes" 
+                :key="type.value"
+                @click="filterType = type.value"
+              >
+                <span class="mr-2">{{ type.icon }}</span>
+                {{ type.label }}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          
+          <Button @click="openNewEventDialog" class="gap-2 shadow-md">
+            <Plus class="h-4 w-4" />
+            <span class="hidden sm:inline">Nouvel événement</span>
+          </Button>
+        </div>
       </div>
     </header>
 
-    <div class="container py-6 px-4">
-      <!-- Statistiques -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div class="bg-card text-card-foreground rounded-lg border p-4">
-          <div class="flex items-center space-x-2">
-            <Calendar class="h-4 w-4 text-muted-foreground" />
-            <span class="text-sm font-medium">Total</span>
+    <div class="container py-8 px-4 space-y-8">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="group relative overflow-hidden rounded-xl border bg-card p-6 transition-all hover:shadow-lg hover:shadow-primary/5">
+          <div class="flex items-center justify-between">
+            <div class="space-y-2">
+              <p class="text-sm font-medium text-muted-foreground">Total événements</p>
+              <div class="flex items-baseline gap-2">
+                <p class="text-3xl font-bold">{{ eventStats.total }}</p>
+                <Badge variant="secondary" class="text-xs">{{ filteredEvents.length }} affichés</Badge>
+              </div>
+            </div>
+            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
+              <Calendar class="h-6 w-6 text-primary" />
+            </div>
           </div>
-          <div class="text-2xl font-bold">{{ eventStats.total }}</div>
         </div>
-        <div class="bg-card text-card-foreground rounded-lg border p-4">
-          <div class="flex items-center space-x-2">
-            <Clock class="h-4 w-4 text-muted-foreground" />
-            <span class="text-sm font-medium">Aujourd'hui</span>
+
+        <div class="group relative overflow-hidden rounded-xl border bg-card p-6 transition-all hover:shadow-lg hover:shadow-emerald-500/5">
+          <div class="flex items-center justify-between">
+            <div class="space-y-2">
+              <p class="text-sm font-medium text-muted-foreground">Aujourd'hui</p>
+              <p class="text-3xl font-bold text-emerald-600">{{ eventStats.today }}</p>
+            </div>
+            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/20 group-hover:bg-emerald-200 dark:group-hover:bg-emerald-900/30 transition-colors">
+              <Clock class="h-6 w-6 text-emerald-600" />
+            </div>
           </div>
-          <div class="text-2xl font-bold">{{ eventStats.today }}</div>
         </div>
-        <div class="bg-card text-card-foreground rounded-lg border p-4">
-          <div class="flex items-center space-x-2">
-            <Calendar class="h-4 w-4 text-muted-foreground" />
-            <span class="text-sm font-medium">À venir</span>
+
+        <div class="group relative overflow-hidden rounded-xl border bg-card p-6 transition-all hover:shadow-lg hover:shadow-blue-500/5">
+          <div class="flex items-center justify-between">
+            <div class="space-y-2">
+              <p class="text-sm font-medium text-muted-foreground">À venir</p>
+              <p class="text-3xl font-bold text-blue-600">{{ eventStats.upcoming }}</p>
+            </div>
+            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20 group-hover:bg-blue-200 dark:group-hover:bg-blue-900/30 transition-colors">
+              <Calendar class="h-6 w-6 text-blue-600" />
+            </div>
           </div>
-          <div class="text-2xl font-bold">{{ eventStats.upcoming }}</div>
         </div>
-        <div class="bg-card text-card-foreground rounded-lg border p-4">
-          <div class="flex items-center space-x-2">
-            <MapPin class="h-4 w-4 text-muted-foreground" />
-            <span class="text-sm font-medium">Entretiens</span>
+
+        <div class="group relative overflow-hidden rounded-xl border bg-card p-6 transition-all hover:shadow-lg hover:shadow-amber-500/5">
+          <div class="flex items-center justify-between">
+            <div class="space-y-2">
+              <p class="text-sm font-medium text-muted-foreground">Entretiens</p>
+              <p class="text-3xl font-bold text-amber-600">{{ eventStats.byType.interview || 0 }}</p>
+            </div>
+            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/20 group-hover:bg-amber-200 dark:group-hover:bg-amber-900/30 transition-colors">
+              <MapPin class="h-6 w-6 text-amber-600" />
+            </div>
           </div>
-          <div class="text-2xl font-bold">{{ eventStats.byType.interview || 0 }}</div>
         </div>
       </div>
 
-      <div class="flex justify-between items-center mb-8">
-        <p class="text-muted-foreground">Gérez votre planning et vos rendez-vous</p>
-        <Button @click="openNewEventDialog">
-          <Plus class="mr-2 h-4 w-4" />
-          Nouvel événement
-        </Button>
-      </div>
-
-      <!-- Calendrier -->
-      <div class="max-w-4xl mx-auto">
-        <FullCalendar 
-          v-if="!loading"
-          :options="calendarOptions" 
-          class="modern-calendar" 
-        />
-        <div v-else class="flex justify-center py-8">
-          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div class="flex flex-wrap gap-3 p-4 rounded-xl bg-muted/30 border">
+        <span class="text-sm font-medium text-muted-foreground">Types d'événements :</span>
+        <div class="flex flex-wrap gap-2">
+          <Badge 
+            v-for="type in eventTypes" 
+            :key="type.value"
+            variant="outline" 
+            class="gap-1 cursor-pointer hover:bg-muted transition-colors"
+            @click="filterType = filterType === type.value ? 'all' : type.value"
+            :class="{ 'bg-muted': filterType === type.value }"
+          >
+            <span>{{ type.icon }}</span>
+            {{ type.label }}
+          </Badge>
         </div>
       </div>
 
-      <!-- Dialog pour créer/modifier un événement -->
+      <div class="rounded-xl border bg-card shadow-sm overflow-hidden">
+        <div class="p-6">
+          <div v-if="loading" class="flex items-center justify-center py-12">
+            <div class="flex flex-col items-center gap-3">
+              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <p class="text-sm text-muted-foreground">Chargement des événements...</p>
+            </div>
+          </div>
+          
+          <FullCalendar 
+            v-else-if="!error"
+            :options="calendarOptions" 
+            class="modern-calendar" 
+          />
+          
+          <div v-else class="flex flex-col items-center justify-center py-12 text-center">
+            <div class="rounded-full bg-destructive/10 p-3 mb-4">
+              <Calendar class="h-6 w-6 text-destructive" />
+            </div>
+            <h3 class="text-lg font-semibold mb-2">Erreur de chargement</h3>
+            <p class="text-muted-foreground mb-4">{{ error }}</p>
+            <Button @click="fetchEvents" variant="outline">
+              Réessayer
+            </Button>
+          </div>
+        </div>
+      </div>
+
       <Dialog v-model:open="isDialogOpen">
-        <DialogContent class="sm:max-w-md">
+        <DialogContent class="sm:max-w-[540px]">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle class="flex items-center gap-2">
+              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                <Plus v-if="!isEditMode" class="h-4 w-4 text-primary" />
+                <Edit v-else class="h-4 w-4 text-primary" />
+              </div>
               {{ isEditMode ? 'Modifier l\'événement' : 'Nouvel événement' }}
             </DialogTitle>
             <DialogDescription>
@@ -314,104 +446,120 @@ const handleEventResize = async (info) => {
             </DialogDescription>
           </DialogHeader>
           
-          <div class="grid gap-4 py-4">
-            <div class="grid gap-2">
-              <Label for="event-title">Titre de l'événement</Label>
-              <Input
-                id="event-title"
-                v-model="newEvent.title"
-                placeholder="Ex: Réunion équipe"
-              />
+          <form @submit.prevent="saveEvent" class="space-y-6">
+            <div class="grid gap-4">
+              <div class="grid gap-2">
+                <Label for="event-title">Titre de l'événement *</Label>
+                <Input
+                  id="event-title"
+                  v-model="newEvent.title"
+                  placeholder="Ex: Entretien chez TechCorp"
+                  required
+                  class="text-base"
+                />
+              </div>
+              
+              <div class="grid gap-2">
+                <Label for="event-type">Type d'événement</Label>
+                <Select v-model="newEvent.type">
+                  <SelectTrigger id="event-type">
+                    <SelectValue>
+                      <div class="flex items-center gap-2">
+                        <span>{{ getTypeIcon(newEvent.type) }}</span>
+                        {{ getTypeLabel(newEvent.type) }}
+                      </div>
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem 
+                      v-for="type in eventTypes" 
+                      :key="type.value" 
+                      :value="type.value"
+                      class="cursor-pointer"
+                    >
+                      <div class="flex items-center gap-2">
+                        <span>{{ type.icon }}</span>
+                        {{ type.label }}
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div class="grid gap-2">
+                <Label for="event-description">Description</Label>
+                <Textarea
+                  id="event-description"
+                  v-model="newEvent.description"
+                  placeholder="Ajoutez des détails sur cet événement..."
+                  rows="3"
+                />
+              </div>
+              
+              <div class="grid gap-2">
+                <Label for="event-location">Lieu</Label>
+                <Input
+                  id="event-location"
+                  v-model="newEvent.location"
+                  placeholder="Ex: Bureau, Paris, Visioconférence..."
+                />
+              </div>
+              
+              <div class="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
+                <Switch
+                  id="all-day"
+                  v-model="newEvent.allDay"
+                />
+                <Label for="all-day" class="text-sm font-medium">Toute la journée</Label>
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid gap-2">
+                  <Label for="event-start">{{ newEvent.allDay ? 'Date de début' : 'Date et heure de début' }} *</Label>
+                  <Input
+                    id="event-start"
+                    :type="newEvent.allDay ? 'date' : 'datetime-local'"
+                    v-model="newEvent.startDate"
+                    required
+                  />
+                </div>
+                
+                <div v-if="!newEvent.allDay" class="grid gap-2">
+                  <Label for="event-end">Date et heure de fin</Label>
+                  <Input
+                    id="event-end"
+                    type="datetime-local"
+                    v-model="newEvent.endDate"
+                  />
+                </div>
+              </div>
             </div>
             
-            <div class="grid gap-2">
-              <Label for="event-description">Description (optionnel)</Label>
-              <Textarea
-                id="event-description"
-                v-model="newEvent.description"
-                placeholder="Détails de l'événement..."
-                rows="3"
-              />
-            </div>
-            
-            <div class="grid gap-2">
-              <Label for="event-type">Type d'événement</Label>
-              <Select v-model="newEvent.type">
-                <SelectTrigger>
-                  <SelectValue placeholder="Choisir un type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem v-for="type in eventTypes" :key="type.value" :value="type.value">
-                    <div class="flex items-center space-x-2">
-                      <div 
-                        class="w-3 h-3 rounded-full" 
-                        :style="{ backgroundColor: type.color }"
-                      ></div>
-                      <span>{{ type.label }}</span>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div class="grid gap-2">
-              <Label for="event-location">Lieu (optionnel)</Label>
-              <Input
-                id="event-location"
-                v-model="newEvent.location"
-                placeholder="Ex: Salle de conférence A"
-              />
-            </div>
-            
-            <div class="flex items-center space-x-2">
-              <Switch
-                id="all-day"
-                v-model="newEvent.allDay"
-              />
-              <Label for="all-day">Toute la journée</Label>
-            </div>
-            
-            <div class="grid gap-2">
-              <Label for="event-start">Date et heure de début</Label>
-              <Input
-                id="event-start"
-                :type="newEvent.allDay ? 'date' : 'datetime-local'"
-                v-model="newEvent.startDate"
-              />
-            </div>
-            
-            <div v-if="!newEvent.allDay" class="grid gap-2">
-              <Label for="event-end">Date et heure de fin</Label>
-              <Input
-                id="event-end"
-                type="datetime-local"
-                v-model="newEvent.endDate"
-              />
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <div class="flex justify-between w-full">
-              <div>
+            <DialogFooter class="flex flex-col sm:flex-row gap-3">
+              <div class="flex-1">
                 <Button 
                   v-if="isEditMode" 
+                  type="button"
                   variant="destructive" 
                   @click="removeEvent"
+                  class="w-full sm:w-auto"
                 >
                   <Trash2 class="mr-2 h-4 w-4" />
                   Supprimer
                 </Button>
               </div>
-              <div class="space-x-2">
-                <Button variant="outline" @click="isDialogOpen = false">
+              <div class="flex gap-2">
+                <Button type="button" variant="outline" @click="isDialogOpen = false" class="flex-1 sm:flex-none">
                   Annuler
                 </Button>
-                <Button @click="saveEvent" :disabled="loading">
+                <Button type="submit" :disabled="loading" class="flex-1 sm:flex-none">
+                  <Plus v-if="!isEditMode" class="mr-2 h-4 w-4" />
+                  <Edit v-else class="mr-2 h-4 w-4" />
                   {{ isEditMode ? 'Modifier' : 'Créer' }}
                 </Button>
               </div>
-            </div>
-          </DialogFooter>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
@@ -420,80 +568,136 @@ const handleEventResize = async (info) => {
 
 <style scoped>
 .modern-calendar {
-  border-radius: 0.5rem;
-  border: 1px solid hsl(var(--border));
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border-radius: 0.75rem;
+  overflow: hidden;
 }
 
 :deep(.fc) {
   font-family: inherit;
+  border-radius: 0.75rem;
 }
 
 :deep(.fc-toolbar) {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
 }
 
 :deep(.fc-toolbar-title) {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 1.5rem;
+  font-weight: 700;
   color: hsl(var(--foreground));
 }
 
 :deep(.fc-button) {
-  background-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-  border: 1px solid hsl(var(--primary));
-  border-radius: 6px;
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
   font-weight: 500;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
 :deep(.fc-button:hover) {
-  background-color: hsl(var(--primary) / 0.9);
+  background: hsl(var(--muted));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
 }
 
-:deep(.fc-button:not(:disabled):active),
-:deep(.fc-button:not(:disabled).fc-button-active) {
-  background-color: hsl(var(--primary) / 0.8);
+:deep(.fc-button-active) {
+  background: hsl(var(--primary)) !important;
+  border-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
 }
 
 :deep(.fc-daygrid-day) {
-  transition: background-color 0.2s;
+  transition: background-color 0.2s ease;
 }
 
 :deep(.fc-daygrid-day:hover) {
-  background-color: hsl(var(--muted) / 0.5);
-}
-
-:deep(.fc-daygrid-day-number) {
-  color: hsl(var(--foreground));
-  font-weight: 500;
-}
-
-:deep(.fc-col-header-cell) {
   background-color: hsl(var(--muted) / 0.3);
+}
+
+:deep(.fc-day-today) {
+  background-color: hsl(var(--primary) / 0.05) !important;
+}
+
+:deep(.fc-day-today .fc-daygrid-day-number) {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-weight: 600;
-  color: hsl(var(--muted-foreground));
 }
 
 :deep(.fc-event) {
-  border-radius: 6px;
-  border: 0;
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border: none !important;
+  border-radius: 0.375rem !important;
+  padding: 0.25rem 0.5rem !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
 }
 
 :deep(.fc-event:hover) {
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  transform: translateY(-1px);
-  transition: all 0.2s;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06) !important;
 }
 
 :deep(.fc-daygrid-event-dot) {
-  border-color: hsl(var(--primary));
+  display: none !important;
 }
 
-:deep(.fc-today) {
-  background-color: hsl(var(--primary) / 0.05);
+:deep(.fc-event-title) {
+  font-weight: 500 !important;
+}
+
+:deep(.fc-more-link) {
+  color: hsl(var(--primary)) !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+  padding: 0.125rem 0.25rem !important;
+  border-radius: 0.25rem !important;
+  transition: background-color 0.2s ease !important;
+}
+
+:deep(.fc-more-link:hover) {
+  background-color: hsl(var(--muted)) !important;
+}
+
+:deep(.fc-col-header-cell) {
+  background: hsl(var(--muted) / 0.3);
+  border: 1px solid hsl(var(--border));
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  padding: 0.75rem 0.5rem;
+}
+
+:deep(.fc-scrollgrid) {
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+/* Animation pour les nouveaux événements */
+@keyframes eventAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+:deep(.fc-event) {
+  animation: eventAppear 0.3s ease-out;
 }
 </style>

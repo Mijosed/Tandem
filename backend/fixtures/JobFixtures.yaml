@@ -37,3 +37,42 @@ App\Entity\Job:
     isPremium: false
     createdAt: <dateTimeBetween('-1 week', 'now')>
     updatedAt: <dateTimeBetween('-1 day', 'now')>
+
+  job_data_scientist:
+    title: 'Data Scientist'
+    company: 'AI Solutions'
+    location: 'Bordeaux'
+    type: 'Alternance'
+    salaryMin: 1200
+    salaryMax: 1500
+    description: 'Rejoignez notre équipe IA pour développer des modèles de machine learning innovants. Vous travaillerez avec Python, TensorFlow et des datasets massifs.'
+    indeedJobKey: 'job4_ai_solutions'
+    isPremium: true
+    createdAt: <dateTimeBetween('-5 days', 'now')>
+    updatedAt: <dateTimeBetween('-2 days', 'now')>
+
+  job_cybersecurity:
+    title: 'Consultant Cybersécurité'
+    company: 'SecureNet'
+    location: 'Lille'
+    type: 'Stage'
+    salaryMin: 800
+    salaryMax: 1000
+    description: 'Stage de 6 mois en cybersécurité pour découvrir les tests de pénétration, audit sécurité et mise en place de politiques de sécurité.'
+    indeedJobKey: 'job5_securenet'
+    isPremium: false
+    createdAt: <dateTimeBetween('-3 days', 'now')>
+    updatedAt: <dateTimeBetween('-1 day', 'now')>
+
+  job_product_owner:
+    title: 'Product Owner'
+    company: 'Agile Tech'
+    location: 'Remote'
+    type: 'CDD'
+    salaryMin: 42000
+    salaryMax: 48000
+    description: 'Mission de 12 mois comme Product Owner sur un projet de transformation digitale. Expérience en méthodes agiles requise.'
+    indeedJobKey: 'job6_agile_tech'
+    isPremium: true
+    createdAt: <dateTimeBetween('-2 days', 'now')>
+    updatedAt: <dateTimeBetween('-1 day', 'now')>
