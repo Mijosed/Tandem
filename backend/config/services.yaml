@@ -4,6 +4,8 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    pole_emploi.client_id: '%env(POLE_EMPLOI_CLIENT_ID)%'
+    pole_emploi.client_secret: '%env(POLE_EMPLOI_CLIENT_SECRET)%'
 
 services:
     # default configuration for services in *this* file
@@ -25,3 +27,13 @@ services:
 
     App\DataFixtures\Provider\HashPasswordProvider:
         tags: [ { name: nelmio_alice.faker.provider } ]
+
+    # Configuration du service de géolocalisation
+    App\Service\GeolocationService:
+        # Pas d'arguments supplémentaires nécessaires
+
+    # Configuration du service Pôle Emploi
+    App\Service\PoleEmploiService:
+        arguments:
+            $poleEmploiClientId: '%pole_emploi.client_id%'
+            $poleEmploiClientSecret: '%pole_emploi.client_secret%'

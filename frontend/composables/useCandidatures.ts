@@ -45,23 +45,17 @@ export const useCandidatures = () => {
         throw new Error('Utilisateur non connecté')
       }
 
-      // Récupérer toutes les candidatures et filtrer côté client
-      const response = await fetch(`${apiBase}/candidatures`)
+      // Récupérer seulement les candidatures de l'utilisateur connecté
+      const response = await fetch(`${apiBase}/candidatures/user/${userId}`)
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
       
       const data = await response.json()
-      const allCandidatures = data.member || []
+      const userCandidatures = data.member || []
       
-      // Filtrer côté client par utilisateur
-      const userCandidatures = allCandidatures.filter((candidature: any) => {
-        return candidature.user === `/api/users/${userId}` || 
-               (candidature.user && candidature.user.id === userId)
-      })
-      
-      // Transformer les données filtrées
+      // Transformer les données (déjà filtrées côté serveur)
       candidatures.value = userCandidatures.map(transformCandidatureFromAPI)
       
     } catch (err: any) {

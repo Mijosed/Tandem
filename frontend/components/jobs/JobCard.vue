@@ -29,20 +29,38 @@
       {{ job.description }}
     </p>
 
-    <div class="pt-4 flex items-center justify-between">
-      <span class="text-xs text-muted-foreground">
+    <div class="pt-4 space-y-3">
+      <span class="text-xs text-muted-foreground block">
         Publié le {{ new Date(job.postedDate).toLocaleDateString('fr-FR') }}
       </span>
-      <Button 
-        variant="default"
-        size="sm" 
-        :as="job.sourceUrl ? 'a' : 'button'"
-        :href="job.sourceUrl"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Voir l'offre
-      </Button>
+      
+      <!-- Boutons d'action -->
+      <div class="flex flex-col gap-2">
+        <Button 
+          variant="default"
+          size="sm" 
+          :as="job.sourceUrl ? 'a' : 'button'"
+          :href="job.sourceUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="w-full"
+        >
+          <ExternalLink class="h-4 w-4 mr-2" />
+          Consulter l'offre directement sur le site source
+        </Button>
+        
+        <Button 
+          variant="outline"
+          size="sm" 
+          @click="$emit('saveToApplications', job)"
+          :disabled="job.hasApplied"
+          class="w-full"
+        >
+          <Check v-if="job.hasApplied" class="h-4 w-4 mr-2" />
+          <Plus v-else class="h-4 w-4 mr-2" />
+          {{ job.hasApplied ? 'Déjà enregistrée dans le suivi' : 'Enregistrer dans son suivi pour organiser ses candidatures' }}
+        </Button>
+      </div>
     </div>
   </CardContent>
 </Card>
@@ -51,7 +69,7 @@
 <script setup lang="ts">
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Building2, MapPin, Briefcase } from 'lucide-vue-next'
+import { Building2, MapPin, Briefcase, Plus, Check, ExternalLink } from 'lucide-vue-next'
 
 interface Job {
   id: string
@@ -63,9 +81,15 @@ interface Job {
   description: string
   postedDate: string
   sourceUrl: string
+  hasApplied?: boolean
 }
 
 defineProps<{
   job: Job
+}>()
+
+defineEmits<{
+  apply: [job: Job]
+  saveToApplications: [job: Job]
 }>()
 </script>

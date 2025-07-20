@@ -79,7 +79,11 @@ export const useDashboard = () => {
   // Récupérer les candidatures
   const fetchApplications = async () => {
     try {
-      const response = await fetch(`http://localhost:8888/api/candidatures`)
+      // Récupérer l'utilisateur connecté
+      const userData = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {}
+      const userId = userData.id || 4 // Fallback pour les tests
+      
+      const response = await fetch(`http://localhost:8888/api/candidatures/user/${userId}`)
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }

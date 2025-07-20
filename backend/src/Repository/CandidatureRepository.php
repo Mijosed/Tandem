@@ -87,6 +87,22 @@ class CandidatureRepository extends ServiceEntityRepository
         return $stats;
     }
 
+    /**
+     * Find a candidature by user and job ID
+     */
+    public function findByUserAndJobId(\App\Entity\User $user, string $jobId): ?Candidature
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.user = :user')
+            ->andWhere('c.jobId = :jobId')
+            ->setParameter('user', $user)
+            ->setParameter('jobId', $jobId)
+            ->orderBy('c.dateCreation', 'DESC') // Plus récent en premier
+            ->setMaxResults(1) // Seulement le premier résultat
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function save(Candidature $entity, bool $flush = false): void
     {
         $this->getEntityManager()->persist($entity);

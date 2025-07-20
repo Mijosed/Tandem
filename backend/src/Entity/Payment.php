@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\PaymentRepository;
 use App\Entity\Subscription;
+use App\Entity\User;
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
@@ -47,6 +48,11 @@ class Payment
     #[Groups(['payment:read'])]
     private ?Subscription $subscription = null;
 
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'payments')]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['payment:read'])]
+    private ?User $user = null;
+
     #[ORM\Column(type: 'integer')]
     #[Groups(['payment:read', 'payment:write'])]
     #[Assert\NotNull]
@@ -82,6 +88,7 @@ class Payment
     public function __construct()
     {
         $this->createdAt = new \DateTime();
+        $this->updatedAt = new \DateTime();
     }
 
     public function getId(): ?int
@@ -152,6 +159,39 @@ class Payment
     public function setCreatedAt(\DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(\DateTimeInterface $updatedAt): static
+    {
+        $this->updatedAt = $updatedAt;
+        return $this;
+    }
+
+    public function getPaidAt(): ?\DateTimeInterface
+    {
+        return $this->paidAt;
+    }
+
+    public function setPaidAt(?\DateTimeInterface $paidAt): static
+    {
+        $this->paidAt = $paidAt;
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
         return $this;
     }
 }
