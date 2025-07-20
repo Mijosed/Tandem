@@ -29,18 +29,7 @@ export const useAuth = () => {
           localStorage.removeItem('user')
         }
       } else {
-        currentUser.value = {
-          id: 1,
-          email: 'admin@tandem.com',
-          firstName: 'Admin',
-          lastName: 'Tandem',
-          roles: ['ROLE_ADMIN', 'ROLE_USER'],
-          subscription: {
-            plan: 'premium',
-            status: 'active',
-            isPremium: true
-          }
-        }
+        currentUser.value = null
       }
     }
   }
@@ -110,4 +99,4 @@ export const useAuth = () => {
     isAdmin,
     isRecruiter,
   }
-} 
+}

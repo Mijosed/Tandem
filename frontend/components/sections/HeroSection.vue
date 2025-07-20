@@ -5,12 +5,19 @@
         <h1 class="text-4xl md:text-6xl font-bold mb-4" data-aos="fade-down">Trouvez votre alternance facilement</h1>
         <p class="text-lg text-gray-600 mb-6" data-aos="fade-up">Avec Tandem, organisez vos candidatures sans stress.</p>
         <div class="flex justify-center gap-4" data-aos="zoom-in">
-          <NuxtLink to="/register">
-            <Button class="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700">Commencer gratuitement</Button>
-          </NuxtLink>
-          <NuxtLink to="/login">
-            <Button variant="outline">Se connecter</Button>
-          </NuxtLink>
+          <div v-if="isAuthenticated">
+            <NuxtLink to="/dashboard">
+              <Button class="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700">Accéder au dashboard</Button>
+            </NuxtLink>
+          </div>
+          <div v-else class="flex gap-4">
+            <NuxtLink to="/register">
+              <Button class="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700">Commencer gratuitement</Button>
+            </NuxtLink>
+            <NuxtLink to="/login">
+              <Button variant="outline">Se connecter</Button>
+            </NuxtLink>
+          </div>
         </div>
       </div>
     </section>
@@ -18,5 +25,7 @@
   
   <script setup>
   import { Button } from '@/components/ui/button'
-  </script>
+  import { useAuth } from '@/composables/useAuth'
   
+  const { isAuthenticated } = useAuth()
+  </script>
