@@ -22,8 +22,10 @@ import {
 } from '@/components/ui/card'
 
 definePageMeta({
-  layout: 'dashboard'
+  layout: 'dashboard',
+  middleware: ['auth']
 })
+
 
 // Utiliser le composable Dashboard
 const { 

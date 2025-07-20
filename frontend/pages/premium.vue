@@ -213,9 +213,12 @@ const confirmPayment = async () => {
       
       if (userId) {
         try {
+
+          const token = localStorage.getItem('jwt')
           const activationResponse = await fetch(`http://localhost:8888/api/stripe/activate-subscription/${userId}`, {
             method: 'POST',
             headers: {
+              'Authorization': token ? `Bearer ${token}` : '',
               'Content-Type': 'application/json'
             }
           })

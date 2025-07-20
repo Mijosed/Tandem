@@ -83,7 +83,13 @@ export const useDashboard = () => {
       const userData = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {}
       const userId = userData.id || 4 // Fallback pour les tests
       
-      const response = await fetch(`http://localhost:8888/api/candidatures/user/${userId}`)
+      const token = localStorage.getItem('jwt')
+      const response = await fetch(`http://localhost:8888/api/candidatures/user/${userId}`, {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+        }
+      })
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
@@ -112,7 +118,13 @@ export const useDashboard = () => {
   // Récupérer les notifications
   const fetchNotifications = async () => {
     try {
-      const response = await fetch(`http://localhost:8888/api/notifications`)
+      const token = localStorage.getItem('jwt')
+      const response = await fetch(`http://localhost:8888/api/notifications`, {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+        }
+      })
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
@@ -132,7 +144,13 @@ export const useDashboard = () => {
   // Récupérer les offres d'emploi
   const fetchJobs = async () => {
     try {
-      const response = await fetch(`http://localhost:8888/api/jobs`)
+      const token = localStorage.getItem('jwt')
+      const response = await fetch(`http://localhost:8888/api/jobs`, {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+        }
+      })
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }

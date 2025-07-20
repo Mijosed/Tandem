@@ -21,6 +21,10 @@ const transformApplicationFromAPI = (apiApplication: any): Application => {
 }
 
 export const useApplications = () => {
+  const getJwtHeaders = () => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
+    return token ? { Authorization: `Bearer ${token}` } : {}
+  }
   const applications = ref<Application[]>([])
   const loading = ref(false)
   const error = ref('')
@@ -41,7 +45,12 @@ export const useApplications = () => {
       }
 
       // Récupérer toutes les candidatures et filtrer côté client
-      const response = await fetch(`${apiBase}/candidatures`)
+      const response = await fetch(`${apiBase}/candidatures`, {
+        headers: {
+          ...getJwtHeaders(),
+          'Content-Type': 'application/json',
+        }
+      })
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
@@ -81,7 +90,12 @@ export const useApplications = () => {
     
     try {
       // D'abord, créer ou récupérer le job correspondant
-      const jobsResponse = await fetch(`${apiBase}/jobs`)
+      const jobsResponse = await fetch(`${apiBase}/jobs`, {
+        headers: {
+          ...getJwtHeaders(),
+          'Content-Type': 'application/json',
+        }
+      })
       if (!jobsResponse.ok) {
         throw new Error(`Erreur lors de la récupération des jobs: ${jobsResponse.status}`)
       }
@@ -110,6 +124,7 @@ export const useApplications = () => {
         const jobResponse = await fetch(`${apiBase}/jobs`, {
           method: 'POST',
           headers: {
+            ...getJwtHeaders(),
             'Content-Type': 'application/ld+json',
           },
           body: JSON.stringify(jobPayload)
@@ -141,6 +156,7 @@ export const useApplications = () => {
       const response = await fetch(`${apiBase}/candidatures`, {
         method: 'POST',
         headers: {
+          ...getJwtHeaders(),
           'Content-Type': 'application/ld+json',
         },
         body: JSON.stringify(applicationPayload)
@@ -176,6 +192,7 @@ export const useApplications = () => {
       const response = await fetch(`${apiBase}/candidatures/${id}`, {
         method: 'PUT',
         headers: {
+          ...getJwtHeaders(),
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(applicationData)
@@ -212,7 +229,11 @@ export const useApplications = () => {
     
     try {
       const response = await fetch(`${apiBase}/candidatures/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+          ...getJwtHeaders(),
+          'Content-Type': 'application/json',
+        }
       })
       
       if (!response.ok) {

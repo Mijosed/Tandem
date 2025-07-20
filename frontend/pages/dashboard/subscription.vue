@@ -218,7 +218,8 @@ import {
 } from '~/components/ui/table'
 
 definePageMeta({
-  layout: 'dashboard'
+  layout: 'dashboard',
+  middleware: ['auth']
 })
 
 // Détection mobile pour afficher conditionnellement le SidebarTrigger
@@ -261,9 +262,11 @@ const showPaymentDialog = async () => {
   try {
     // TODO: Appel à l'API pour créer une intention de paiement
     // Cette partie devra être implémentée côté backend
+    const token = localStorage.getItem('jwt')
     const response = await fetch('/api/create-payment-intent', {
       method: 'POST',
       headers: {
+        'Authorization': token ? `Bearer ${token}` : '',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

@@ -71,7 +71,8 @@ import { useNotifications } from '~/composables/useNotifications'
 import type { Notification } from '~/types/notification'
 
 definePageMeta({
-  layout: 'dashboard'
+  layout: 'dashboard',
+  middleware: ['auth']
 })
 
 const isMobile = useMediaQuery('(max-width: 768px)')

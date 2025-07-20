@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Entity\Subscription;
 use App\Repository\UserRepository;
 use App\Repository\SubscriptionRepository;
+use App\Service\JwtService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -22,7 +23,8 @@ class AuthController extends AbstractController
         private UserPasswordHasherInterface $passwordHasher,
         private ValidatorInterface $validator,
         private UserRepository $userRepository,
-        private SubscriptionRepository $subscriptionRepository
+        private SubscriptionRepository $subscriptionRepository,
+        private JwtService $jwtService
     ) {}
 
     #[Route('/register', name: 'register', methods: ['POST'])]
@@ -116,10 +118,16 @@ class AuthController extends AbstractController
             $subscription = null;
         }
 
-        // Ici vous pouvez générer un JWT token
-        // Pour l'exemple, on retourne juste les informations de l'utilisateur
+        // Utilisation du service JwtService pour générer le JWT
+        $jwt = $this->jwtService->generate([
+            'sub' => $user->getId(),
+            'email' => $user->getEmail(),
+            'exp' => time() + 3600
+        ]);
+
         return $this->json([
             'message' => 'Connexion réussie',
+            'token' => $jwt,
             'user' => [
                 'id' => $user->getId(),
                 'email' => $user->getEmail(),

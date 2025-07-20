@@ -94,7 +94,8 @@ import type { Candidature, CandidatureStatus } from '~/types/candidature'
 import { useCandidatures } from '~/composables/useCandidatures'
 
 definePageMeta({
-  layout: 'dashboard'
+  layout: 'dashboard',
+  middleware: ['auth']
 })
 
 // Détection mobile pour afficher conditionnellement le SidebarTrigger

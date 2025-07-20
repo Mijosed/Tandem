@@ -232,7 +232,13 @@ const loadSectors = async () => {
   
   loadingSectors.value = true
   try {
-    const response = await fetch('http://localhost:8888/api/pole-emploi/sectors')
+    const token = localStorage.getItem('jwt')
+    const response = await fetch('http://localhost:8888/api/pole-emploi/sectors', {
+      headers: {
+        'Authorization': token ? `Bearer ${token}` : '',
+        'Content-Type': 'application/json',
+      }
+    })
     
     if (!response.ok) {
       console.warn('Impossible de charger les secteurs:', response.status)

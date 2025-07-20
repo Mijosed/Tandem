@@ -44,6 +44,10 @@ const { logout } = useAuth()
 const handleLogout = async () => {
   try {
     logout()
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('jwt')
+      localStorage.removeItem('user')
+    }
     await navigateTo('/')
   } catch (error) {
     console.error('Erreur lors de la déconnexion:', error)

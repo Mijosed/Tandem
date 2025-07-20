@@ -121,6 +121,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { NuxtLink } from '#components'
+import { navigateTo } from 'nuxt/app'
 import { 
   LogIn, 
   Mail, 
@@ -175,12 +176,16 @@ const handleSubmit = async () => {
     console.log('Réponse API:', result)
 
     success.value = 'Connexion réussie ! Redirection...'
-    
+
+    // Stocke le token JWT si présent
+    if (result.token) {
+      localStorage.setItem('jwt', result.token)
+    }
     if (result.user) {
       localStorage.setItem('user', JSON.stringify(result.user))
       localStorage.setItem('isLoggedIn', 'true')
     }
-    
+
     form.value = {
       email: '',
       password: ''
