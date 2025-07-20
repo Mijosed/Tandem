@@ -44,18 +44,38 @@
                 {{ job.description?.substring(0, 150) }}...
               </p>
               
-              <div class="pt-4 border-t">
+              <div class="pt-4 border-t space-y-2">
+                <!-- Bouton pour consulter l'offre -->
+                <a
+                  :href="job.application_url || '#'"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="w-full px-4 py-2 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 transition-colors inline-flex items-center justify-center"
+                >
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                  Consulter l'offre directement sur le site source
+                </a>
+                
+                <!-- Bouton pour enregistrer dans le suivi -->
                 <button
-                  @click="handleApply(job)"
+                  @click="handleSaveToApplications(job)"
                   :disabled="appliedJobs.has(job.id.toString()) || job.hasApplied"
                   :class="[
-                    'w-full px-4 py-2 rounded-md font-medium transition-colors',
+                    'w-full px-4 py-2 rounded-md font-medium transition-colors inline-flex items-center justify-center',
                     appliedJobs.has(job.id.toString()) || job.hasApplied
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                   ]"
                 >
-                  {{ appliedJobs.has(job.id.toString()) || job.hasApplied ? 'Candidature envoyée' : 'Postuler' }}
+                  <svg v-if="appliedJobs.has(job.id.toString()) || job.hasApplied" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <svg v-else class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  {{ appliedJobs.has(job.id.toString()) || job.hasApplied ? 'Déjà enregistrée dans le suivi' : 'Enregistrer dans son suivi pour organiser ses candidatures' }}
                 </button>
               </div>
             </div>
@@ -141,8 +161,8 @@ const handleSearchWithFilters = async (filters) => {
   await loadJobs(1, filters)
 }
 
-// Fonction pour gérer une candidature
-const handleApply = async (job) => {
+// Fonction pour enregistrer dans les candidatures (suivi)
+const handleSaveToApplications = async (job) => {
   try {
     // Récupérer l'utilisateur connecté
     const userData = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {}
@@ -158,7 +178,7 @@ const handleApply = async (job) => {
       statut: 'a_faire',
       dateDepot: new Date().toISOString().split('T')[0],
       jobId: job.id,
-      notes: `Candidature via France Travail - ${job.location}\n\nType: ${job.type}\nSalaire: ${job.salary}\n\nDescription: ${job.description.substring(0, 300)}...`,
+      notes: `Enregistrée pour suivi via France Travail - ${job.location}\n\nType: ${job.type}\nSalaire: ${job.salary}\n\nDescription: ${job.description.substring(0, 300)}...`,
       user: `/api/users/${userId}`
     }
     
@@ -187,8 +207,11 @@ const handleApply = async (job) => {
       jobs.value[jobIndex].hasApplied = true
     }
     
+    // Message de succès (optionnel, vous pourriez ajouter une notification)
+    console.log(`✅ Offre "${job.title}" enregistrée dans le suivi`)
+    
   } catch (err) {
-    error.value = 'Erreur lors de l\'envoi de la candidature: ' + err.message
+    error.value = 'Erreur lors de l\'enregistrement dans le suivi: ' + err.message
     appliedJobs.value.delete(job.id)
   }
 }
@@ -203,7 +226,7 @@ const checkExistingCandidatures = async (jobIds) => {
       return
     }
     
-    const response = await fetch(`http://localhost:8888/api/candidatures?user.id=${userId}`)
+    const response = await fetch(`http://localhost:8888/api/candidatures/user/${userId}`)
     
     if (!response.ok) {
       return

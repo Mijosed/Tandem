@@ -35,19 +35,7 @@
       </span>
       
       <!-- Boutons d'action -->
-      <div class="flex gap-2">
-        <Button 
-          variant="outline"
-          size="sm" 
-          @click="$emit('apply', job)"
-          :disabled="job.hasApplied"
-          class="flex-1"
-        >
-          <Check v-if="job.hasApplied" class="h-4 w-4 mr-2" />
-          <Plus v-else class="h-4 w-4 mr-2" />
-          {{ job.hasApplied ? 'Candidature envoyée' : 'Candidater' }}
-        </Button>
-        
+      <div class="flex flex-col gap-2">
         <Button 
           variant="default"
           size="sm" 
@@ -55,10 +43,22 @@
           :href="job.sourceUrl"
           target="_blank"
           rel="noopener noreferrer"
-          class="flex-1"
+          class="w-full"
         >
           <ExternalLink class="h-4 w-4 mr-2" />
-          Voir l'offre
+          Consulter l'offre directement sur le site source
+        </Button>
+        
+        <Button 
+          variant="outline"
+          size="sm" 
+          @click="$emit('saveToApplications', job)"
+          :disabled="job.hasApplied"
+          class="w-full"
+        >
+          <Check v-if="job.hasApplied" class="h-4 w-4 mr-2" />
+          <Plus v-else class="h-4 w-4 mr-2" />
+          {{ job.hasApplied ? 'Déjà enregistrée dans le suivi' : 'Enregistrer dans son suivi pour organiser ses candidatures' }}
         </Button>
       </div>
     </div>
@@ -90,5 +90,6 @@ defineProps<{
 
 defineEmits<{
   apply: [job: Job]
+  saveToApplications: [job: Job]
 }>()
 </script>

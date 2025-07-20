@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\Service\AdzunaService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -12,12 +11,10 @@ use Psr\Log\LoggerInterface;
 #[Route('/api/jobs', name: 'api_jobs_')]
 class JobsController extends AbstractController
 {
-    private AdzunaService $adzunaService;
     private LoggerInterface $logger;
 
-    public function __construct(AdzunaService $adzunaService, LoggerInterface $logger)
+    public function __construct(LoggerInterface $logger)
     {
-        $this->adzunaService = $adzunaService;
         $this->logger = $logger;
     }
 
@@ -30,7 +27,7 @@ class JobsController extends AbstractController
         return new JsonResponse([
             'success' => true,
             'message' => 'API Jobs fonctionne !',
-            'service' => 'Adzuna API',
+            'service' => 'Test Data Generator',
             'timestamp' => date('Y-m-d H:i:s')
         ]);
     }
@@ -62,28 +59,26 @@ class JobsController extends AbstractController
             });
 
             try {
-                // Essayer d'abord avec Adzuna
-                $results = $this->adzunaService->searchJobs($criteria);
-
-                return new JsonResponse([
-                    'success' => true,
-                    'data' => $results,
-                    'message' => 'Recherche effectuée avec succès (Adzuna API)',
-                    'source' => 'adzuna'
-                ]);
-
-            } catch (\Exception $e) {
-                // Si Adzuna échoue, utiliser les données de test
-                $this->logger->warning('Échec API Adzuna, utilisation des données de test: ' . $e->getMessage());
+                // Générer des données de test pour les offres d'emploi
+                $this->logger->info('Génération de données de test pour les offres d\'emploi');
                 
                 $testResults = $this->generateTestJobs($criteria);
 
                 return new JsonResponse([
                     'success' => true,
                     'data' => $testResults,
-                    'message' => 'Recherche effectuée avec succès (données de test - erreur API: ' . $e->getMessage() . ')',
+                    'message' => 'Recherche effectuée avec succès (données de test)',
                     'source' => 'test_data'
                 ]);
+
+            } catch (\Exception $e) {
+                $this->logger->error('Erreur lors de la génération des données de test: ' . $e->getMessage());
+                
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'Erreur lors de la recherche',
+                    'error' => $e->getMessage()
+                ], 500);
             }
 
         } catch (\Exception $e) {
@@ -107,13 +102,14 @@ class JobsController extends AbstractController
     public function getJobDetails(string $id): JsonResponse
     {
         try {
-            $jobDetails = $this->adzunaService->getJobDetails($id);
+            // Service de données de test - détails non disponibles pour cette démo
+            $this->logger->info('Détails des offres non disponibles dans la version test, job ID: ' . $id);
 
             return new JsonResponse([
-                'success' => true,
-                'data' => $jobDetails,
-                'message' => 'Détails récupérés avec succès'
-            ]);
+                'success' => false,
+                'message' => 'Détails des offres non disponibles - version de démonstration',
+                'error' => 'Fonctionnalité non implémentée'
+            ], 404);
 
         } catch (\Exception $e) {
             $this->logger->error('Erreur lors de la récupération des détails', [
@@ -130,27 +126,27 @@ class JobsController extends AbstractController
     }
 
     /**
-     * Tester l'authentification Adzuna
+     * Tester la disponibilité du service de données de test
      */
     #[Route('/test-auth', name: 'test_auth', methods: ['GET'])]
     public function testAuth(): JsonResponse
     {
         try {
-            // Test simple avec une recherche limitée
-            $testResults = $this->adzunaService->searchJobs(['limit' => 1]);
+            // Service de test actif
+            $this->logger->info('Test du service de données de test - fonctionnel');
 
             return new JsonResponse([
                 'success' => true,
-                'message' => 'API Adzuna fonctionnelle',
-                'results_count' => $testResults['total'] ?? 0
+                'message' => 'Service de test des offres d\'emploi fonctionnel',
+                'results_count' => 2
             ]);
 
         } catch (\Exception $e) {
             return new JsonResponse([
                 'success' => false,
-                'message' => 'Erreur API Adzuna',
+                'message' => 'Erreur test du service',
                 'error' => $e->getMessage()
-            ], 200); // 200 au lieu de 500 pour voir la réponse
+            ], 200);
         }
     }
 

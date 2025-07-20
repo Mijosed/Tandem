@@ -83,4 +83,36 @@ class CandidatureController extends AbstractController
 
         return new JsonResponse($results);
     }
+
+    #[Route('/candidatures/user/{userId}', name: 'candidature_by_user', methods: ['GET'])]
+    public function getCandidaturesByUser(int $userId): JsonResponse
+    {
+        $user = $this->userRepository->find($userId);
+        if (!$user) {
+            return new JsonResponse(['error' => 'User not found'], 404);
+        }
+
+        $candidatures = $this->candidatureRepository->findByUser($userId);
+
+        // Transformer les candidatures pour l'API
+        $candidaturesData = array_map(function($candidature) {
+            return [
+                'id' => $candidature->getId(),
+                'titrePoste' => $candidature->getTitrePoste(),
+                'entreprise' => $candidature->getEntreprise(),
+                'statut' => $candidature->getStatut(),
+                'dateDepot' => $candidature->getDateDepot()?->format('Y-m-d'),
+                'dateEntretien' => $candidature->getDateEntretien()?->format('Y-m-d H:i:s'),
+                'notes' => $candidature->getNotes(),
+                'jobId' => $candidature->getJobId(),
+                'user' => '/api/users/' . $candidature->getUser()->getId(),
+                'dateCreation' => $candidature->getDateCreation()->format('Y-m-d H:i:s')
+            ];
+        }, $candidatures);
+
+        return new JsonResponse([
+            'member' => $candidaturesData,
+            'totalItems' => count($candidaturesData)
+        ]);
+    }
 }

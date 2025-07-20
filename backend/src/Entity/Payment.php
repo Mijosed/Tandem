@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\PaymentRepository;
 use App\Entity\Subscription;
+use App\Entity\User;
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
@@ -46,6 +47,11 @@ class Payment
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['payment:read'])]
     private ?Subscription $subscription = null;
+
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'payments')]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['payment:read'])]
+    private ?User $user = null;
 
     #[ORM\Column(type: 'integer')]
     #[Groups(['payment:read', 'payment:write'])]
@@ -175,6 +181,17 @@ class Payment
     public function setPaidAt(?\DateTimeInterface $paidAt): static
     {
         $this->paidAt = $paidAt;
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
         return $this;
     }
 }

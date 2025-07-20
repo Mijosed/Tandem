@@ -92,6 +92,7 @@ class StripeController extends AbstractController
             $payment->setStatus('pending');
             $payment->setStripePaymentIntentId($paymentIntent->id);
             $payment->setSubscription($subscription);
+            $payment->setUser($user); // AJOUT : Associer l'utilisateur au paiement
 
             $this->entityManager->persist($payment);
             $this->entityManager->flush();

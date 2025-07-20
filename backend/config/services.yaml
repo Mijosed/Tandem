@@ -6,8 +6,6 @@
 parameters:
     pole_emploi.client_id: '%env(POLE_EMPLOI_CLIENT_ID)%'
     pole_emploi.client_secret: '%env(POLE_EMPLOI_CLIENT_SECRET)%'
-    adzuna.app_id: '%env(ADZUNA_APP_ID)%'
-    adzuna.app_key: '%env(ADZUNA_APP_KEY)%'
 
 services:
     # default configuration for services in *this* file
@@ -39,9 +37,3 @@ services:
         arguments:
             $poleEmploiClientId: '%pole_emploi.client_id%'
             $poleEmploiClientSecret: '%pole_emploi.client_secret%'
-
-    # Configuration du service Adzuna
-    App\Service\AdzunaService:
-        arguments:
-            $adzunaAppId: '%adzuna.app_id%'
-            $adzunaAppKey: '%adzuna.app_key%'
