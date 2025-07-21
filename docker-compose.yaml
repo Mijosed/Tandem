@@ -1,10 +1,11 @@
 services:
+  services:
   traefik:
     image: traefik:v2.11
+    container_name: traefik
     command:
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
-      - "--entrypoints.websecure.http.tls=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.file.directory=/dynamic"
