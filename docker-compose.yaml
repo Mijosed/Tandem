@@ -8,7 +8,7 @@ services:
       - "--entrypoints.websecure.tls=true"
       - "--entrypoints.websecure.tls.certificates[0].certFile=/certs/fullchain.pem"
       - "--entrypoints.websecure.tls.certificates[0].keyFile=/certs/privkey.pem"
-      - "--providers.docker=true"a
+      - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--api.dashboard=true"
 
