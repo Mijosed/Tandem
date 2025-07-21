@@ -9,8 +9,3 @@ tls:
       defaultCertificate:
         certFile: /letsencrypt/fullchain.pem
         keyFile: /letsencrypt/privkey.pem
-  options:
-    default:
-      sslProtocols:
-        - "TLSv1.2"
-        - "TLSv1.3"
