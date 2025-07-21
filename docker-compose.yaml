@@ -135,6 +135,8 @@ services:
       - "traefik.http.routers.matomo.entrypoints=websecure"
       - "traefik.http.routers.matomo.tls=true"
       - "traefik.http.routers.matomo.priority=90"
+      - "traefik.http.routers.matomo.middlewares=matomo-stripprefix"
+      - "traefik.http.middlewares.matomo-stripprefix.stripprefix.prefixes=/matomo"
       - "traefik.http.services.matomo.loadbalancer.server.port=80"
 
   mailhog:
@@ -148,6 +150,8 @@ services:
       - "traefik.http.routers.mail.entrypoints=websecure"
       - "traefik.http.routers.mail.tls=true"
       - "traefik.http.routers.mail.priority=90"
+      - "traefik.http.routers.mail.middlewares=mail-stripprefix"
+      - "traefik.http.middlewares.mail-stripprefix.stripprefix.prefixes=/mail"
       - "traefik.http.services.mail.loadbalancer.server.port=8025"
 
 volumes:
