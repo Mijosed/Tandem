@@ -129,7 +129,6 @@ services:
       - matomo-db
     volumes:
       - matomo-data:/var/www/html
-      - ./matomo-config.ini.php:/var/www/html/config/config.ini.php:ro
     networks:
       - tandem-network
     labels:
