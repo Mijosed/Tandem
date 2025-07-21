@@ -88,8 +88,9 @@ services:
       - tandem-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.nuxt.rule=Host(`tandems.social`, `www.tandems.social`)"
-      - "traefik.http.routers.nuxt.entrypoints=web"
+      - "traefik.http.routers.nuxt.rule=Host(`tandems.social`) || Host(`www.tandems.social`)"
+      - "traefik.http.routers.nuxt.entrypoints=websecure"
+      - "traefik.http.routers.nuxt.tls.certresolver=myresolver"
       - "traefik.http.services.nuxt.loadbalancer.server.port=3000"
     env_file:
       - ./frontend/.env
