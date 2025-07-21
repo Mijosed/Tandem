@@ -12,7 +12,7 @@ export const useStripe = () => {
   }
   const getStripe = async () => {
     if (!stripePromise) {
-      const response = await fetch(`${apiBase}/stripe/config`, {
+      const response = await fetch(`${apiBase}/api/stripe/config`, {
         headers: {
           ...getJwtHeaders(),
           'Content-Type': 'application/json',
@@ -33,7 +33,7 @@ export const useStripe = () => {
         throw new Error('Utilisateur non trouvé')
       }
 
-      const response = await fetch(`${apiBase}/stripe/create-payment-intent`, {
+      const response = await fetch(`${apiBase}/api/stripe/create-payment-intent`, {
         method: 'POST',
         headers: {
           ...getJwtHeaders(),
@@ -57,7 +57,7 @@ export const useStripe = () => {
 
   const getSubscriptionStatus = async (userId: number) => {
     try {
-      const response = await fetch(`${apiBase}/stripe/subscription-status/${userId}`, {
+      const response = await fetch(`${apiBase}/api/stripe/subscription-status/${userId}`, {
         headers: {
           ...getJwtHeaders(),
           'Content-Type': 'application/json',

@@ -37,7 +37,7 @@ export const useUsers = () => {
     error.value = ''
     
     try {
-      const response = await fetch(`${apiBase}/users`, {
+      const response = await fetch(`${apiBase}/api/users`, {
         headers: {
           ...getJwtHeaders(),
           'Content-Type': 'application/json',
@@ -76,7 +76,7 @@ export const useUsers = () => {
     error.value = ''
     
     try {
-      const response = await fetch(`${apiBase}/users`, {
+      const response = await fetch(`${apiBase}/api/users`, {
         method: 'POST',
         headers: {
           ...getJwtHeaders(),
@@ -116,7 +116,7 @@ export const useUsers = () => {
     error.value = ''
     
     try {
-      const response = await fetch(`${apiBase}/users/${id}`, {
+      const response = await fetch(`${apiBase}/api/users/${id}`, {
         method: 'PUT',
         headers: {
           ...getJwtHeaders(),
@@ -153,7 +153,7 @@ export const useUsers = () => {
     error.value = ''
     
     try {
-      const response = await fetch(`${apiBase}/users/${id}`, {
+      const response = await fetch(`${apiBase}/api/users/${id}`, {
         method: 'DELETE',
         headers: {
           ...getJwtHeaders(),

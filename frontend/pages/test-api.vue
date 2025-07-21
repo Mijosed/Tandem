@@ -113,7 +113,7 @@ const fetchApplications = async () => {
   applicationsError.value = ''
   try {
     const config = useRuntimeConfig()
-    const response = await fetch(`${config.public.apiBase}/candidatures`)
+    const response = await fetch(`${config.public.apiBase}/api/candidatures`)
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
@@ -131,7 +131,7 @@ const fetchNotifications = async () => {
   notificationsError.value = ''
   try {
     const config = useRuntimeConfig()
-    const response = await fetch(`${config.public.apiBase}/notifications`)
+    const response = await fetch(`${config.public.apiBase}/api/notifications`)
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
@@ -149,7 +149,7 @@ const fetchJobs = async () => {
   jobsError.value = ''
   try {
     const config = useRuntimeConfig()
-    const response = await fetch(`${config.public.apiBase}/jobs`)
+    const response = await fetch(`${config.public.apiBase}/api/jobs`)
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }

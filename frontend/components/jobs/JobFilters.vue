@@ -216,7 +216,7 @@ const loadSectors = async () => {
   try {
     const config = useRuntimeConfig()
     const token = localStorage.getItem('jwt')
-    const response = await fetch(`${config.public.apiBase}/pole-emploi/sectors`, {
+    const response = await fetch(`${config.public.apiBase}/api/pole-emploi/sectors`, {
       headers: {
         'Authorization': token ? `Bearer ${token}` : '',
         'Content-Type': 'application/json',

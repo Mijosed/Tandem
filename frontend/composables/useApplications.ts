@@ -41,7 +41,7 @@ export const useApplications = () => {
         throw new Error('Utilisateur non connecté')
       }
 
-      const response = await fetch(`${apiBase}/candidatures`, {
+      const response = await fetch(`${apiBase}/api/candidatures`, {
         headers: {
           ...getJwtHeaders(),
           'Content-Type': 'application/json',
@@ -82,7 +82,7 @@ export const useApplications = () => {
     error.value = ''
     
     try {
-      const jobsResponse = await fetch(`${apiBase}/jobs`, {
+      const jobsResponse = await fetch(`${apiBase}/api/jobs`, {
         headers: {
           ...getJwtHeaders(),
           'Content-Type': 'application/json',
@@ -111,7 +111,7 @@ export const useApplications = () => {
           isActive: true
         }
         
-        const jobResponse = await fetch(`${apiBase}/jobs`, {
+        const jobResponse = await fetch(`${apiBase}/api/jobs`, {
           method: 'POST',
           headers: {
             ...getJwtHeaders(),
@@ -141,7 +141,7 @@ export const useApplications = () => {
         applicationPayload.user = `/api/users/${userData.id}`
       }
       
-      const response = await fetch(`${apiBase}/candidatures`, {
+      const response = await fetch(`${apiBase}/api/candidatures`, {
         method: 'POST',
         headers: {
           ...getJwtHeaders(),
@@ -175,7 +175,7 @@ export const useApplications = () => {
     error.value = ''
     
     try {
-      const response = await fetch(`${apiBase}/candidatures/${id}`, {
+      const response = await fetch(`${apiBase}/api/candidatures/${id}`, {
         method: 'PUT',
         headers: {
           ...getJwtHeaders(),
@@ -212,7 +212,7 @@ export const useApplications = () => {
     error.value = ''
     
     try {
-      const response = await fetch(`${apiBase}/candidatures/${id}`, {
+      const response = await fetch(`${apiBase}/api/candidatures/${id}`, {
         method: 'DELETE',
         headers: {
           ...getJwtHeaders(),

@@ -51,7 +51,7 @@ export const useNotifications = () => {
         throw new Error('Utilisateur non connecté')
       }
 
-      const response = await fetch(`${apiBase}/notifications`, {
+      const response = await fetch(`${apiBase}/api/notifications`, {
         headers: {
           ...getJwtHeaders(),
           'Content-Type': 'application/json',
@@ -106,7 +106,7 @@ export const useNotifications = () => {
       const notification = notifications.value.find(n => n.id === id)
       if (!notification || notification.isRead) return
 
-      const response = await fetch(`${apiBase}/notifications/${id}`, {
+      const response = await fetch(`${apiBase}/api/notifications/${id}`, {
         method: 'PATCH',
         headers: {
           ...getJwtHeaders(),
@@ -138,7 +138,7 @@ export const useNotifications = () => {
       
       await Promise.all(
         unreadNotifications.map(notification => 
-          fetch(`${apiBase}/notifications/${notification.id}`, {
+          fetch(`${apiBase}/api/notifications/${notification.id}`, {
             method: 'PATCH',
             headers: {
               ...getJwtHeaders(),
@@ -164,7 +164,7 @@ export const useNotifications = () => {
 
   const deleteNotification = async (id: number) => {
     try {
-      const response = await fetch(`${apiBase}/notifications/${id}`, {
+      const response = await fetch(`${apiBase}/api/notifications/${id}`, {
         method: 'DELETE',
         headers: {
           ...getJwtHeaders(),
@@ -206,7 +206,7 @@ export const useNotifications = () => {
       console.log('Création de notification avec payload:', payload)
       console.log('User ID utilisé:', currentUser.value.id)
 
-      const response = await fetch(`${apiBase}/notifications`, {
+      const response = await fetch(`${apiBase}/api/notifications`, {
         method: 'POST',
         headers: {
           ...getJwtHeaders(),
@@ -322,7 +322,7 @@ export const useNotifications = () => {
         throw new Error('Notification non trouvée')
       }
 
-      const response = await fetch(`${apiBase}/notifications/${notificationId}`, {
+      const response = await fetch(`${apiBase}/api/notifications/${notificationId}`, {
         method: 'PATCH',
         headers: {
           ...getJwtHeaders(),
@@ -363,7 +363,7 @@ export const useNotifications = () => {
       
       await Promise.all(
         interviewNotifications.map(notification => 
-          fetch(`${apiBase}/notifications/${notification.id}`, {
+          fetch(`${apiBase}/api/notifications/${notification.id}`, {
             method: 'DELETE',
             headers: {
               ...getJwtHeaders(),

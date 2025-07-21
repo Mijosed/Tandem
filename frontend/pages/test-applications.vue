@@ -147,7 +147,7 @@ const fetchJobs = async () => {
   loadingJobs.value = true
   try {
     const config = useRuntimeConfig()
-    const response = await fetch(`${config.public.apiBase}/jobs`)
+    const response = await fetch(`${config.public.apiBase}/api/jobs`)
     const data = await response.json()
     jobs.value = data.member || []
   } catch (err) {

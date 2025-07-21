@@ -60,7 +60,7 @@ export const useCandidatures = () => {
       
       const userId = userData.id || 12
       
-      const response = await fetch(`${apiBase}/candidatures?user.id=${userId}`, {
+      const response = await fetch(`${apiBase}/api/candidatures?user.id=${userId}`, {
         headers: getJwtHeaders()
       })
       
@@ -120,7 +120,7 @@ export const useCandidatures = () => {
       
       console.log('Payload candidature avec heure:', candidaturePayload)
       
-      const response = await fetch(`${apiBase}/candidatures`, {
+      const response = await fetch(`${apiBase}/api/candidatures`, {
         method: 'POST',
         headers: {
           ...getJwtHeaders(),
@@ -216,7 +216,7 @@ export const useCandidatures = () => {
       
       console.log('Payload update candidature avec heure:', updatePayload)
       
-      const response = await fetch(`${apiBase}/candidatures/${id}`, {
+      const response = await fetch(`${apiBase}/api/candidatures/${id}`, {
         method: 'PUT',
         headers: {
           ...getJwtHeaders(),
@@ -315,7 +315,7 @@ export const useCandidatures = () => {
         // Continuer même si la suppression des notifications échoue
       }
       
-      const response = await fetch(`${apiBase}/candidatures/${id}`, {
+      const response = await fetch(`${apiBase}/api/candidatures/${id}`, {
         method: 'DELETE',
         headers: getJwtHeaders()
       })
