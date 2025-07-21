@@ -8,12 +8,10 @@ services:
       - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
       - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
       - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
-      - "--certificatesresolvers.myresolver.acme.email=admin@tandems.social"
-      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
-      - "--certificatesresolvers.myresolver.acme.keytype=EC256"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      - "--providers.file.watch=true"
       - "--api.dashboard=true"
       - "--log.level=INFO"
       - "--accesslog=true"
@@ -22,6 +20,7 @@ services:
       - "443:443"
     volumes:
       - ./letsencrypt:/letsencrypt
+      - ./traefik/dynamic:/etc/traefik/dynamic:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - tandem-network
@@ -80,7 +79,7 @@ services:
       # HTTPS router
       - "traefik.http.routers.api.rule=Host(`api.tandems.social`)"
       - "traefik.http.routers.api.entrypoints=websecure"
-      - "traefik.http.routers.api.tls.certresolver=myresolver"
+      - "traefik.http.routers.api.tls=true"
       - "traefik.http.services.api.loadbalancer.server.port=80"
       # HTTP router (redirect to HTTPS)
       - "traefik.http.routers.api-http.rule=Host(`api.tandems.social`)"
@@ -102,7 +101,7 @@ services:
       # HTTPS router
       - "traefik.http.routers.nuxt.rule=Host(`tandems.social`) || Host(`www.tandems.social`)"
       - "traefik.http.routers.nuxt.entrypoints=websecure"
-      - "traefik.http.routers.nuxt.tls.certresolver=myresolver"
+      - "traefik.http.routers.nuxt.tls=true"
       - "traefik.http.services.nuxt.loadbalancer.server.port=3000"
       # HTTP router (redirect to HTTPS)
       - "traefik.http.routers.nuxt-http.rule=Host(`tandems.social`) || Host(`www.tandems.social`)"
@@ -112,38 +111,38 @@ services:
     env_file:
       - ./frontend/.env
 
-  # matomo:
-  #   image: matomo:latest
-  #   container_name: matomo
-  #   environment:
-  #     - MATOMO_DATABASE_HOST=matomo-db
-  #     - MATOMO_DATABASE_USERNAME=admin
-  #     - MATOMO_DATABASE_PASSWORD=admin
-  #     - MATOMO_DATABASE_DBNAME=matomo
-  #   depends_on:
-  #     - matomo-db
-  #   volumes:
-  #     - matomo-data:/var/www/html
-  #   networks:
-  #     - tandem-network
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.matomo.rule=Host(`matomo.tandems.social`)"
-  #     - "traefik.http.routers.matomo.entrypoints=websecure"
-  #     - "traefik.http.routers.matomo.tls.certresolver=myresolver"
-  #     - "traefik.http.services.matomo.loadbalancer.server.port=80"
+  matomo:
+    image: matomo:latest
+    container_name: matomo
+    environment:
+      - MATOMO_DATABASE_HOST=matomo-db
+      - MATOMO_DATABASE_USERNAME=admin
+      - MATOMO_DATABASE_PASSWORD=admin
+      - MATOMO_DATABASE_DBNAME=matomo
+    depends_on:
+      - matomo-db
+    volumes:
+      - matomo-data:/var/www/html
+    networks:
+      - tandem-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.matomo.rule=Host(`matomo.tandems.social`)"
+      - "traefik.http.routers.matomo.entrypoints=websecure"
+      - "traefik.http.routers.matomo.tls.certresolver=myresolver"
+      - "traefik.http.services.matomo.loadbalancer.server.port=80"
 
-  # mailhog:
-  #   image: mailhog/mailhog:latest
-  #   container_name: mailhog
-  #   networks:
-  #     - tandem-network
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.mail.rule=Host(`mail.tandems.social`)"
-  #     - "traefik.http.routers.mail.entrypoints=websecure"
-  #     - "traefik.http.routers.mail.tls.certresolver=myresolver"
-  #     - "traefik.http.services.mail.loadbalancer.server.port=8025"
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mailhog
+    networks:
+      - tandem-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mail.rule=Host(`mail.tandems.social`)"
+      - "traefik.http.routers.mail.entrypoints=websecure"
+      - "traefik.http.routers.mail.tls.certresolver=myresolver"
+      - "traefik.http.services.mail.loadbalancer.server.port=8025"
 
 volumes:
   db-data:

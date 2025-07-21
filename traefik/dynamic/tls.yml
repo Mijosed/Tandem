@@ -1,0 +1,11 @@
+tls:
+  certificates:
+    - certFile: /letsencrypt/fullchain.pem
+      keyFile: /letsencrypt/privkey.pem
+      stores:
+        - default
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /letsencrypt/fullchain.pem
+        keyFile: /letsencrypt/privkey.pem
