@@ -74,23 +74,23 @@ services:
       - "traefik.http.routers.api.tls.certresolver=myresolver"
       - "traefik.http.services.api.loadbalancer.server.port=80"
 
-    nuxt:
-      build:
-        context: ./frontend
-        dockerfile: Dockerfile
-      container_name: nuxt
-      environment:
-        - NODE_ENV=production
-      networks:
-        - tandem-network
-      labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.nuxt.rule=Host(`tandems.social`) || Host(`www.tandems.social`)"
-        - "traefik.http.routers.nuxt.entrypoints=websecure"
-        - "traefik.http.routers.nuxt.tls.certresolver=myresolver"
-        - "traefik.http.services.nuxt.loadbalancer.server.port=3000"
-      env_file:
-        - ./frontend/.env
+  nuxt:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nuxt
+    environment:
+      - NODE_ENV=production
+    networks:
+      - tandem-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nuxt.rule=Host(`tandems.social`) || Host(`www.tandems.social`)"
+      - "traefik.http.routers.nuxt.entrypoints=websecure"
+      - "traefik.http.routers.nuxt.tls.certresolver=myresolver"
+      - "traefik.http.services.nuxt.loadbalancer.server.port=3000"
+    env_file:
+      - ./frontend/.env
 
 
 
