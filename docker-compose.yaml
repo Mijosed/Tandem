@@ -1,32 +1,36 @@
 services:
   traefik:
-    image: "traefik:v3.4"
-    container_name: "traefik"
+    image: traefik:v2.11
+    container_name: traefik
     command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
       - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
-      # Commentée pour prod, décommenter pour test
-      #- "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
       - "--certificatesresolvers.myresolver.acme.email=admin@tandems.social"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--api.dashboard=true"
+      - "--log.level=INFO"
+      - "--accesslog=true"
     ports:
+      - "80:80"
       - "443:443"
-      - "8080:8080"
     volumes:
-      - "./letsencrypt:/letsencrypt"
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-
-  whoami:
-    image: "traefik/whoami"
-    container_name: "whoami"
+      - ./letsencrypt:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - tandem-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.whoami.rule=Host(`whoami.tandems.social`)"
-      - "traefik.http.routers.whoami.entrypoints=websecure"
-      - "traefik.http.routers.whoami.tls.certresolver=myresolver"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.tandems.social`)"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.tls.certresolver=myresolver"
+      - "traefik.http.routers.traefik.service=api@internal"
 
   database:
     image: postgres:17
@@ -77,10 +81,16 @@ services:
       - tandem-network
     labels:
       - "traefik.enable=true"
+      # HTTPS router
       - "traefik.http.routers.api.rule=Host(`api.tandems.social`)"
       - "traefik.http.routers.api.entrypoints=websecure"
       - "traefik.http.routers.api.tls.certresolver=myresolver"
       - "traefik.http.services.api.loadbalancer.server.port=80"
+      # HTTP router (redirect to HTTPS)
+      - "traefik.http.routers.api-http.rule=Host(`api.tandems.social`)"
+      - "traefik.http.routers.api-http.entrypoints=web"
+      - "traefik.http.routers.api-http.middlewares=api-redirect"
+      - "traefik.http.middlewares.api-redirect.redirectscheme.scheme=https"
 
   nuxt:
     build:
@@ -93,10 +103,16 @@ services:
       - tandem-network
     labels:
       - "traefik.enable=true"
+      # HTTPS router
       - "traefik.http.routers.nuxt.rule=Host(`tandems.social`) || Host(`www.tandems.social`)"
       - "traefik.http.routers.nuxt.entrypoints=websecure"
       - "traefik.http.routers.nuxt.tls.certresolver=myresolver"
       - "traefik.http.services.nuxt.loadbalancer.server.port=3000"
+      # HTTP router (redirect to HTTPS)
+      - "traefik.http.routers.nuxt-http.rule=Host(`tandems.social`) || Host(`www.tandems.social`)"
+      - "traefik.http.routers.nuxt-http.entrypoints=web"
+      - "traefik.http.routers.nuxt-http.middlewares=nuxt-redirect"
+      - "traefik.http.middlewares.nuxt-redirect.redirectscheme.scheme=https"
     env_file:
       - ./frontend/.env
 
@@ -116,10 +132,10 @@ services:
       - tandem-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.admin.rule=Host(`admin.tandems.social`)"
-      - "traefik.http.routers.admin.entrypoints=websecure"
-      - "traefik.http.routers.admin.tls.certresolver=myresolver"
-      - "traefik.http.services.admin.loadbalancer.server.port=80"
+      - "traefik.http.routers.matomo.rule=Host(`matomo.tandems.social`)"
+      - "traefik.http.routers.matomo.entrypoints=websecure"
+      - "traefik.http.routers.matomo.tls.certresolver=myresolver"
+      - "traefik.http.services.matomo.loadbalancer.server.port=80"
 
   mailhog:
     image: mailhog/mailhog:latest
