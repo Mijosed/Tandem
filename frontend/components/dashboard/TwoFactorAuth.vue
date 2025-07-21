@@ -279,7 +279,7 @@ const fetchTwoFactorStatus = async () => {
     const userId = getUserId()
     if (!userId) return
 
-    const response = await fetch('/api/auth/2fa/status', {
+    const response = await fetch(`${config.public.apiBase}/api/auth/2fa/status`, {
       headers: {
         'X-User-ID': userId.toString()
       }
@@ -322,7 +322,7 @@ const initiate2FASetup = async () => {
   try {
     const config = useRuntimeConfig()
     const userId = getUserId()
-    const response = await fetch(`${config.public.apiBase}/auth/2fa/setup`, {
+    const response = await fetch(`${config.public.apiBase}/api/auth/2fa/setup`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -369,7 +369,7 @@ const enable2FA = async () => {
     const config = useRuntimeConfig()
     const userId = getUserId()
     
-    const response = await fetch(`${config.public.apiBase}/auth/2fa/enable`, {
+    const response = await fetch(`${config.public.apiBase}/api/auth/2fa/enable`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -411,7 +411,7 @@ const disableTwoFactor = async () => {
   try {
     const config = useRuntimeConfig()
     const userId = getUserId()
-    const response = await fetch(`${config.public.apiBase}/auth/2fa/disable`, {
+    const response = await fetch(`${config.public.apiBase}/api/auth/2fa/disable`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -455,7 +455,7 @@ const generateBackupCodes = async () => {
   try {
     const config = useRuntimeConfig()
     const userId = getUserId()
-    const response = await fetch(`${config.public.apiBase}/auth/2fa/backup-codes`, {
+    const response = await fetch(`${config.public.apiBase}/api/auth/2fa/backup-codes`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
