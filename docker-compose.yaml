@@ -1,17 +1,26 @@
+version: '3.9'
+
 services:
   traefik:
     image: traefik:v2.11
     container_name: traefik
     command:
-      - "--api.dashboard=true"
+      - "--api.insecure=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
+      - "--certificatesresolvers.leresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.leresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.leresolver.acme.email=admin@tandems.social"
+      - "--certificatesresolvers.leresolver.acme.storage=/letsencrypt/acme.json"
     ports:
       - "80:80"
-      - "8081:8080" # dashboard Traefik
+      - "443:443"
+      - "8081:8080"  # Dashboard
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
     networks:
       - tandem-network
 
@@ -27,6 +36,11 @@ services:
       - db-data:/var/lib/postgresql/data
     networks:
       - tandem-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d tandem"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   matomo-db:
     image: mariadb:10.11
@@ -48,10 +62,6 @@ services:
     restart: always
     networks:
       - tandem-network
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.adminer.rule=Host(`admin.tandems.social`)"
-      - "traefik.http.services.adminer.loadbalancer.server.port=8080"
 
   php:
     build:
@@ -78,7 +88,31 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.api.rule=Host(`api.tandems.social`)"
+      - "traefik.http.routers.api.entrypoints=web,websecure"
+      - "traefik.http.routers.api.tls.certresolver=leresolver"
       - "traefik.http.services.api.loadbalancer.server.port=80"
+
+  nuxt:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nuxt
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=production
+    command: "npm run build && npm run preview"
+    networks:
+      - tandem-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.front.rule=Host(`tandems.social`) || Host(`www.tandems.social`)"
+      - "traefik.http.routers.front.entrypoints=web,websecure"
+      - "traefik.http.routers.front.tls.certresolver=leresolver"
+      - "traefik.http.services.front.loadbalancer.server.port=3000"
+    env_file:
+      - ./frontend/.env
 
   matomo:
     image: matomo:latest
@@ -95,30 +129,14 @@ services:
       - matomo-db
     networks:
       - tandem-network
-    volumes:
-      - matomo-data:/var/www/html
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.matomo.rule=Host(`matomo.tandems.social`)"
+      - "traefik.http.routers.matomo.entrypoints=web,websecure"
+      - "traefik.http.routers.matomo.tls.certresolver=leresolver"
       - "traefik.http.services.matomo.loadbalancer.server.port=80"
-
-  nuxt:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: nuxt
     volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    command: "npm run build && npm run start"
-    environment:
-      - NODE_ENV=production
-    networks:
-      - tandem-network
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.front.rule=Host(`tandems.social`) || Host(`www.tandems.social`)"
-      - "traefik.http.services.front.loadbalancer.server.port=3000"
+      - matomo-data:/var/www/html
 
   mailhog:
     image: mailhog/mailhog:latest
@@ -126,10 +144,6 @@ services:
     restart: always
     networks:
       - tandem-network
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.mailhog.rule=Host(`mail.tandems.social`)"
-      - "traefik.http.services.mailhog.loadbalancer.server.port=8025"
 
 volumes:
   db-data:
