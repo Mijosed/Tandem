@@ -1,48 +1,42 @@
+version: '3.8'
+
 services:
   traefik:
     image: traefik:v2.11
     container_name: traefik
     command:
-      - "--api.insecure=true"
+      - "--api.dashboard=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
-      - "--entrypoints.matomo.address=:8890"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=${EMAIL}"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     ports:
-      - "8888:80"
-      - "8081:8080"
-      - "8890:8890"
+      - "80:80"
+      - "443:443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
     networks:
       - tandem-network
 
-  # 🐘 PostgreSQL pour Symfony
   database:
     image: postgres:17
     container_name: database
-    restart: always
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: tandem
-    ports:
-      - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
     networks:
       - tandem-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d tandem"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
 
-  # 🐬 MariaDB pour Matomo
   matomo-db:
     image: mariadb:10.11
     container_name: matomo-db
-    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: matomo
@@ -53,21 +47,10 @@ services:
     networks:
       - tandem-network
 
-  adminer:
-    image: adminer:latest
-    container_name: adminer
-    restart: always
-    ports:
-      - "8080:8080"
-    environment:
-      ADMINER_DEFAULT_SERVER: database
-    networks:
-      - tandem-network
-
   php:
     build:
-      context: ./docker/php
-      dockerfile: Dockerfile
+      context: ./backend
+      dockerfile: ../docker/php/Dockerfile
     container_name: php
     volumes:
       - ./backend:/var/www/html
@@ -88,33 +71,10 @@ services:
       - tandem-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.symfony.rule=PathPrefix(`/api`) || PathPrefix(`/bundles`)"
-      - "traefik.http.services.symfony.loadbalancer.server.port=80"
-      - "traefik.http.routers.symfony.entrypoints=web"
-
-  matomo:
-    image: matomo:latest
-    container_name: matomo
-    restart: always
-    environment:
-      - MATOMO_DATABASE_HOST=matomo-db
-      - MATOMO_DATABASE_ADAPTER=PDO\MYSQL
-      - MATOMO_DATABASE_TABLES_PREFIX=matomo_
-      - MATOMO_DATABASE_USERNAME=admin
-      - MATOMO_DATABASE_PASSWORD=admin
-      - MATOMO_DATABASE_DBNAME=matomo
-      - APACHE_SERVER_NAME=matomo.localhost
-    depends_on:
-      - matomo-db
-    networks:
-      - tandem-network
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.matomo.rule=Host(`localhost`)"
-      - "traefik.http.routers.matomo.entrypoints=matomo"
-      - "traefik.http.services.matomo.loadbalancer.server.port=80"
-    volumes:
-      - matomo-data:/var/www/html
+      - "traefik.http.routers.api.rule=Host(`api.${DOMAIN}`)"
+      - "traefik.http.routers.api.entrypoints=websecure"
+      - "traefik.http.routers.api.tls.certresolver=myresolver"
+      - "traefik.http.services.api.loadbalancer.server.port=80"
 
   nuxt:
     build:
@@ -124,36 +84,67 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    ports:
-      - "3000:3000"
     environment:
-      - NODE_ENV=development
-    command: "npm run dev -- --host"
+      - NODE_ENV=production
     networks:
       - tandem-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.nuxt.rule=PathPrefix(`/`) && !PathPrefix(`/api`, `/bundles`)"
-      - "traefik.http.services.nuxt.loadbalancer.server.port=3000"
+      - "traefik.http.routers.nuxt.rule=Host(`tandems.social`, `www.tandems.social`)"
       - "traefik.http.routers.nuxt.entrypoints=web"
+      - "traefik.http.services.nuxt.loadbalancer.server.port=3000"
     env_file:
       - ./frontend/.env
 
-  # 📧 MailHog pour tester les emails
+  adminer:
+    image: adminer:latest
+    container_name: adminer
+    networks:
+      - tandem-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.adminer.rule=Host(`admin.${DOMAIN}`)"
+      - "traefik.http.routers.adminer.entrypoints=websecure"
+      - "traefik.http.routers.adminer.tls.certresolver=myresolver"
+      - "traefik.http.services.adminer.loadbalancer.server.port=8080"
+
+  matomo:
+    image: matomo:latest
+    container_name: matomo
+    environment:
+      - MATOMO_DATABASE_HOST=matomo-db
+      - MATOMO_DATABASE_USERNAME=admin
+      - MATOMO_DATABASE_PASSWORD=admin
+      - MATOMO_DATABASE_DBNAME=matomo
+    depends_on:
+      - matomo-db
+    volumes:
+      - matomo-data:/var/www/html
+    networks:
+      - tandem-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.matomo.rule=Host(`matomo.${DOMAIN}`)"
+      - "traefik.http.routers.matomo.entrypoints=websecure"
+      - "traefik.http.routers.matomo.tls.certresolver=myresolver"
+      - "traefik.http.services.matomo.loadbalancer.server.port=80"
+
   mailhog:
     image: mailhog/mailhog:latest
     container_name: mailhog
-    restart: always
-    ports:
-      - "1025:1025"  # SMTP
-      - "8025:8025"  # Interface web
     networks:
       - tandem-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mail.rule=Host(`mail.${DOMAIN}`)"
+      - "traefik.http.routers.mail.entrypoints=websecure"
+      - "traefik.http.routers.mail.tls.certresolver=myresolver"
+      - "traefik.http.services.mail.loadbalancer.server.port=8025"
 
 volumes:
   db-data:
-  matomo-data:
   matomo-db-data:
+  matomo-data:
 
 networks:
   tandem-network:
