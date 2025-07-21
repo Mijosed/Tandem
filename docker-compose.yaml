@@ -29,7 +29,7 @@ services:
     labels:
       - "traefik.enable=false"
 
-  database:
+  # database:
     image: postgres:17
     container_name: database
     environment:
@@ -41,7 +41,7 @@ services:
     networks:
       - tandem-network
 
-  matomo-db:
+  # matomo-db:
     image: mariadb:10.11
     container_name: matomo-db
     environment:
@@ -54,7 +54,7 @@ services:
     networks:
       - tandem-network
 
-  php:
+  # php:
     build:
       context: ./backend
       dockerfile: ../docker/php/Dockerfile
@@ -66,7 +66,7 @@ services:
     networks:
       - tandem-network
 
-  nginx-back:
+  # nginx-back:
     image: nginx:alpine
     container_name: nginx-back
     volumes:
@@ -113,7 +113,7 @@ services:
     env_file:
       - ./frontend/.env
 
-  matomo:
+  # matomo:
     image: matomo:latest
     container_name: matomo
     environment:
@@ -134,7 +134,7 @@ services:
       - "traefik.http.routers.matomo.tls.certresolver=myresolver"
       - "traefik.http.services.matomo.loadbalancer.server.port=80"
 
-  mailhog:
+  # mailhog:
     image: mailhog/mailhog:latest
     container_name: mailhog
     networks:
@@ -146,10 +146,10 @@ services:
       - "traefik.http.routers.mail.tls.certresolver=myresolver"
       - "traefik.http.services.mail.loadbalancer.server.port=8025"
 
-volumes:
-  db-data:
-  matomo-db-data:
-  matomo-data:
+# volumes:
+#   db-data:
+#   matomo-db-data:
+#   matomo-data:
 
 networks:
   tandem-network:
