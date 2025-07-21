@@ -1,13 +1,13 @@
 services:
-  traefik:
+    traefik:
     image: traefik:v2.11
     container_name: traefik
     command:
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
-      - "--entrypoints.websecure.http.tls=true"
-      - "--entrypoints.websecure.http.tls.certificates[0].certFile=/certs/fullchain1.pem"
-      - "--entrypoints.websecure.http.tls.certificates[0].keyFile=/certs/privkey1.pem"
+      - "--entrypoints.websecure.tls=true"
+      - "--entrypoints.websecure.tls.certificates[0].certFile=/certs/fullchain1.pem"
+      - "--entrypoints.websecure.tls.certificates[0].keyFile=/certs/privkey1.pem"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--api.dashboard=true"
@@ -19,7 +19,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - tandem-network
-
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.traefik.rule=Host(`traefik.tandems.social`)"
