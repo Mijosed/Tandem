@@ -1,6 +1,7 @@
 
 export const useFranceTravail = () => {
-  const baseUrl = 'http://localhost:8888/api/pole-emploi'
+  const config = useRuntimeConfig()
+  const baseUrl = '${config.public.apiBase}/api/pole-emploi'
 
   const searchJobs = async (filters: Record<string, any> = {}) => {
     try {

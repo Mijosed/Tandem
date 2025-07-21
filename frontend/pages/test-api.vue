@@ -96,23 +96,41 @@
 </template>
 
 <script setup lang="ts">
+const config = useRuntimeConfig()
+
 const applications = ref([])
+const config = useRuntimeConfig()
+
 const notifications = ref([])
+const config = useRuntimeConfig()
+
 const jobs = ref([])
 
+const config = useRuntimeConfig()
+
 const loadingApplications = ref(false)
+const config = useRuntimeConfig()
+
 const loadingNotifications = ref(false)
+const config = useRuntimeConfig()
+
 const loadingJobs = ref(false)
 
+const config = useRuntimeConfig()
+
 const applicationsError = ref('')
+const config = useRuntimeConfig()
+
 const notificationsError = ref('')
+const config = useRuntimeConfig()
+
 const jobsError = ref('')
 
 const fetchApplications = async () => {
   loadingApplications.value = true
   applicationsError.value = ''
   try {
-    const response = await fetch('http://localhost:8888/api/candidatures')
+    const response = await fetch('${config.public.apiBase}/api/candidatures')
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
@@ -129,7 +147,7 @@ const fetchNotifications = async () => {
   loadingNotifications.value = true
   notificationsError.value = ''
   try {
-    const response = await fetch('http://localhost:8888/api/notifications')
+    const response = await fetch('${config.public.apiBase}/api/notifications')
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
@@ -146,7 +164,7 @@ const fetchJobs = async () => {
   loadingJobs.value = true
   jobsError.value = ''
   try {
-    const response = await fetch('http://localhost:8888/api/jobs')
+    const response = await fetch('${config.public.apiBase}/api/jobs')
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }

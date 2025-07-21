@@ -26,6 +26,7 @@ const transformNotificationFromAPI = (apiNotification: any): Notification => {
 }
 
 export const useNotifications = () => {
+  const config = useRuntimeConfig()
   // Retourner l'instance globale si elle existe déjà
   if (globalNotificationsInstance) {
     return globalNotificationsInstance
@@ -39,7 +40,7 @@ export const useNotifications = () => {
   const error = ref('')
 
   const { currentUser } = useAuth()
-  const apiBase = 'http://localhost:8888/api'
+  const apiBase = '${config.public.apiBase}/api'
 
   const fetchNotifications = async () => {
     loading.value = true

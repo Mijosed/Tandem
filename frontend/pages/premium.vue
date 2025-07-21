@@ -139,10 +139,20 @@ import { Button } from '@/components/ui/button'
 import { useStripe } from '@/composables/useStripe'
 
 // State
+const config = useRuntimeConfig()
+
 const isProcessing = ref(false)
+const config = useRuntimeConfig()
+
 const showPaymentForm = ref(false)
+const config = useRuntimeConfig()
+
 const stripe = ref(null)
+const config = useRuntimeConfig()
+
 const elements = ref(null)
+const config = useRuntimeConfig()
+
 const clientSecret = ref('')
 
 // Composables
@@ -215,7 +225,7 @@ const confirmPayment = async () => {
         try {
 
           const token = localStorage.getItem('jwt')
-          const activationResponse = await fetch(`http://localhost:8888/api/stripe/activate-subscription/${userId}`, {
+          const activationResponse = await fetch(`${config.public.apiBase}/api/stripe/activate-subscription/${userId}`, {
             method: 'POST',
             headers: {
               'Authorization': token ? `Bearer ${token}` : '',

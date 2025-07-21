@@ -106,9 +106,15 @@ import type { ApplicationStatus } from '~/types/application'
 
 const { applications, loading, error, fetchApplications, createApplication } = useApplications()
 
+const config = useRuntimeConfig()
+
 const successMessage = ref('')
+const config = useRuntimeConfig()
+
 const loadingJobs = ref(false)
 const jobs = ref<any[]>([])
+
+const config = useRuntimeConfig()
 
 const testForm = ref({
   position: 'Développeur Frontend',
@@ -146,7 +152,7 @@ const testCreateApplication = async () => {
 const fetchJobs = async () => {
   loadingJobs.value = true
   try {
-    const response = await fetch('http://localhost:8888/api/jobs')
+    const response = await fetch('${config.public.apiBase}/api/jobs')
     const data = await response.json()
     jobs.value = data.member || []
   } catch (err) {

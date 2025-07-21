@@ -37,11 +37,12 @@ const transformCandidatureFromAPI = (apiCandidature: any): Candidature => {
 }
 
 export const useCandidatures = () => {
+  const config = useRuntimeConfig()
   const candidatures = ref<Candidature[]>([])
   const loading = ref(false)
   const error = ref('')
 
-  const apiBase = 'http://localhost:8888/api'
+  const apiBase = '${config.public.apiBase}/api'
 
 
   // Fonction utilitaire pour les headers JWT

@@ -21,6 +21,7 @@ export interface UserFormData {
 }
 
 export const useUsers = () => {
+  const config = useRuntimeConfig()
   const getJwtHeaders = () => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
     return token ? { Authorization: `Bearer ${token}` } : {}
@@ -29,7 +30,7 @@ export const useUsers = () => {
   const loading = ref(false)
   const error = ref('')
 
-  const apiBase = 'http://localhost:8888/api'
+  const apiBase = '${config.public.apiBase}/api'
 
   const fetchUsers = async () => {
     loading.value = true

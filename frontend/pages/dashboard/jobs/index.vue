@@ -150,10 +150,20 @@ import JobFilters from '@/components/jobs/JobFilters.vue'
 import SubscriptionStatus from '@/components/dashboard/SubscriptionStatus.vue'
 
 // Variables réactives
+const config = useRuntimeConfig()
+
 const isLoading = ref(false)
+const config = useRuntimeConfig()
+
 const jobs = ref([])
+const config = useRuntimeConfig()
+
 const pagination = ref(null)
+const config = useRuntimeConfig()
+
 const error = ref('')
+const config = useRuntimeConfig()
+
 const appliedJobs = ref(new Set())
 
 // Fonction pour gérer une recherche avec filtres
@@ -183,7 +193,7 @@ const handleSaveToApplications = async (job) => {
     }
     
     const token = localStorage.getItem('jwt')
-    const response = await fetch('http://localhost:8888/api/candidatures', {
+    const response = await fetch('${config.public.apiBase}/api/candidatures', {
       method: 'POST',
       headers: {
         'Authorization': token ? `Bearer ${token}` : '',
@@ -229,7 +239,7 @@ const checkExistingCandidatures = async (jobIds) => {
     }
     
     const token = localStorage.getItem('jwt')
-    const response = await fetch(`http://localhost:8888/api/candidatures/user/${userId}`, {
+    const response = await fetch(`${config.public.apiBase}/api/candidatures/user/${userId}`, {
       headers: {
         'Authorization': token ? `Bearer ${token}` : '',
         'Content-Type': 'application/json',
@@ -286,7 +296,7 @@ const loadJobs = async (page = 1, filters = {}) => {
     })
     
     const token = localStorage.getItem('jwt')
-    const response = await fetch(`http://localhost:8888/api/pole-emploi/search?${params}`, {
+    const response = await fetch(`${config.public.apiBase}/api/pole-emploi/search?${params}`, {
       headers: {
         'Authorization': token ? `Bearer ${token}` : '',
         'X-User-ID': userId.toString(),
@@ -354,7 +364,7 @@ const refreshUserStatus = async () => {
     
     // Récupérer le statut d'abonnement à jour
     const token = localStorage.getItem('jwt')
-    const response = await fetch(`http://localhost:8888/api/stripe/subscription-status/${userId}`, {
+    const response = await fetch(`${config.public.apiBase}/api/stripe/subscription-status/${userId}`, {
       headers: {
         'Authorization': token ? `Bearer ${token}` : '',
         'Content-Type': 'application/json',

@@ -3,13 +3,14 @@ import { loadStripe } from '@stripe/stripe-js'
 let stripePromise: any = null
 
 export const useStripe = () => {
+  const config = useRuntimeConfig()
   const getJwtHeaders = () => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
     return token ? { Authorization: `Bearer ${token}` } : {}
   }
   const getStripe = async () => {
     if (!stripePromise) {
-      const response = await fetch('http://localhost:8888/api/stripe/config', {
+      const response = await fetch('${config.public.apiBase}/api/stripe/config', {
         headers: {
           ...getJwtHeaders(),
           'Content-Type': 'application/json',
@@ -30,7 +31,7 @@ export const useStripe = () => {
         throw new Error('Utilisateur non trouvé')
       }
 
-      const response = await fetch('http://localhost:8888/api/stripe/create-payment-intent', {
+      const response = await fetch('${config.public.apiBase}/api/stripe/create-payment-intent', {
         method: 'POST',
         headers: {
           ...getJwtHeaders(),
@@ -54,7 +55,7 @@ export const useStripe = () => {
 
   const getSubscriptionStatus = async (userId: number) => {
     try {
-      const response = await fetch(`http://localhost:8888/api/stripe/subscription-status/${userId}`, {
+      const response = await fetch(`${config.public.apiBase}/api/stripe/subscription-status/${userId}`, {
         headers: {
           ...getJwtHeaders(),
           'Content-Type': 'application/json',

@@ -124,12 +124,18 @@ import { useCandidatures } from '~/composables/useCandidatures'
 const { currentUser, login: authLogin, logout: authLogout } = useAuth()
 const { candidatures, loading, error, fetchCandidatures, createCandidature } = useCandidatures()
 
+const config = useRuntimeConfig()
+
 const loginForm = ref({
   email: '',
   password: ''
 })
 
+const config = useRuntimeConfig()
+
 const loginLoading = ref(false)
+const config = useRuntimeConfig()
+
 const loginError = ref('')
 const testResult = ref<any>(null)
 
@@ -147,7 +153,7 @@ const login = async () => {
   
   try {
     // Faire l'appel API de connexion
-    const response = await fetch('http://localhost:8888/api/auth/login', {
+    const response = await fetch('${config.public.apiBase}/api/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
