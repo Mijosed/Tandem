@@ -76,16 +76,18 @@ services:
       - tandem-network
     labels:
       - "traefik.enable=true"
-      # HTTPS router - Utiliser le même domaine que le frontend avec un path
+      # HTTPS router - PRIORITÉ HAUTE (100) pour l'API
       - "traefik.http.routers.api.rule=Host(`tandems.social`) && PathPrefix(`/api`)"
       - "traefik.http.routers.api.entrypoints=websecure"
       - "traefik.http.routers.api.tls=true"
+      - "traefik.http.routers.api.priority=100"
       - "traefik.http.services.api.loadbalancer.server.port=80"
       # HTTP router (redirect to HTTPS)
       - "traefik.http.routers.api-http.rule=Host(`tandems.social`) && PathPrefix(`/api`)"
       - "traefik.http.routers.api-http.entrypoints=web"
       - "traefik.http.routers.api-http.middlewares=api-redirect"
       - "traefik.http.middlewares.api-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.api-http.priority=100"
 
   nuxt:
     build:
@@ -98,16 +100,18 @@ services:
       - tandem-network
     labels:
       - "traefik.enable=true"
-      # HTTPS router
+      # HTTPS router - PRIORITÉ BASSE (10) pour Nuxt (catch-all)
       - "traefik.http.routers.nuxt.rule=Host(`tandems.social`) || Host(`www.tandems.social`)"
       - "traefik.http.routers.nuxt.entrypoints=websecure"
       - "traefik.http.routers.nuxt.tls=true"
+      - "traefik.http.routers.nuxt.priority=10"
       - "traefik.http.services.nuxt.loadbalancer.server.port=3000"
       # HTTP router (redirect to HTTPS)
       - "traefik.http.routers.nuxt-http.rule=Host(`tandems.social`) || Host(`www.tandems.social`)"
       - "traefik.http.routers.nuxt-http.entrypoints=web"
       - "traefik.http.routers.nuxt-http.middlewares=nuxt-redirect"
       - "traefik.http.middlewares.nuxt-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.nuxt-http.priority=10"
     env_file:
       - ./frontend/.env
 
@@ -130,6 +134,7 @@ services:
       - "traefik.http.routers.matomo.rule=Host(`tandems.social`) && PathPrefix(`/matomo`)"
       - "traefik.http.routers.matomo.entrypoints=websecure"
       - "traefik.http.routers.matomo.tls=true"
+      - "traefik.http.routers.matomo.priority=90"
       - "traefik.http.services.matomo.loadbalancer.server.port=80"
 
   mailhog:
@@ -142,6 +147,7 @@ services:
       - "traefik.http.routers.mail.rule=Host(`tandems.social`) && PathPrefix(`/mail`)"
       - "traefik.http.routers.mail.entrypoints=websecure"
       - "traefik.http.routers.mail.tls=true"
+      - "traefik.http.routers.mail.priority=90"
       - "traefik.http.services.mail.loadbalancer.server.port=8025"
 
 volumes:
