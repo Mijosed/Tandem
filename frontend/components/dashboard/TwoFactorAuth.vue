@@ -320,8 +320,9 @@ const handleSetupStep = async () => {
 const initiate2FASetup = async () => {
   loading.value = true
   try {
+    const config = useRuntimeConfig()
     const userId = getUserId()
-    const response = await fetch('http://localhost:8888/api/auth/2fa/setup', {
+    const response = await fetch(`${config.public.apiBase}/auth/2fa/setup`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -358,10 +359,17 @@ const initiate2FASetup = async () => {
 }
 
 const enable2FA = async () => {
+  if (!verificationCode.value.trim()) {
+    errorMessage.value = 'Veuillez entrer le code de vérification'
+    return
+  }
+
   loading.value = true
   try {
+    const config = useRuntimeConfig()
     const userId = getUserId()
-    const response = await fetch('http://localhost:8888/api/auth/2fa/enable', {
+    
+    const response = await fetch(`${config.public.apiBase}/auth/2fa/enable`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -401,8 +409,9 @@ const enable2FA = async () => {
 const disableTwoFactor = async () => {
   loading.value = true
   try {
+    const config = useRuntimeConfig()
     const userId = getUserId()
-    const response = await fetch('http://localhost:8888/api/auth/2fa/disable', {
+    const response = await fetch(`${config.public.apiBase}/auth/2fa/disable`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -444,8 +453,9 @@ const disableTwoFactor = async () => {
 const generateBackupCodes = async () => {
   loading.value = true
   try {
+    const config = useRuntimeConfig()
     const userId = getUserId()
-    const response = await fetch('http://localhost:8888/api/auth/2fa/backup-codes', {
+    const response = await fetch(`${config.public.apiBase}/auth/2fa/backup-codes`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

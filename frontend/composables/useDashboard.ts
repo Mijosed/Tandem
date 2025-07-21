@@ -78,7 +78,7 @@ export const useDashboard = () => {
       const userId = userData.id || 4
       
       const token = localStorage.getItem('jwt')
-      const response = await fetch(`http://localhost:8888/api/candidatures/user/${userId}`, {
+      const response = await fetch(`${config.public.apiBase}/candidatures/user/${userId}`, {
         headers: {
           'Authorization': token ? `Bearer ${token}` : '',
           'Content-Type': 'application/json',
@@ -111,7 +111,7 @@ export const useDashboard = () => {
   const fetchNotifications = async () => {
     try {
       const token = localStorage.getItem('jwt')
-      const response = await fetch(`http://localhost:8888/api/notifications`, {
+      const response = await fetch(`${config.public.apiBase}/notifications`, {
         headers: {
           'Authorization': token ? `Bearer ${token}` : '',
           'Content-Type': 'application/json',
@@ -135,7 +135,7 @@ export const useDashboard = () => {
   const fetchJobs = async () => {
     try {
       const token = localStorage.getItem('jwt')
-      const response = await fetch(`http://localhost:8888/api/jobs`, {
+      const response = await fetch(`${config.public.apiBase}/jobs`, {
         headers: {
           'Authorization': token ? `Bearer ${token}` : '',
           'Content-Type': 'application/json',

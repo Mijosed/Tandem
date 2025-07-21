@@ -60,7 +60,7 @@ class NotificationEmailService
         return $this->twig->render('emails/notification.html.twig', [
             'notification' => $notification,
             'user' => $user,
-            'frontendUrl' => $_ENV['FRONTEND_URL'] ?? 'http://localhost:3000'
+            'frontendUrl' => $_ENV['FRONTEND_URL'] ?? 'http://tandems.social'
         ]);
     }
 }

@@ -147,7 +147,8 @@ const login = async () => {
   
   try {
     // Faire l'appel API de connexion
-    const response = await fetch('http://localhost:8888/api/auth/login', {
+    const config = useRuntimeConfig()
+    const response = await fetch(`${config.public.apiBase}/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

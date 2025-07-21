@@ -21,7 +21,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       // 🔽 Ajout pour que Nuxt parle au backend Symfony
-      apiBase: process.env.API_BASE || "http://localhost:8888",
+      apiBase: process.env.API_BASE || "https://api.tandems.social/api",
       stripe: {
         publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
       },

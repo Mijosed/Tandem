@@ -19,6 +19,9 @@ const transformApplicationFromAPI = (apiApplication: any): Application => {
 }
 
 export const useApplications = () => {
+  const config = useRuntimeConfig()
+  const apiBase = config.public.apiBase
+  
   const getJwtHeaders = () => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
     return token ? { Authorization: `Bearer ${token}` } : {}
@@ -26,8 +29,6 @@ export const useApplications = () => {
   const applications = ref<Application[]>([])
   const loading = ref(false)
   const error = ref('')
-
-  const apiBase = 'http://localhost:8888/api'
 
   const fetchApplications = async () => {
     loading.value = true

@@ -182,8 +182,9 @@ const handleSaveToApplications = async (job) => {
       user: `/api/users/${userId}`
     }
     
+    const config = useRuntimeConfig()
     const token = localStorage.getItem('jwt')
-    const response = await fetch('http://localhost:8888/api/candidatures', {
+    const response = await fetch(`${config.public.apiBase}/candidatures`, {
       method: 'POST',
       headers: {
         'Authorization': token ? `Bearer ${token}` : '',
@@ -228,8 +229,9 @@ const checkExistingCandidatures = async (jobIds) => {
       return
     }
     
+    const config = useRuntimeConfig()
     const token = localStorage.getItem('jwt')
-    const response = await fetch(`http://localhost:8888/api/candidatures/user/${userId}`, {
+    const response = await fetch(`${config.public.apiBase}/candidatures/user/${userId}`, {
       headers: {
         'Authorization': token ? `Bearer ${token}` : '',
         'Content-Type': 'application/json',
@@ -285,8 +287,9 @@ const loadJobs = async (page = 1, filters = {}) => {
       ...filters
     })
     
+    const config = useRuntimeConfig()
     const token = localStorage.getItem('jwt')
-    const response = await fetch(`http://localhost:8888/api/pole-emploi/search?${params}`, {
+    const response = await fetch(`${config.public.apiBase}/pole-emploi/search?${params}`, {
       headers: {
         'Authorization': token ? `Bearer ${token}` : '',
         'X-User-ID': userId.toString(),
@@ -353,8 +356,9 @@ const refreshUserStatus = async () => {
     if (!userId) return
     
     // Récupérer le statut d'abonnement à jour
+    const config = useRuntimeConfig()
     const token = localStorage.getItem('jwt')
-    const response = await fetch(`http://localhost:8888/api/stripe/subscription-status/${userId}`, {
+    const response = await fetch(`${config.public.apiBase}/stripe/subscription-status/${userId}`, {
       headers: {
         'Authorization': token ? `Bearer ${token}` : '',
         'Content-Type': 'application/json',

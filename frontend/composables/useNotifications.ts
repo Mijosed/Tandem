@@ -39,7 +39,8 @@ export const useNotifications = () => {
   const error = ref('')
 
   const { currentUser } = useAuth()
-  const apiBase = 'http://localhost:8888/api'
+  const config = useRuntimeConfig()
+  const apiBase = config.public.apiBase
 
   const fetchNotifications = async () => {
     loading.value = true
