@@ -79,12 +79,8 @@ services:
         context: ./frontend
         dockerfile: Dockerfile
       container_name: nuxt
-      volumes:
-        - ./frontend:/app
-        - /app/node_modules
       environment:
         - NODE_ENV=production
-      command: "node .output/server/index.mjs"
       networks:
         - tandem-network
       labels:
@@ -95,6 +91,7 @@ services:
         - "traefik.http.services.nuxt.loadbalancer.server.port=3000"
       env_file:
         - ./frontend/.env
+
 
 
   adminer:

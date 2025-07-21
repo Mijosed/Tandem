@@ -1,27 +1,25 @@
-FROM node:22-slim
+# Étape 1 : build
+FROM node:22-slim as builder
 
-# Définir le répertoire de travail
 WORKDIR /app
 
-# Installer les dépendances système
-RUN apt-get update && apt-get install -y \
-  python3 \
-  make \
-  g++ \
-  && rm -rf /var/lib/apt/lists/*
+# Dépendances système (si nécessaires)
+RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 
-# Copier les fichiers de dépendances et installer
-COPY package*.json ./
-RUN npm install
-
-# Copier le reste du code
 COPY . .
 
-# Construire l'application Nuxt
+RUN npm install
 RUN npm run build
 
-# Exposer le port utilisé par Nuxt en prod
+# Étape 2 : production (image finale)
+FROM node:22-slim
+
+WORKDIR /app
+
+COPY --from=builder /app/.output .output
+COPY --from=builder /app/node_modules node_modules
+COPY --from=builder /app/package.json .
+
 EXPOSE 3000
 
-# Lancer le serveur Nuxt en mode production
-CMD ["npm", "run", "start"]
+CMD ["node", ".output/server/index.mjs"]
