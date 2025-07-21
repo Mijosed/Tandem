@@ -1,5 +1,4 @@
 services:
-  services:
   traefik:
     image: traefik:v2.11
     container_name: traefik
@@ -92,8 +91,6 @@ services:
       - "traefik.http.services.nuxt.loadbalancer.server.port=3000"
     env_file:
       - ./frontend/.env
-
-
 
   adminer:
     image: adminer:latest
