@@ -11,14 +11,12 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--api.dashboard=true"
-
-
     ports:
       - "80:80"
       - "443:443"
     volumes:
+      - /etc/letsencrypt/live/tandems.social:/certs:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./letsencrypt:/letsencrypt
     networks:
       - tandem-network
 
