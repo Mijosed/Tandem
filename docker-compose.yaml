@@ -4,10 +4,13 @@ services:
     container_name: traefik
     command:
       - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
       - "--entrypoints.websecure.address=:443"
-      - "--entrypoints.websecure.tls=true"
-      - "--entrypoints.websecure.tls.certificates[0].certFile=/certs/fullchain1.pem"
-      - "--entrypoints.websecure.tls.certificates[0].keyFile=/certs/privkey1.pem"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.myresolver.acme.email=admin@tandems.social"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--api.dashboard=true"
@@ -15,17 +18,15 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - /etc/letsencrypt/archive/tandems.social:/certs:ro
+      - ./letsencrypt:/letsencrypt
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - tandem-network
-
-
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.traefik.rule=Host(`traefik.tandems.social`)"
       - "traefik.http.routers.traefik.entrypoints=websecure"
-      - "traefik.http.routers.traefik.tls=true"
+      - "traefik.http.routers.traefik.tls.certresolver=myresolver"
       - "traefik.http.routers.traefik.service=api@internal"
 
   database:
@@ -79,7 +80,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.api.rule=Host(`api.tandems.social`)"
       - "traefik.http.routers.api.entrypoints=websecure"
-      - "traefik.http.routers.api.tls=true"
+      - "traefik.http.routers.api.tls.certresolver=myresolver"
       - "traefik.http.services.api.loadbalancer.server.port=80"
 
   nuxt:
@@ -95,7 +96,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.nuxt.rule=Host(`tandems.social`) || Host(`www.tandems.social`)"
       - "traefik.http.routers.nuxt.entrypoints=websecure"
-      - "traefik.http.routers.nuxt.tls=true"
+      - "traefik.http.routers.nuxt.tls.certresolver=myresolver"
       - "traefik.http.services.nuxt.loadbalancer.server.port=3000"
     env_file:
       - ./frontend/.env
@@ -118,7 +119,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.admin.rule=Host(`admin.tandems.social`)"
       - "traefik.http.routers.admin.entrypoints=websecure"
-      - "traefik.http.routers.admin.tls=true"
+      - "traefik.http.routers.admin.tls.certresolver=myresolver"
       - "traefik.http.services.admin.loadbalancer.server.port=80"
 
   mailhog:
@@ -130,7 +131,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.mail.rule=Host(`mail.tandems.social`)"
       - "traefik.http.routers.mail.entrypoints=websecure"
-      - "traefik.http.routers.mail.tls=true"
+      - "traefik.http.routers.mail.tls.certresolver=myresolver"
       - "traefik.http.services.mail.loadbalancer.server.port=8025"
 
 volumes:
