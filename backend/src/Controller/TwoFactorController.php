@@ -32,16 +32,10 @@ class TwoFactorController extends AbstractController
     #[Route('/setup', name: 'setup', methods: ['POST'])]
     public function setup(Request $request): JsonResponse
     {
-        // Récupérer l'utilisateur depuis le header X-User-ID (temporaire)
-        $userId = $request->headers->get('X-User-ID');
-        
-        if (!$userId) {
-            return new JsonResponse(['error' => 'User ID required'], 400);
-        }
-
-        $user = $this->userRepository->find($userId);
+        // Récupérer l'utilisateur depuis le JWT Bearer token
+        $user = $this->getUserFromToken($request);
         if (!$user) {
-            return new JsonResponse(['error' => 'User not found'], 404);
+            return new JsonResponse(['error' => 'Authentication required'], 401);
         }
 
         // Vérifier le mot de passe pour des raisons de sécurité
@@ -55,19 +49,15 @@ class TwoFactorController extends AbstractController
         }
 
         try {
-            // Générer une nouvelle clé secrète si elle n'existe pas encore
             $secret = $user->getTwoFactorSecret() ?: $this->totpService->generateSecret();
             $user->setTwoFactorSecret($secret);
 
-            // Générer l'URL TOTP pour Google Authenticator
             $issuer = 'Tandem App';
             $accountName = $user->getEmail();
             $otpUrl = $this->totpService->getQrCodeUrl($secret, $issuer, $accountName);
 
-            // Générer le QR code
             $qrCodeUrl = $this->qrCodeService->getQrCodeUrl($otpUrl, 200);
 
-            // Générer des codes de récupération
             $backupCodes = $user->generateBackupCodes();
 
             $this->entityManager->persist($user);
@@ -95,15 +85,9 @@ class TwoFactorController extends AbstractController
     #[Route('/enable', name: 'enable', methods: ['POST'])]
     public function enable(Request $request): JsonResponse
     {
-        $userId = $request->headers->get('X-User-ID');
-        
-        if (!$userId) {
-            return new JsonResponse(['error' => 'User ID required'], 400);
-        }
-
-        $user = $this->userRepository->find($userId);
+        $user = $this->getUserFromToken($request);
         if (!$user) {
-            return new JsonResponse(['error' => 'User not found'], 404);
+            return new JsonResponse(['error' => 'Authentication required'], 401);
         }
 
         $data = json_decode($request->getContent(), true);
@@ -117,12 +101,10 @@ class TwoFactorController extends AbstractController
         }
 
         try {
-            // Vérifier le code TOTP
             if (!$this->totpService->verifyCode($secret, $data['code'])) {
                 return new JsonResponse(['error' => 'Invalid TOTP code'], 400);
             }
 
-            // Activer le 2FA
             $user->setTwoFactorEnabled(true);
             $this->entityManager->persist($user);
             $this->entityManager->flush();
@@ -146,15 +128,9 @@ class TwoFactorController extends AbstractController
     #[Route('/disable', name: 'disable', methods: ['POST'])]
     public function disable(Request $request): JsonResponse
     {
-        $userId = $request->headers->get('X-User-ID');
-        
-        if (!$userId) {
-            return new JsonResponse(['error' => 'User ID required'], 400);
-        }
-
-        $user = $this->userRepository->find($userId);
+        $user = $this->getUserFromToken($request);
         if (!$user) {
-            return new JsonResponse(['error' => 'User not found'], 404);
+            return new JsonResponse(['error' => 'Authentication required'], 401);
         }
 
         $data = json_decode($request->getContent(), true);
@@ -182,6 +158,66 @@ class TwoFactorController extends AbstractController
         } catch (\Exception $e) {
             return new JsonResponse([
                 'error' => 'Failed to disable 2FA: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtient le statut du 2FA pour un utilisateur
+     */
+    #[Route('/status', name: 'status', methods: ['GET'])]
+    public function status(Request $request): JsonResponse
+    {
+        $user = $this->getUserFromToken($request);
+        if (!$user) {
+            return new JsonResponse(['error' => 'Authentication required'], 401);
+        }
+
+        return new JsonResponse([
+            'enabled' => $user->isTwoFactorEnabled(),
+            'hasSecret' => $user->getTwoFactorSecret() !== null,
+            'backupCodesCount' => count($user->getBackupCodes() ?? [])
+        ]);
+    }
+
+    /**
+     * Génère de nouveaux codes de récupération
+     */
+    #[Route('/backup-codes', name: 'backup_codes', methods: ['POST'])]
+    public function generateBackupCodes(Request $request): JsonResponse
+    {
+        $user = $this->getUserFromToken($request);
+        if (!$user) {
+            return new JsonResponse(['error' => 'Authentication required'], 401);
+        }
+
+        if (!$user->isTwoFactorEnabled()) {
+            return new JsonResponse(['error' => '2FA not enabled'], 400);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        if (!isset($data['password'])) {
+            return new JsonResponse(['error' => 'Password required'], 400);
+        }
+
+        if (!$this->passwordHasher->isPasswordValid($user, $data['password'])) {
+            return new JsonResponse(['error' => 'Invalid password'], 401);
+        }
+
+        try {
+            $backupCodes = $user->generateBackupCodes();
+            $this->entityManager->persist($user);
+            $this->entityManager->flush();
+
+            return new JsonResponse([
+                'success' => true,
+                'backupCodes' => $backupCodes,
+                'message' => 'New backup codes generated'
+            ]);
+
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'error' => 'Failed to generate backup codes: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -266,74 +302,22 @@ class TwoFactorController extends AbstractController
     }
 
     /**
-     * Obtient le statut du 2FA pour un utilisateur
+     * Récupère l'utilisateur depuis le token JWT
      */
-    #[Route('/status', name: 'status', methods: ['GET'])]
-    public function status(Request $request): JsonResponse
+    private function getUserFromToken(Request $request): ?User
     {
-        $userId = $request->headers->get('X-User-ID');
+        $authHeader = $request->headers->get('Authorization');
+        if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
+            return null;
+        }
+
+        $jwt = substr($authHeader, 7); // Retire 'Bearer '
+        $payload = $this->jwtService->verify($jwt);
         
-        if (!$userId) {
-            return new JsonResponse(['error' => 'User ID required'], 400);
+        if (!$payload || !isset($payload['sub'])) {
+            return null;
         }
 
-        $user = $this->userRepository->find($userId);
-        if (!$user) {
-            return new JsonResponse(['error' => 'User not found'], 404);
-        }
-
-        return new JsonResponse([
-            'enabled' => $user->isTwoFactorEnabled(),
-            'hasSecret' => $user->getTwoFactorSecret() !== null,
-            'backupCodesCount' => count($user->getBackupCodes() ?? [])
-        ]);
+        return $this->userRepository->find($payload['sub']);
     }
-
-    /**
-     * Génère de nouveaux codes de récupération
-     */
-    #[Route('/backup-codes', name: 'backup_codes', methods: ['POST'])]
-    public function generateBackupCodes(Request $request): JsonResponse
-    {
-        $userId = $request->headers->get('X-User-ID');
-        
-        if (!$userId) {
-            return new JsonResponse(['error' => 'User ID required'], 400);
-        }
-
-        $user = $this->userRepository->find($userId);
-        if (!$user) {
-            return new JsonResponse(['error' => 'User not found'], 404);
-        }
-
-        if (!$user->isTwoFactorEnabled()) {
-            return new JsonResponse(['error' => '2FA not enabled'], 400);
-        }
-
-        $data = json_decode($request->getContent(), true);
-        if (!isset($data['password'])) {
-            return new JsonResponse(['error' => 'Password required'], 400);
-        }
-
-        if (!$this->passwordHasher->isPasswordValid($user, $data['password'])) {
-            return new JsonResponse(['error' => 'Invalid password'], 401);
-        }
-
-        try {
-            $backupCodes = $user->generateBackupCodes();
-            $this->entityManager->persist($user);
-            $this->entityManager->flush();
-
-            return new JsonResponse([
-                'success' => true,
-                'backupCodes' => $backupCodes,
-                'message' => 'New backup codes generated'
-            ]);
-
-        } catch (\Exception $e) {
-            return new JsonResponse([
-                'error' => 'Failed to generate backup codes: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-} 
+}

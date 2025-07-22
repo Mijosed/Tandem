@@ -276,12 +276,12 @@ const canProceed = computed(() => {
 // Méthodes
 const fetchTwoFactorStatus = async () => {
   try {
-    const userId = getUserId()
-    if (!userId) return
+    const token = getJwtToken()
+    if (!token) return
     const config = useRuntimeConfig()
     const response = await fetch(`${config.public.apiBase}/api/auth/2fa/status`, {
       headers: {
-        'X-User-ID': userId.toString()
+        'Authorization': `Bearer ${token}`
       }
     })
 
@@ -321,12 +321,12 @@ const initiate2FASetup = async () => {
   loading.value = true
   try {
     const config = useRuntimeConfig()
-    const userId = getUserId()
+    const token = getJwtToken()
     const response = await fetch(`${config.public.apiBase}/api/auth/2fa/setup`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-User-ID': userId.toString()
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
         password: setupForm.value.password
@@ -359,21 +359,16 @@ const initiate2FASetup = async () => {
 }
 
 const enable2FA = async () => {
-  if (!verificationCode.value.trim()) {
-    errorMessage.value = 'Veuillez entrer le code de vérification'
-    return
-  }
-
   loading.value = true
   try {
     const config = useRuntimeConfig()
-    const userId = getUserId()
+    const token = getJwtToken()
     
     const response = await fetch(`${config.public.apiBase}/api/auth/2fa/enable`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-User-ID': userId.toString()
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
         code: setupForm.value.code
@@ -410,12 +405,12 @@ const disableTwoFactor = async () => {
   loading.value = true
   try {
     const config = useRuntimeConfig()
-    const userId = getUserId()
+    const token = getJwtToken()
     const response = await fetch(`${config.public.apiBase}/api/auth/2fa/disable`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-User-ID': userId.toString()
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
         password: disableForm.value.password
@@ -454,12 +449,12 @@ const generateBackupCodes = async () => {
   loading.value = true
   try {
     const config = useRuntimeConfig()
-    const userId = getUserId()
-    const response = await fetch(`${config.public.apiBase}/auth/2fa/backup-codes`, {
+    const token = getJwtToken()
+    const response = await fetch(`${config.public.apiBase}/api/auth/2fa/backup-codes`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-User-ID': userId.toString()
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
         password: prompt('Confirmez votre mot de passe:') || ''
@@ -488,6 +483,13 @@ const generateBackupCodes = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const getJwtToken = () => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('jwt')
+  }
+  return null
 }
 
 const getUserId = () => {
