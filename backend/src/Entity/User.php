@@ -119,6 +119,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->payments = new ArrayCollection();
         $this->createdAt = new \DateTime();
         $this->updatedAt = new \DateTime();
+        $this->twoFactorEnabled = false;
     }
 
     public function getId(): ?int
