@@ -1,0 +1,80 @@
+# Robots.txt pour Tandem - Plateforme de Mise en Relation Professionnelle
+# Site: https://tandems.social
+
+# Configuration pour tous les robots
+User-agent: *
+
+# Pages publiques autorisées (SEO)
+Allow: /
+Allow: /about
+Allow: /contact
+Allow: /pricing
+Allow: /premium
+Allow: /blog/
+Allow: /legal/
+Allow: /privacy
+Allow: /terms
+
+# Interdire l'accès aux zones privées et sensibles
+Disallow: /dashboard/
+Disallow: /admin/
+Disallow: /api/
+Disallow: /login
+Disallow: /register
+Disallow: /profile/
+Disallow: /settings/
+Disallow: /applications/
+Disallow: /candidatures/
+Disallow: /notifications/
+
+# Interdire l'accès aux fichiers techniques
+Disallow: /_nuxt/
+Disallow: /.nuxt/
+Disallow: /node_modules/
+Disallow: /dist/
+Disallow: /.git/
+Disallow: /docker/
+Disallow: /backend/
+
+# Interdire l'accès aux services tiers intégrés
+Disallow: /matomo/
+Disallow: /mail/
+
+# Fichiers et extensions à exclure
+Disallow: /*.json$
+Disallow: /*.log$
+Disallow: /*.env$
+Disallow: /*.config$
+
+# Configuration spéciale pour Google
+User-agent: Googlebot
+Allow: /
+Allow: /sitemap.xml
+Disallow: /dashboard/
+Disallow: /api/
+
+# Configuration pour les réseaux sociaux (OpenGraph, Twitter Cards)
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+# Interdire les scrapers agressifs et bots indésirables
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+# Sitemap automatique (généré avec npm run sitemap)
+Sitemap: https://tandems.social/sitemap.xml
+
+# Délai recommandé entre les requêtes (en secondes)
+Crawl-delay: 1
