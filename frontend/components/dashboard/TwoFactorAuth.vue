@@ -278,7 +278,7 @@ const fetchTwoFactorStatus = async () => {
   try {
     const userId = getUserId()
     if (!userId) return
-
+    const config = useRuntimeConfig()
     const response = await fetch(`${config.public.apiBase}/api/auth/2fa/status`, {
       headers: {
         'X-User-ID': userId.toString()
@@ -455,7 +455,7 @@ const generateBackupCodes = async () => {
   try {
     const config = useRuntimeConfig()
     const userId = getUserId()
-    const response = await fetch(`${config.public.apiBase}/api/auth/2fa/backup-codes`, {
+    const response = await fetch(`${config.public.apiBase}/auth/2fa/backup-codes`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

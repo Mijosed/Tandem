@@ -7,7 +7,9 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "sitemap": "node scripts/generate-sitemap.cjs",
+    "build:sitemap": "npm run sitemap && npm run build"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.17",
@@ -18,6 +20,7 @@
     "@nuxt/content": "^3.6.3",
     "@nuxt/icon": "^1.15.0",
     "@nuxt/image": "^1.9.0",
+    "@nuxtjs/robots": "^5.4.0",
     "@nuxtjs/tailwindcss": "^6.12.1",
     "@openmost/nuxt-matomo": "^2.0.2",
     "@pinia/nuxt": "^0.11.1",
@@ -39,6 +42,7 @@
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
+    "@nuxtjs/sitemap": "^7.4.3",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.6"
   }
