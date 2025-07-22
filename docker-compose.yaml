@@ -125,6 +125,7 @@ services:
       - MATOMO_DATABASE_DBNAME=matomo
       - MATOMO_ASSUME_SECURE_PROTOCOL=1
       - MATOMO_FORCE_SSL=1
+      - MATOMO_TRUSTED_HOSTS=tandems.social
     depends_on:
       - matomo-db
     volumes:
@@ -139,8 +140,10 @@ services:
       - "traefik.http.routers.matomo.priority=90"
       - "traefik.http.routers.matomo.middlewares=matomo-stripprefix,matomo-headers"
       - "traefik.http.middlewares.matomo-stripprefix.stripprefix.prefixes=/matomo"
+      - "traefik.http.middlewares.matomo-stripprefix.stripprefix.forceSlash=false"
       - "traefik.http.middlewares.matomo-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
       - "traefik.http.middlewares.matomo-headers.headers.customrequestheaders.X-Forwarded-Prefix=/matomo"
+      - "traefik.http.middlewares.matomo-headers.headers.customrequestheaders.X-Forwarded-Host=tandems.social"
       - "traefik.http.services.matomo.loadbalancer.server.port=80"
 
   mailhog:
