@@ -2,11 +2,27 @@
 
 ## Vue d'ensemble
 
-Le système de tracking Matomo a été intégré pour suivre les interactions des utilisateurs sur la page d'accueil de Tandem. Il permet de tracker les clics sur les boutons, la navigation et les actions CTA.
+Le système de tracking Matomo utilise le module officiel `@openmost/nuxt-matomo` pour suivre les interactions des utilisateurs sur la page d'accueil de Tandem. Il permet de tracker les clics sur les boutons, la navigation et les actions CTA.
+
+## Configuration
+
+### Variables d'environnement
+Créez un fichier `.env` avec :
+```env
+NUXT_PUBLIC_MATOMO_HOST=https://tandemssocial.matomo.cloud/
+NUXT_PUBLIC_MATOMO_CONTAINER_ID=1
+```
+
+### Configuration Nuxt
+Le module est configuré dans `nuxt.config.ts` avec :
+- Tracking automatique des pages vues
+- Debug activé en développement
+- Tracking des liens automatique
+- Pas de consentement requis (pour simplifier)
 
 ## Composable `useMatomo`
 
-Le composable `useMatomo` fournit plusieurs fonctions pour tracker différents types d'événements :
+Le composable utilise maintenant l'instance Matomo fournie par `@openmost/nuxt-matomo` via `useNuxtApp().$matomo`.
 
 ### Fonctions disponibles
 
@@ -31,6 +47,10 @@ Pour tracker la navigation entre les pages.
 Pour tracker les actions CTA (Call To Action).
 - `ctaName`: Nom du CTA
 - `location`: Localisation du CTA
+
+#### `trackPageView(customTitle?)`
+Pour tracker une page vue avec un titre personnalisé.
+- `customTitle`: Titre personnalisé (optionnel)
 
 ## Événements trackés actuellement
 
@@ -70,14 +90,18 @@ Pour tracker les actions CTA (Call To Action).
 
 ## Configuration technique
 
-### Plugin Matomo (`plugins/matomo.client.ts`)
-Initialise Matomo côté client et configure les paramètres par défaut.
+### Module @openmost/nuxt-matomo
+Le module gère automatiquement :
+- L'initialisation de Matomo
+- Le tracking des pages vues
+- La gestion SSR/hydratation
+- Le chargement asynchrone du script
 
-### Middleware global (`middleware/matomo.global.ts`)
-Track automatiquement les changements de page.
-
-### Composant de debug (`MatomoDebug.vue`)
+### Composant de debug (MatomoDebug.vue)
 Disponible en mode développement pour tester le tracking.
+- Bouton flottant en bas à droite (🐛)
+- Test d'événements
+- Affichage des informations Matomo dans la console
 
 ## Utilisation dans un nouveau composant
 
@@ -114,17 +138,27 @@ Catégorie: "Navigation" | Action: "Click" | Nom: "Header to About"
 
 ## Debug et test
 
-En mode développement, un bouton de debug apparaît en bas à droite permettant de :
+En mode développement, un bouton de debug (🐛) apparaît en bas à droite permettant de :
 - Tester l'envoi d'événements
-- Afficher la queue Matomo dans la console
+- Afficher les informations Matomo dans la console
 - Voir le dernier événement envoyé
+
+## Avantages du module @openmost/nuxt-matomo
+
+- ✅ Initialisation automatique de Matomo
+- ✅ Tracking automatique des pages vues
+- ✅ Gestion SSR/hydratation
+- ✅ TypeScript support
+- ✅ Configuration centralisée dans nuxt.config.ts
+- ✅ Pas de code manuel dans app.vue
+- ✅ Chargement optimisé et asynchrone
 
 ## Notes importantes
 
-1. Le tracking fonctionne uniquement côté client (navigateur)
-2. Les événements sont ajoutés à la queue Matomo même si le script n'est pas encore chargé
+1. Le module charge Matomo automatiquement côté client
+2. Les événements sont envoyés via l'API Matomo officielle
 3. En cas d'absence de Matomo, les fonctions ne génèrent pas d'erreur
-4. Le middleware global track automatiquement les changements de page
+4. Le tracking des pages est automatique (pas besoin de middleware)
 
 ## Prochaines étapes
 
@@ -132,3 +166,4 @@ Pour étendre le tracking à d'autres pages :
 1. Importer `useMatomo` dans le composant
 2. Ajouter les handlers d'événements appropriés
 3. Utiliser la nomenclature établie pour la cohérence
+4. Tester avec le composant MatomoDebug en développement

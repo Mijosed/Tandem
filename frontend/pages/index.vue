@@ -8,8 +8,6 @@
     <TestimonialsSection />
     <FAQSection />
     <FooterSection />
-    <!-- Debug component for development -->
-    <MatomoDebug v-if="isDev" />
   </div>
 </template>
 
@@ -22,7 +20,6 @@
   import FooterSection from '~/components/sections/FooterSection.vue';
   import JoinSection from '~/components/sections/JoinSection.vue';
   import AppHeader from '~/components/sections/AppHeader.vue';
-  import MatomoDebug from '~/components/MatomoDebug.vue';
 
   const isDev = process.dev;
 </script>

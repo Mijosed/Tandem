@@ -1,45 +1,51 @@
-<!-- Composant de test pour vérifier le tracking Matomo -->
+<!-- Composant de test pour vérifier le tracking Matomo avec @openmost/nuxt-matomo -->
 <template>
-  <div class="fixed bottom-4 right-4 bg-white p-4 border rounded-lg shadow-lg z-50" v-if="showDebug">
-    <h4 class="font-bold mb-2">Matomo Debug</h4>
-    <div class="space-y-2 text-sm">
-      <button 
-        @click="testEvent" 
-        class="block w-full bg-blue-500 text-white px-3 py-1 rounded"
-      >
-        Test Event
-      </button>
-      <button 
-        @click="showQueue" 
-        class="block w-full bg-green-500 text-white px-3 py-1 rounded"
-      >
-        Show Queue
-      </button>
-      <button 
-        @click="toggleDebug" 
-        class="block w-full bg-red-500 text-white px-3 py-1 rounded"
-      >
-        Hide Debug
-      </button>
+  <div v-if="isDev" class="fixed bottom-4 right-4 z-50">
+    <div v-if="showDebug" class="bg-black text-white p-4 rounded-lg shadow-lg max-w-sm">
+      <h3 class="font-bold mb-2">Matomo Debug</h3>
+      <div class="space-y-2 text-xs">
+        <button 
+          @click="testEvent" 
+          class="bg-blue-500 hover:bg-blue-600 px-2 py-1 rounded text-white block w-full"
+        >
+          Test Event
+        </button>
+        <button 
+          @click="showMatomoInfo" 
+          class="bg-green-500 hover:bg-green-600 px-2 py-1 rounded text-white block w-full"
+        >
+          Show Matomo Info
+        </button>
+        <button 
+          @click="toggleDebug" 
+          class="bg-red-500 hover:bg-red-600 px-2 py-1 rounded text-white block w-full"
+        >
+          Hide Debug
+        </button>
+        <div v-if="lastEvent" class="mt-2 p-2 bg-gray-800 rounded">
+          <strong>Dernier événement:</strong><br>
+          {{ lastEvent }}
+        </div>
+      </div>
     </div>
-    <div v-if="lastEvent" class="mt-2 p-2 bg-gray-100 rounded text-xs">
-      Last: {{ lastEvent }}
-    </div>
+    <button 
+      v-else
+      @click="toggleDebug"
+      class="bg-blue-500 text-white p-2 rounded-full shadow-lg"
+      title="Debug Matomo"
+    >
+      🐛
+    </button>
   </div>
-  <button 
-    v-else
-    @click="toggleDebug"
-    class="fixed bottom-4 right-4 bg-blue-500 text-white p-2 rounded-full shadow-lg z-50"
-  >
-    🐛
-  </button>
 </template>
 
 <script setup>
-import { ref } from 'vue'
 import { useMatomo } from '@/composables/useMatomo'
 
+const isDev = process.env.NODE_ENV === 'development'
 const { trackEvent } = useMatomo()
+const { $matomo } = useNuxtApp()
+
 const showDebug = ref(false)
 const lastEvent = ref('')
 
@@ -48,20 +54,26 @@ const toggleDebug = () => {
 }
 
 const testEvent = () => {
-  const timestamp = new Date().toLocaleTimeString()
-  trackEvent('Debug', 'Test', `Test at ${timestamp}`)
-  lastEvent.value = `Debug > Test > Test at ${timestamp}`
-}
-
-const showQueue = () => {
-  if (typeof window !== 'undefined' && window._paq) {
-    console.log('Matomo Queue:', window._paq)
-    lastEvent.value = 'Queue logged to console'
-  } else {
-    lastEvent.value = 'Matomo not found'
+  const testData = {
+    category: 'Debug',
+    action: 'Test',
+    name: 'Debug Button Test',
+    value: Date.now()
   }
+  
+  trackEvent(testData.category, testData.action, testData.name, testData.value)
+  lastEvent.value = `${testData.category} | ${testData.action} | ${testData.name}`
+  
+  console.log('✅ Test event sent:', testData)
 }
 
-// N'afficher qu'en développement
-const isDev = process.dev
+const showMatomoInfo = () => {
+  console.log('📊 Matomo instance:', $matomo)
+  if ($matomo) {
+    console.log('📊 Matomo methods available:', Object.keys($matomo))
+  } else {
+    console.log('❌ Matomo not loaded yet')
+  }
+  lastEvent.value = 'Check console for Matomo info'
+}
 </script>

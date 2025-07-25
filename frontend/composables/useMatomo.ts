@@ -1,7 +1,9 @@
 /**
- * Composable pour gérer le tracking Matomo
+ * Composable pour gérer le tracking Matomo avec @openmost/nuxt-matomo
  */
 export const useMatomo = () => {
+  const { $matomo } = useNuxtApp()
+
   /**
    * Fonction pour tracker un événement
    * @param category Catégorie de l'événement (ex: 'Navigation', 'CTA', 'Form')
@@ -10,14 +12,10 @@ export const useMatomo = () => {
    * @param value Valeur optionnelle (nombre)
    */
   const trackEvent = (category: string, action: string, name?: string, value?: number) => {
-    if (typeof window !== 'undefined' && window._paq) {
-      const eventData: (string | number)[] = ['trackEvent', category, action];
-      if (name) eventData.push(name);
-      if (value !== undefined) eventData.push(value);
-      
-      window._paq.push(eventData);
+    if ($matomo && typeof ($matomo as any).trackEvent === 'function') {
+      ($matomo as any).trackEvent(category, action, name, value)
     }
-  };
+  }
 
   /**
    * Fonction pour tracker un clic sur un bouton
@@ -25,8 +23,8 @@ export const useMatomo = () => {
    * @param location Localisation du bouton (ex: 'Header', 'Hero', 'Footer')
    */
   const trackButtonClick = (buttonName: string, location: string = 'Unknown') => {
-    trackEvent('Button Click', 'Click', `${buttonName} - ${location}`);
-  };
+    trackEvent('Button Click', 'Click', `${buttonName} - ${location}`)
+  }
 
   /**
    * Fonction pour tracker une navigation
@@ -34,8 +32,8 @@ export const useMatomo = () => {
    * @param source Source de la navigation
    */
   const trackNavigation = (destination: string, source: string = 'Unknown') => {
-    trackEvent('Navigation', 'Click', `${source} to ${destination}`);
-  };
+    trackEvent('Navigation', 'Click', `${source} to ${destination}`)
+  }
 
   /**
    * Fonction pour tracker une action CTA (Call To Action)
@@ -43,20 +41,24 @@ export const useMatomo = () => {
    * @param location Localisation du CTA
    */
   const trackCTA = (ctaName: string, location: string = 'Unknown') => {
-    trackEvent('CTA', 'Click', `${ctaName} - ${location}`);
-  };
+    trackEvent('CTA', 'Click', `${ctaName} - ${location}`)
+  }
+
+  /**
+   * Fonction pour tracker une page vue personnalisée
+   * @param customTitle Titre personnalisé de la page
+   */
+  const trackPageView = (customTitle?: string) => {
+    if ($matomo && typeof ($matomo as any).trackPageView === 'function') {
+      ($matomo as any).trackPageView(customTitle)
+    }
+  }
 
   return {
     trackEvent,
     trackButtonClick,
     trackNavigation,
-    trackCTA
-  };
-};
-
-// Déclaration TypeScript pour window._paq
-declare global {
-  interface Window {
-    _paq: (string | number)[][];
+    trackCTA,
+    trackPageView
   }
 }
