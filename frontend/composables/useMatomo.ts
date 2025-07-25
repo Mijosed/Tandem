@@ -1,9 +1,7 @@
 /**
- * Composable pour gérer le tracking Matomo avec @openmost/nuxt-matomo
+ * Composable pour gérer le tracking Matomo (approche manuelle)
  */
 export const useMatomo = () => {
-  const { $matomo } = useNuxtApp()
-
   /**
    * Fonction pour tracker un événement
    * @param category Catégorie de l'événement (ex: 'Navigation', 'CTA', 'Form')
@@ -12,12 +10,16 @@ export const useMatomo = () => {
    * @param value Valeur optionnelle (nombre)
    */
   const trackEvent = (category: string, action: string, name?: string, value?: number) => {
-    try {
-      if ($matomo && typeof ($matomo as any).trackEvent === 'function') {
-        ($matomo as any).trackEvent(category, action, name, value)
+    if (typeof window !== 'undefined' && window._paq) {
+      try {
+        const eventData: (string | number)[] = ['trackEvent', category, action];
+        if (name) eventData.push(name);
+        if (value !== undefined) eventData.push(value);
+        
+        window._paq.push(eventData);
+      } catch (error) {
+        console.warn('Erreur tracking Matomo:', error);
       }
-    } catch (error) {
-      console.warn('Erreur tracking Matomo:', error)
     }
   }
 
@@ -53,12 +55,15 @@ export const useMatomo = () => {
    * @param customTitle Titre personnalisé de la page
    */
   const trackPageView = (customTitle?: string) => {
-    try {
-      if ($matomo && typeof ($matomo as any).trackPageView === 'function') {
-        ($matomo as any).trackPageView(customTitle)
+    if (typeof window !== 'undefined' && window._paq) {
+      try {
+        if (customTitle) {
+          window._paq.push(['setDocumentTitle', customTitle]);
+        }
+        window._paq.push(['trackPageView']);
+      } catch (error) {
+        console.warn('Erreur tracking page view Matomo:', error);
       }
-    } catch (error) {
-      console.warn('Erreur tracking page view Matomo:', error)
     }
   }
 
@@ -68,5 +73,12 @@ export const useMatomo = () => {
     trackNavigation,
     trackCTA,
     trackPageView
+  }
+}
+
+// Déclaration TypeScript pour window._paq
+declare global {
+  interface Window {
+    _paq: (string | number)[][];
   }
 }

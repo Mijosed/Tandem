@@ -8,7 +8,7 @@ export default defineNuxtConfig({
     "@nuxtjs/tailwindcss",
     "shadcn-nuxt",
     "@nuxt/content",
-    "@openmost/nuxt-matomo",
+    // "@openmost/nuxt-matomo", // Désactivé temporairement
   ],
   css: ["~/assets/css/main.css"],
   build: {
@@ -18,18 +18,18 @@ export default defineNuxtConfig({
     host: "0.0.0.0",
     port: 3000,
   },
-  // ✅ Configuration Matomo avec @openmost/nuxt-matomo
-  matomo: {
-    host: "https://tandemssocial.matomo.cloud/",
-    siteId: 1,
-    enableLinkTracking: true,
-    trackPageView: true,
-    debug: false,
-    verbose: false,
-    cookies: true,
-    consentRequired: false,
-    doNotTrack: false,
-  },
+  // // ✅ Configuration Matomo avec @openmost/nuxt-matomo - Désactivé temporairement
+  // matomo: {
+  //   host: "https://tandemssocial.matomo.cloud/",
+  //   siteId: 1,
+  //   enableLinkTracking: true,
+  //   trackPageView: true,
+  //   debug: false,
+  //   verbose: false,
+  //   cookies: true,
+  //   consentRequired: false,
+  //   doNotTrack: false,
+  // },
   runtimeConfig: {
     public: {
       // 🔽 Ajout pour que Nuxt parle au backend Symfony
