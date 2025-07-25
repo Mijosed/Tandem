@@ -12,8 +12,12 @@ export const useMatomo = () => {
    * @param value Valeur optionnelle (nombre)
    */
   const trackEvent = (category: string, action: string, name?: string, value?: number) => {
-    if ($matomo && typeof ($matomo as any).trackEvent === 'function') {
-      ($matomo as any).trackEvent(category, action, name, value)
+    try {
+      if ($matomo && typeof ($matomo as any).trackEvent === 'function') {
+        ($matomo as any).trackEvent(category, action, name, value)
+      }
+    } catch (error) {
+      console.warn('Erreur tracking Matomo:', error)
     }
   }
 
@@ -49,8 +53,12 @@ export const useMatomo = () => {
    * @param customTitle Titre personnalisé de la page
    */
   const trackPageView = (customTitle?: string) => {
-    if ($matomo && typeof ($matomo as any).trackPageView === 'function') {
-      ($matomo as any).trackPageView(customTitle)
+    try {
+      if ($matomo && typeof ($matomo as any).trackPageView === 'function') {
+        ($matomo as any).trackPageView(customTitle)
+      }
+    } catch (error) {
+      console.warn('Erreur tracking page view Matomo:', error)
     }
   }
 

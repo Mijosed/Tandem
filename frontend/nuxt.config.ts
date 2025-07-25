@@ -20,12 +20,12 @@ export default defineNuxtConfig({
   },
   // ✅ Configuration Matomo avec @openmost/nuxt-matomo
   matomo: {
-    host: process.env.NUXT_PUBLIC_MATOMO_HOST || "https://tandemssocial.matomo.cloud/",
-    siteId: parseInt(process.env.NUXT_PUBLIC_MATOMO_CONTAINER_ID || "1"),
+    host: "https://tandemssocial.matomo.cloud/",
+    siteId: 1,
     enableLinkTracking: true,
     trackPageView: true,
-    debug: process.env.NODE_ENV === 'development',
-    verbose: process.env.NODE_ENV === 'development',
+    debug: false,
+    verbose: false,
     cookies: true,
     consentRequired: false,
     doNotTrack: false,
