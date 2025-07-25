@@ -6,15 +6,15 @@
         <p class="text-lg text-gray-600 mb-6" data-aos="fade-up">Avec Tandem, organisez vos candidatures sans stress.</p>
         <div class="flex justify-center gap-4" data-aos="zoom-in">
           <div v-if="isAuthenticated">
-            <NuxtLink to="/dashboard">
+            <NuxtLink to="/dashboard" @click="trackCTA('Access Dashboard', 'Hero')">
               <Button class="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700">Accéder au dashboard</Button>
             </NuxtLink>
           </div>
           <div v-else class="flex gap-4">
-            <NuxtLink to="/register">
+            <NuxtLink to="/register" @click="trackCTA('Start Free', 'Hero')">
               <Button class="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700">Commencer gratuitement</Button>
             </NuxtLink>
-            <NuxtLink to="/login">
+            <NuxtLink to="/login" @click="trackCTA('Login', 'Hero')">
               <Button variant="outline">Se connecter</Button>
             </NuxtLink>
           </div>
@@ -26,6 +26,8 @@
   <script setup>
   import { Button } from '@/components/ui/button'
   import { useAuth } from '@/composables/useAuth'
+  import { useMatomo } from '@/composables/useMatomo'
   
   const { isAuthenticated } = useAuth()
+  const { trackCTA } = useMatomo()
   </script>

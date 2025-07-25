@@ -12,7 +12,7 @@
             </CardDescription>
           </CardHeader>
           <CardFooter class="mt-auto">
-            <NuxtLink to="/register" class="w-full">
+            <NuxtLink to="/register" class="w-full" @click="trackCTA('Create Account', 'Join')">
               <Button class="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 w-full">Créer un compte</Button>
             </NuxtLink>
           </CardFooter>
@@ -28,7 +28,7 @@
             </CardDescription>
           </CardHeader>
           <CardFooter class="mt-auto">
-            <NuxtLink to="/login" class="w-full">
+            <NuxtLink to="/login" class="w-full" @click="trackCTA('Login Existing', 'Join')">
               <Button variant="outline" class="w-full">Se connecter</Button>
             </NuxtLink>
           </CardFooter>
@@ -47,4 +47,7 @@
   } from '@/components/ui/card'
   import { Button } from '@/components/ui/button'
   import { UserPlus, LogIn } from 'lucide-vue-next'
+  import { useMatomo } from '@/composables/useMatomo'
+
+  const { trackCTA } = useMatomo()
   </script>

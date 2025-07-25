@@ -13,18 +13,21 @@
         <NuxtLink
           to="/about"
           class="text-gray-700 hover:text-blue-600 transition-colors font-medium"
+          @click="trackNavigation('About', 'Header')"
         >
           À propos
         </NuxtLink>
         <NuxtLink
           to="/blog"
           class="text-gray-700 hover:text-blue-600 transition-colors font-medium"
+          @click="trackNavigation('Blog', 'Header')"
         >
           Blog
         </NuxtLink>
         <NuxtLink
           to="/contact"
           class="text-gray-700 hover:text-blue-600 transition-colors font-medium"
+          @click="trackNavigation('Contact', 'Header')"
         >
           Contact
         </NuxtLink>
@@ -33,15 +36,15 @@
       <div class="flex items-center justify-end gap-4">
         <template v-if="isAuthenticated">
           <span class="text-sm">Bonjour, {{ userFullName }}</span>
-          <NuxtLink to="/dashboard">
+          <NuxtLink to="/dashboard" @click="trackNavigation('Dashboard', 'Header')">
             <Button variant="default">Dashboard</Button>
           </NuxtLink>
         </template>
         <template v-else>
-          <NuxtLink to="/login">
+          <NuxtLink to="/login" @click="trackButtonClick('Login', 'Header')">
             <Button variant="outline">Connexion</Button>
           </NuxtLink>
-          <NuxtLink to="/register">
+          <NuxtLink to="/register" @click="trackButtonClick('Register', 'Header')">
             <Button
               class="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700"
               >Inscription</Button
@@ -56,6 +59,8 @@
 <script setup>
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/composables/useAuth";
+import { useMatomo } from "@/composables/useMatomo";
 
 const { isAuthenticated, userFullName } = useAuth();
+const { trackButtonClick, trackNavigation } = useMatomo();
 </script>
